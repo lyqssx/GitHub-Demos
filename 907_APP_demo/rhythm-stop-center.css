@@ -1,0 +1,25 @@
+/* Use geometry rather than a font glyph for the centered stop symbol. */
+#demo .ri-actions .ri-stop {
+  padding: 0;
+  line-height: 1;
+  align-items: center;
+  justify-items: center;
+}
+#demo .ri-actions .ri-stop > span {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+}
+#demo .ri-actions .ri-stop > span::before {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 3px;
+  background: currentColor;
+}
