@@ -2,7 +2,7 @@
   if (!document.querySelector('link[data-auto-switch-decoupled]')) {
     var styles = document.createElement('link');
     styles.rel = 'stylesheet';
-    styles.href = './auto-switch-decoupled.css?v=20260817-13';
+    styles.href = './auto-switch-decoupled.css?v=20260909-1';
     styles.setAttribute('data-auto-switch-decoupled', '');
     document.head.appendChild(styles);
   }
@@ -118,7 +118,9 @@
     if (!state.selectedProgram) {
       return stripEmbeddedSwitch(previousManualCard.apply(this, arguments)) + switchComponent();
     }
-    return stripEmbeddedSwitch(previousAutoCard.apply(this, arguments)) + switchComponent();
+    var programCard = typeof window.h7MilkBoostCard === 'function'
+      ? window.h7MilkBoostCard() : previousAutoCard.apply(this, arguments);
+    return stripEmbeddedSwitch(programCard) + switchComponent();
   };
 
   var previousView = window.v4View;

@@ -115,6 +115,12 @@
 
 #demo .r49-boost-card .r49-boost__phase { top: 55px !important; }
 #demo .r49-boost-card .r49-boost__program { top: 57px !important; }
+#demo .r49-boost-card[data-r49-boost-state="program"] {
+  border-color: rgba(161, 64, 82, .15) !important;
+  background: #fff0f1 !important;
+}
+#demo .r49-boost-card[data-r49-boost-state="program"]::before { background: none !important; }
+#demo .r49-boost-card[data-r49-boost-state="program"] > .r54-flow-field { display: none !important; }
 #demo .r49-boost-card.r55-program-flow .r49-boost__phase,
 #demo .v4-auto-card.r54-auto-card.r55-program-flow .r49-boost__phase { top: 55px !important; }
 #demo .r49-boost-card.r55-program-flow .r49-boost__program,
@@ -349,4 +355,10 @@
    releasing before it reaches the end cancels the finish action. */
 #demo .v4-finish.holding::after {
   animation-duration: 2s !important;
+}
+
+/* The running program keeps the Figma rhythm-card surface even when the
+   separate Auto Switch control is active. */
+#demo .v4-controls.auto-switch-ring-on > .r49-boost-card[data-r49-boost-state="program"] {
+  background: #fff0f1 !important;
 }

@@ -2,16 +2,31 @@
   var assetRoot = "./assets/figma-r49/";
   function getState() { return typeof state !== "undefined" ? state : {}; }
   function clock(seconds) { seconds = Math.max(0, Number(seconds) || 0); return String(Math.floor(seconds / 60)).padStart(2, "0") + ":" + String(Math.floor(seconds % 60)).padStart(2, "0"); }
-  function boostTime(s) { return s.running ? clock(s.timer) + " / 20:00" : "20:00"; }
+  function programTotal(s) { return s.programTotal || "20:00"; }
+  function boostTime(s) { return s.running ? clock(s.timer) + " / " + programTotal(s) : programTotal(s); }
+  function phaseKind(mode) {
+    if (mode === "stimulation" || mode === "expression" || mode === "rest" || mode === "mixed") return mode;
+    return "rest";
+  }
+  function programTimeline(s) {
+    var sequence = Array.isArray(s.rhythmSequence) && s.rhythmSequence.length
+      ? s.rhythmSequence : ["stimulation", "expression", "stimulation", "expression"];
+    var durations = Array.isArray(s.rhythmDurations) && s.rhythmDurations.length === sequence.length
+      ? s.rhythmDurations : (sequence.length === 4 ? [2, 8, 2, 8] : sequence.map(function () { return 1; }));
+    var activeIndex = Math.max(0, Math.min(sequence.length - 1, Number(s.rhythmIndex) || 0));
+    var segments = sequence.map(function (mode, index) {
+      var weight = Math.max(.01, Number(durations[index]) || 1);
+      return "<i class=\"r49-program-segment is-" + phaseKind(mode) + (index === activeIndex ? " is-current" : "") + "\" style=\"--phase-weight:" + weight + "\" data-phase-index=\"" + index + "\"></i>";
+    }).join("");
+    return "<div class=\"r49-boost__program\" role=\"img\" aria-label=\"Program timeline, phase " + (activeIndex + 1) + " of " + sequence.length + "\">" + segments + "</div>";
+  }
   function card() {
-    var s = getState(), expression = s.mode === "expression";
+    var s = getState();
     var autoControl = typeof v4Switch === "function" ? v4Switch() : "";
-    var layout = !s.auto ? "manual" : (expression ? "expression" : "stimulation");
-    var head = "<div class=\"r49-boost__header\"><span class=\"r49-boost__title\">Milk Boost</span><em class=\"r49-boost__timer\">" + boostTime(s) + "</em></div><button class=\"r49-boost__arrow\" data-v4=\"list\" aria-label=\"Open list\"><img src=\"./assets/figma-r106-arrow.svg\" alt=\"\"></button>";
+    var layout = s.selectedProgram ? "program" : "manual";
+    var head = "<div class=\"r49-boost__header\"><span class=\"r49-boost__title\">" + (s.selectedProgram || "Milk Boost") + "</span><em class=\"r49-boost__timer\">" + boostTime(s) + "</em></div><button class=\"r49-boost__arrow\" data-v4=\"list\" aria-label=\"Open list\"><img src=\"./assets/figma-r106-arrow.svg\" alt=\"\"></button>";
     var switcher = "<div class=\"r49-boost__switch\"><span>Auto Switch</span>" + autoControl + "</div>";
-    var body = layout === "manual"
-      ? "<div class=\"r49-boost__program\" aria-hidden=\"true\"><i></i><b></b></div>"
-      : "<p class=\"r49-boost__phase\">" + (layout === "expression" ? "Expression" : "Stimulation") + "</p>";
+    var body = programTimeline(s);
     return "<section class=\"r49-boost-card\" data-r49-boost-state=\"" + layout + "\">" + head + body + switcher + "</section>";
   }
   // v4AutoCard calls this hook at render time. Do not monkey-patch the base
@@ -35,10 +50,15 @@
    renderer has registered, so this layer remains the final authority. */
 (function(){
   var script=document.createElement('script');
-  script.src='./review-notes-813.js?v=r112';
+  script.src='./review-notes-813.js?v=r113';
   script.onload=function(){
     var decouple=document.createElement('script');
-    decouple.src='./auto-switch-decoupled.js?v=20260817-13';
+    decouple.src='./auto-switch-decoupled.js?v=20260909-1';
+    decouple.onload=function(){
+      var recording=document.createElement('script');
+      recording.src='./rhythm-recording-demo.js?v=10';
+      document.body.appendChild(recording);
+    };
     document.body.appendChild(decouple);
   };
   document.body.appendChild(script);
