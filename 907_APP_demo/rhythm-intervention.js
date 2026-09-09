@@ -3,6 +3,7 @@
   'use strict';
   const host = document.getElementById('demo');
   const nativeBars = new WeakMap();
+  let guideUntil = 0, wasRunning = false, previousProgram = null, confirmPending = false;
   let gesture = null, message = '', messageUntil = 0, finishingTimer = null;
   const sequence = () => state.rhythmSequence || ['stimulation', 'expression', 'stimulation', 'expression'];
   const index = () => Math.max(0, Math.min(sequence().length - 1, Number(state.rhythmIndex) || 0));
@@ -12,10 +13,14 @@
   window.addEventListener('click', function (e) {
     if (e.target.closest && e.target.closest('#demo [data-v4="confirm"],#demo [data-v4="start"]')) {
       state.rhythmIndex = 0; state.rhythmStageStartedAt = 0;
+      state.riInterventionCount = 0;
+      state.riConclusionLevel = null;
+      confirmPending = !!e.target.closest('[data-v4="confirm"]');
+      guideUntil = 0;
     }
   }, true);
   function guide() {
-    return '<div class="ri-guide"><span><i>← ' + hand + '</i><b>左滑</b><small>上一阶段</small></span><span><i>' + hand + '</i><b>点击</b><small>暂停</small></span><span><i>' + hand + ' →</i><b>右滑</b><small>下一阶段</small></span></div>';
+    return '<div class="ri-guide"><span><i>← ' + hand + '</i><b>Swipe left</b><small>Previous phase</small></span><span><i>' + hand + '</i><b>Tap</b><small>Pause</small></span><span><i>' + hand + ' →</i><b>Swipe right</b><small>Next phase</small></span></div>';
   }
   function stage(delta) {
     if (!active() || state.paused || blocked()) return;
@@ -34,14 +39,25 @@
     state.manualEndSuggestionShown = false;
     state.controlNotice = null;
     state.air2LastPhysicsAt = Date.now();
-    message = '已切换至第 ' + (next + 1) + ' / ' + sequence().length + ' 阶段';
+    state.riInterventionCount = (Number(state.riInterventionCount) || 0) + 1;
+    state.riLastInterventionDirection = delta > 0 ? 'next' : 'previous';
+    message = 'Moved to phase ' + (next + 1) + ' of ' + sequence().length;
     messageUntil = Date.now() + 1800;
     v4View(); sync();
   }
   function markup() {
-    return '<button type="button" class="ri-stop" data-ri="stop" aria-label="长按两秒结束吸奶"><span>■</span></button><button type="button" class="ri-slider" data-ri="slider" aria-label="点击暂停，左滑上一阶段，右滑下一阶段"><span class="ri-rail"></span><span class="ri-left">‹</span><span class="ri-knob">Ⅱ</span><span class="ri-right">›</span><span class="ri-continue">▶ Tap to continue</span></button><div class="ri-tip" role="status" hidden></div>';
+    return '<button type="button" class="ri-stop" data-ri="stop" aria-label="Hold for two seconds to finish pumping"><span>■</span></button><button type="button" class="ri-slider" data-ri="slider" aria-label="Tap to pause, swipe left for the previous phase, or swipe right for the next phase"><span class="ri-rail"></span><span class="ri-left">‹</span><span class="ri-knob">Ⅱ</span><span class="ri-right">›</span><span class="ri-continue">▶ Tap to continue</span></button><div class="ri-tip" role="status" hidden></div>';
   }
   function sync() {
+    const started = state.running && !wasRunning;
+    const programChanged = state.selectedProgram && state.selectedProgram !== previousProgram;
+    if (state.running && state.selectedProgram && !state.modal && (started || programChanged || confirmPending)) {
+      guideUntil = Date.now() + 3000; message = ""; messageUntil = 0;
+      confirmPending = false;
+    }
+    wasRunning = !!state.running;
+    previousProgram = state.selectedProgram;
+    if (!state.running || state.paused || blocked() || !state.selectedProgram) guideUntil = 0;
     const bar = host.querySelector('.v4-control .v4-actions');
     if (!active() || !bar) { if (gesture) { clearTimeout(finishingTimer); gesture = null; } if (bar && bar.classList.contains('ri-actions')) { bar.innerHTML = nativeBars.get(bar) || ''; bar.classList.remove('ri-actions'); } return; }
     if (!bar.classList.contains('ri-actions')) {
@@ -53,7 +69,7 @@
     slider.classList.toggle('ri-paused', !!state.paused);
     slider.disabled = blocked();
     bar.querySelector('.ri-stop').disabled = !!state.air2CriticalBatteryActive;
-    slider.setAttribute('aria-label', state.paused ? '点击继续' : '点击暂停，左滑上一阶段，右滑下一阶段');
+    slider.setAttribute('aria-label', state.paused ? 'Tap to continue' : 'Tap to pause, swipe left for the previous phase, or swipe right for the next phase');
     bar.querySelector('.ri-left').classList.toggle('ri-unavailable', index() === 0);
     bar.querySelector('.ri-right').classList.toggle('ri-unavailable', index() === sequence().length - 1);
     let text = '';
@@ -64,11 +80,12 @@
     } else if (gesture && !state.paused) {
       const dx = gesture.dx, bound = Math.max(0, slider.clientWidth / 2 - 33);
       bar.querySelector('.ri-knob').style.transform = 'translateX(' + Math.max(-bound, Math.min(bound, dx)) + 'px)';
-      text = !gesture.moved ? guide() : Math.abs(dx) < 48 ? '松开取消' : dx > 0 ? (index() === sequence().length - 1 ? '已是最后阶段' : '松开进入下一阶段 →') : (index() === 0 ? '已是第一阶段' : '← 松开回到上一阶段');
+      text = !gesture.moved ? '' : Math.abs(dx) < 48 ? 'Release to cancel' : dx > 0 ? (index() === sequence().length - 1 ? 'You are in the last phase' : 'Release for the next phase →') : (index() === 0 ? 'You are in the first phase' : '← Release for the previous phase');
     } else {
       bar.querySelector('.ri-knob').style.transform = '';
       bar.querySelector('.ri-stop').style.setProperty('--hold', 0);
       if (Date.now() < messageUntil) text = message;
+      else if (Date.now() < guideUntil && !state.paused && !blocked()) text = guide();
     }
     tip.classList.toggle('ri-stop-tip', !!(gesture && gesture.kind === 'stop') || text === 'Hold to finish');
     tip.hidden = !text;
@@ -79,7 +96,7 @@
     if (blocked()) return;
     state.paused = !state.paused;
     state.air2LastPhysicsAt = Date.now();
-    message = ''; messageUntil = 0;
+    message = ''; messageUntil = 0; guideUntil = 0;
     v4View(); sync();
   }
   function finish() {
@@ -87,6 +104,11 @@
     gesture = null; finishingTimer = null;
     state.air2SessionSummaryKind = state.microLeakDuringSession ? 'minor-leak' : 'stable';
     state.air2ShowSessionSummary = true;
+    state.riConclusionLevel = (Number(state.riInterventionCount) || 0) > 0 ? 'L1' : 'L0';
+    state.riConclusionSource = state.selectedProgram ? 'rhythm-record' : 'manual-record';
+    state.rrConclusionProgram = state.selectedProgram || null;
+    state.rrConclusionPhases = null;
+    state.rrConclusionDuration = '18:20';
     state.running = false; state.paused = false; state.modal = 'log';
     message = ''; v4View();
   }
@@ -97,7 +119,7 @@
     gesture = {kind: el.dataset.ri, id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, moved: false, paused: !!state.paused, at: Date.now()};
     // Capture on the stable root: existing demo renders replace buttons each second.
     try { host.setPointerCapture(e.pointerId); } catch (_) {}
-    messageUntil = 0;
+    messageUntil = 0; guideUntil = 0;
     if (gesture.kind === 'stop') finishingTimer = setTimeout(finish, 2000);
     sync();
   }, true);

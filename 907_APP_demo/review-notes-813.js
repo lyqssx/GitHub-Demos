@@ -375,7 +375,7 @@
   function controlSignature() {
     /* flowKind changes are paint-only. Including them here rebuilt both flow
        labels and restarted their entrance animation during ordinary ticks. */
-    return [state.page, state.modal || '', state.mode, !!state.auto, state.selectedProgram || '', !!state.running, !!state.paused, state.levelL, state.levelR, state.speed, state.controlNotice ? state.controlNotice.id : ''].join('|');
+    return [state.page, state.modal || '', state.mode, !!state.auto, state.selectedProgram || '', Number(state.rhythmIndex) || 0, !!state.running, !!state.paused, state.levelL, state.levelR, state.speed, state.controlNotice ? state.controlNotice.id : ''].join('|');
   }
   function updateRunningControl() {
     var host = document.querySelector('#demo .v4-control');

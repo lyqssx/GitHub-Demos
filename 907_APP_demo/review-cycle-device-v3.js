@@ -1,4 +1,4 @@
-/* The V2 device annotations were exported to 评审V2; begin this corrected pass cleanly. */
+/* The V2 device annotations were exported; begin this corrected pass cleanly. */
 (() => {
   const notesKey = 'air2-v2-review';
   const cycleKey = 'air2-review-cycle';

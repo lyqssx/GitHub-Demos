@@ -41,7 +41,7 @@
   var fitRender=window.v4Fit;
   window.v4Fit=function(){
     var html=fitRender();
-    if(!state.fitAdjust||state.fitStage>=3)html=html.replace(/<p class="v4-fit-copy">(?:Checking your fit…|Everything is ok!)<\\/p>/g,'<p class="v4-fit-copy"></p>');
+    if(!state.fitAdjust||state.fitStage>=3)html=html.replace(/<p class="v4-fit-copy">(?:Checking your fit…|Everything is ok!)<\/p>/g,'<p class="v4-fit-copy"></p>');
     return html;
   };
   var logRender=window.v4Log;

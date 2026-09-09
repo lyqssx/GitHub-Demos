@@ -1,4 +1,4 @@
-/* Round 2 implementation from demo评审json. The registry remains the source of truth. */
+/* Round 2 implementation from the demo review JSON. The registry remains the source of truth. */
 function r2Asset(name) { return `./assets/figma-review-r2/${name}`; }
 
 function r2IconStack(className, files) {
