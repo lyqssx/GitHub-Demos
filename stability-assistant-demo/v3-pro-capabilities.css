@@ -1,0 +1,25 @@
+/* V3 Pro does not support the sensor-led Auto Switch feature. */
+#demo .auto-switch-component,
+#demo .v4-auto-toggle,
+#demo .v4-auto-line,
+#demo .r43-boost-switch,
+#demo .r49-boost__switch {
+  display: none !important;
+}
+
+/* Collapse the space reserved for the detached Auto Switch component. */
+#demo .v4-controls > .auto-switch-component + .v4-levels {
+  margin-top: 16px !important;
+}
+
+/* The reviewer trigger must not cover Start Pumping / Hold to Finish. */
+.demo-trigger-root {
+  bottom: max(81px, env(safe-area-inset-bottom)) !important;
+}
+
+.demo-trigger-toggle {
+  min-width: 72px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  font-size: 11px !important;
+}
