@@ -1,0 +1,295 @@
+/* V3 Pro Stability Assistant: final override for the trigger-only leak flow. */
+#demo .sa-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+#demo .sa-layer {
+  position: absolute;
+  z-index: 1200;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+  color: #240f1b;
+}
+
+#demo .sa-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(35, 17, 27, .48);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+#demo .sa-sheet {
+  position: absolute;
+  right: 16px;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  left: 16px;
+  display: flex;
+  min-height: 390px;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 34px 24px 24px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fff4f5 0%, #fff 50%, #fff9ef 100%);
+  box-shadow: 0 22px 56px rgba(45, 19, 31, .28);
+  text-align: center;
+}
+
+#demo .sa-alert-icon,
+#demo .sa-check-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #9b1537;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 8px 20px rgba(124, 12, 48, .22);
+}
+
+#demo .sa-check-icon { background: #206c58; }
+
+#demo .sa-eyebrow {
+  margin: 18px 0 7px;
+  color: #9b1537;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+#demo .sa-sheet h2 {
+  max-width: 300px;
+  margin: 0;
+  font-family: Georgia, "Songti SC", serif;
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: 0;
+}
+
+#demo .sa-copy {
+  max-width: 306px;
+  margin: 14px 0 0;
+  color: rgba(36, 15, 27, .66);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+#demo .sa-actions {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 26px;
+}
+
+#demo .sa-primary,
+#demo .sa-secondary {
+  display: block;
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 26px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+#demo .sa-primary {
+  color: #fff;
+  background: linear-gradient(180deg, #8e002b, #b44e5d);
+  box-shadow: 0 9px 20px rgba(117, 0, 31, .18);
+}
+
+#demo .sa-secondary {
+  margin-top: 10px;
+  color: #582437;
+  background: rgba(93, 39, 57, .08);
+}
+
+#demo .sa-back {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #532235;
+  background: rgba(74, 35, 51, .07);
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#demo .sa-rechecking { justify-content: center; }
+
+#demo .sa-rechecking .sa-secondary {
+  margin-top: 30px;
+}
+
+#demo .sa-spinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(155, 21, 55, .15);
+  border-top-color: #9b1537;
+  border-radius: 50%;
+  animation: sa-spin .8s linear infinite;
+}
+
+/* The exported Figma frames match the 402 x 874 Demo canvas ratio. */
+#demo .sa-guide-layer {
+  background: #fbf8f8;
+  touch-action: pan-y;
+}
+
+#demo .sa-guide-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#demo .sa-guide-hit {
+  position: absolute;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
+}
+
+#demo .sa-guide-close {
+  top: max(45px, env(safe-area-inset-top));
+  left: 10px;
+  width: 58px;
+  height: 58px;
+}
+
+#demo .sa-guide-prev,
+#demo .sa-guide-next {
+  top: auto;
+  bottom: max(60px, env(safe-area-inset-bottom));
+  width: 84px;
+  height: 68px;
+  border-radius: 22px;
+}
+
+#demo .sa-guide-prev { left: 50px; }
+#demo .sa-guide-next { right: 50px; }
+#demo .sa-guide-prev:disabled { pointer-events: none; }
+
+
+#demo .sa-status {
+  position: absolute;
+  z-index: 90;
+  top: 118px;
+  right: 20px;
+  left: 20px;
+  display: grid;
+  min-height: 62px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid rgba(105, 35, 54, .12);
+  border-radius: 16px;
+  color: #4a2130;
+  background: rgba(255, 250, 248, .96);
+  box-shadow: 0 9px 24px rgba(64, 29, 42, .14);
+}
+
+#demo .sa-status-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #a8133e;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+#demo .sa-status > span:nth-child(2) {
+  min-width: 0;
+  text-align: left;
+}
+
+#demo .sa-status b,
+#demo .sa-status small { display: block; }
+#demo .sa-status b { font-size: 12px; line-height: 16px; }
+#demo .sa-status small { margin-top: 2px; color: rgba(74, 33, 48, .62); font-size: 10px; line-height: 13px; }
+
+#demo .sa-status button {
+  min-width: 48px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  color: #fff;
+  background: #8e002b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+#demo .sa-status-resolved .sa-status-icon,
+#demo .sa-status-resolved button { background: #206c58; }
+
+#demo .sa-major-summary {
+  margin: -28px 22px 14px;
+  padding: 13px 15px;
+  border: 1px solid rgba(153, 20, 57, .12);
+  border-radius: 14px;
+  color: #4a2130;
+  background: #fff7f7;
+  text-align: left;
+}
+
+#demo .sa-major-summary b { font-size: 13px; }
+#demo .sa-major-summary p { margin-top: 4px; max-width: none; color: rgba(74, 33, 48, .62); font-size: 11px; line-height: 16px; }
+#demo .air2-logged-done { margin-top: 0; }
+
+.sa-trigger-status {
+  min-height: 28px;
+  margin: 8px 4px 0;
+  color: rgba(63, 48, 50, .62);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+@keyframes sa-spin { to { transform: rotate(360deg); } }
+
+@media (max-height: 720px) {
+  #demo .sa-sheet { min-height: 350px; padding-top: 26px; }
+  #demo .sa-sheet h2 { font-size: 22px; line-height: 28px; }
+  #demo .sa-copy { margin-top: 10px; }
+  #demo .sa-actions { padding-top: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #demo .sa-spinner { animation: none; }
+}
