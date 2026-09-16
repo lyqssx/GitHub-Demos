@@ -470,7 +470,10 @@
     if (id === 'fit-check-passed') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a passed result.');
     if (id === 'minor-leak') return runLegacyTrigger('minor-leak', 'Start pumping before triggering a minor leak.');
     if (id === 'self-check-severe') return beginSevere('self_check');
-    if (id === 'pumping-severe') return beginSevere('pumping');
+    if (id === 'pumping-severe') {
+      if (state.modal === 'fit') return beginSevere('self_check');
+      return beginSevere('pumping');
+    }
     if (id === 'recheck-passed') return resolveLeak();
     if (id === 'recheck-failed') return recheckFailed();
     if (id === 'reset-leak') { resetLeak(); return true; }
@@ -592,9 +595,9 @@
     if (triggerButton) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      trigger(triggerButton.getAttribute('data-sa-trigger'));
+      var triggered = trigger(triggerButton.getAttribute('data-sa-trigger'));
       var host = triggerButton.closest('.demo-trigger-root');
-      if (host) {
+      if (host && triggered !== false) {
         host.classList.remove('is-open');
         var toggle = host.querySelector('.demo-trigger-toggle');
         if (toggle) toggle.setAttribute('aria-expanded', 'false');
