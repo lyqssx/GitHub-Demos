@@ -246,6 +246,18 @@
       '</section></div>';
   }
 
+  function selfCheckConfirmMarkup() {
+    return '<div class="sa-layer sa-confirm-layer" role="dialog" aria-modal="true" aria-labelledby="sa-start-confirm-title">' +
+      '<div class="sa-scrim"></div><section class="sa-sheet sa-start-confirm">' +
+        '<span class="sa-alert-icon" aria-hidden="true">!</span>' +
+        '<p class="sa-eyebrow">Air seal not confirmed</p>' +
+        '<h2 id="sa-start-confirm-title">Start pumping anyway?</h2>' +
+        '<p class="sa-copy">A serious air leak is still detected. Continuing may reduce pumping performance. You can return to the guide and try again later.</p>' +
+        '<div class="sa-actions"><button class="sa-primary" type="button" data-sa-action="confirm-start-with-leak">Continue Pumping</button>' +
+          '<button class="sa-secondary" type="button" data-sa-action="cancel-start-with-leak">Cancel</button></div>' +
+      '</section></div>';
+  }
+
   function statusMarkup(resolved) {
     var closeButton = '<button class="sa-status-close" type="button" data-sa-action="dismiss-status" aria-label="Dismiss notification"><img src="./assets/figma-r72/notice-close-v3.svg" alt=""></button>';
     if (resolved) {
@@ -268,6 +280,7 @@
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
+    if (f.stage === 'self_check_confirm') root.insertAdjacentHTML('beforeend', selfCheckConfirmMarkup());
     if (screen && state.running && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
       screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved'));
@@ -359,6 +372,21 @@
     var f = flow();
     var event = activeEvent();
     clearRecheckTimer();
+    if (f.source === 'self_check') {
+      f.status = 'major_active';
+      f.stage = 'self_check_confirm';
+      f.statusDismissed = false;
+      if (event) {
+        event.userAction = 'skip_pending_confirmation';
+        event.pumpAction = 'not_started';
+        event.resolutionStatus = 'active';
+      }
+      state.modal = null;
+      state.running = false;
+      state.paused = false;
+      repaint();
+      return;
+    }
     f.status = 'major_ignored';
     f.stage = 'ignored_paused';
     f.statusDismissed = false;
@@ -370,6 +398,46 @@
     state.modal = null;
     state.running = true;
     state.paused = true;
+    repaint();
+  }
+
+  function confirmStartWithLeak() {
+    var f = flow();
+    var event = activeEvent();
+    if (f.stage !== 'self_check_confirm') return;
+    f.status = 'major_ignored';
+    f.stage = 'ignored';
+    f.statusDismissed = false;
+    if (event) {
+      event.userAction = 'ignore_continue';
+      event.pumpAction = 'started_without_clearance';
+      event.resolutionStatus = 'ignored';
+    }
+    state.modal = null;
+    state.running = true;
+    state.paused = false;
+    state.air2LastPhysicsAt = now();
+    repaint();
+  }
+
+  function cancelSelfCheckStart() {
+    if (flow().stage !== 'self_check_confirm') return;
+    resetSessionLeakTracking();
+    state.page = 'control';
+    state.modal = null;
+    state.running = false;
+    state.paused = false;
+    state.timer = 0;
+    state.milkL = 0;
+    state.milkR = 0;
+    state.flowRate = 0;
+    state.flowKind = 'none';
+    state.fitStage = 0;
+    state.fitAdjust = false;
+    state.severeLeak = false;
+    state.leakAdjusting = false;
+    state.controlNotice = null;
+    state.air2SessionEnded = false;
     repaint();
   }
 
@@ -558,6 +626,10 @@
       guideDelta(1); return;
     } else if (id === 'ignore-for-now') {
       ignoreForNow(); return;
+    } else if (id === 'confirm-start-with-leak') {
+      confirmStartWithLeak(); return;
+    } else if (id === 'cancel-start-with-leak') {
+      cancelSelfCheckStart(); return;
     } else if (id === 'dismiss-status') {
       f.statusDismissed = true;
       repaint(); return;
@@ -706,7 +778,8 @@
   function maintainAddon() {
     var f = flow();
     var needsLayer = f.stage === 'guide' ||
-      f.stage === 'rechecking';
+      f.stage === 'rechecking' ||
+      f.stage === 'self_check_confirm';
     var needsStatus = state.running && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();

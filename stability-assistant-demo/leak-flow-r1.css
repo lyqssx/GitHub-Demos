@@ -123,6 +123,9 @@
   background: rgba(93, 39, 57, .08);
 }
 
+#demo .sa-start-confirm { min-height: 370px; }
+#demo .sa-start-confirm .sa-copy { max-width: 312px; }
+
 #demo .sa-back {
   position: absolute;
   top: 18px;
