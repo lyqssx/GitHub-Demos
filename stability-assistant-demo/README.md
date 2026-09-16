@@ -1,4 +1,4 @@
-# Veo 3 Pro Stability Assistant
+# V3 Pro Stability Assistant
 
 Open `index.html` directly as a static page. The demo is implemented with DOM, CSS, and JavaScript and does not require a local server.
 

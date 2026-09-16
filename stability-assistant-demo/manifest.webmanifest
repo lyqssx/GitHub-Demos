@@ -1,6 +1,6 @@
 {
-  "name": "Veo 3 Pro Stability Assistant",
-  "short_name": "Veo 3 Pro",
+  "name": "V3 Pro Stability Assistant",
+  "short_name": "V3 Pro",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
