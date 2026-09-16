@@ -2,10 +2,128 @@
 #demo .auto-switch-component,
 #demo .v4-auto-toggle,
 #demo .v4-auto-line,
+#demo .v4-list-auto,
 #demo .r43-boost-switch,
 #demo .r49-boost__switch {
   display: none !important;
 }
+
+/* V3 Pro manual mode follows Figma 1645:30621: one compact entry row. */
+html body #demo .v4-manual-card,
+html body #demo .v4-manual-card.c12-manual,
+html body #demo .v4-manual-card.c35-manual {
+  position: relative !important;
+  width: 100% !important;
+  height: 54px !important;
+  min-height: 54px !important;
+  max-height: 54px !important;
+  padding: 0 20px !important;
+  overflow: hidden !important;
+  border: .3px solid rgba(161, 64, 82, .15) !important;
+  border-radius: 32px !important;
+  background: radial-gradient(120% 190% at 0 120%, rgba(255, 121, 54, .16), rgba(255, 198, 54, 0) 55%), #fff0f1 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, .02) !important;
+}
+
+#demo .v4-manual-card .v4-manual-head {
+  position: absolute !important;
+  inset: 0 20px !important;
+  display: flex !important;
+  height: 54px !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 !important;
+}
+
+#demo .v4-manual-card .v4-manual-head > span {
+  color: #3e0010 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 18px !important;
+  letter-spacing: .28px !important;
+}
+
+#demo .v4-manual-card .v4-mode-tabs { display: none !important; }
+#demo .v4-manual-card .r2-card-arrow { width: 18px !important; height: 18px !important; }
+#demo .v4-manual-card .r2-card-arrow img { content: url('./assets/v3-pro-chevron.svg') !important; width: 18px !important; height: 18px !important; transform: rotate(180deg) !important; }
+
+/* Figma 1645:30632: Milk Boost remains a program card, not Auto Switch. */
+html body #demo .r49-boost-card[data-r49-boost-state] {
+  height: 100px !important;
+  min-height: 100px !important;
+  max-height: 100px !important;
+  border: .3px solid #ffc0cb !important;
+  border-radius: 24px !important;
+  background: #fff1f3 !important;
+}
+
+#demo .r49-boost-card[data-r49-boost-state]::before {
+  background: radial-gradient(90% 115% at 2% 115%, rgba(255, 173, 101, .34), rgba(255, 173, 101, 0) 62%), #fff1f3 !important;
+}
+
+#demo .r49-boost-card .r49-boost__header { top: 16px !important; left: 48px !important; }
+#demo .r49-boost-card .r49-boost__header::before {
+  position: absolute;
+  top: 0;
+  left: -28px;
+  width: 20px;
+  height: 20px;
+  background: url('./assets/v3-pro-mode-icon.svg') center / 20px 20px no-repeat;
+  content: '';
+}
+html body #demo .r49-boost-card .r49-boost__arrow img {
+  content: url('./assets/v3-pro-chevron.svg') !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  max-width: 18px !important;
+  max-height: 18px !important;
+  transform: rotate(180deg) !important;
+}
+html body #demo .r49-boost-card .r49-boost__program {
+  top: 64px !important;
+  right: 64px !important;
+  left: 20px !important;
+  height: 10px !important;
+  border-radius: 99px !important;
+  background: url('./assets/v3-pro-milk-boost-progress.svg') center / 100% 10px no-repeat !important;
+}
+#demo .r49-boost-card .r49-boost__program > * { display: none !important; }
+#demo .r49-boost-card .r49-boost__program::after {
+  position: absolute;
+  top: -4px;
+  left: calc(100% + 16px);
+  color: rgba(62, 0, 16, .8);
+  font-size: 12px;
+  line-height: 18px;
+  content: '20min';
+}
+
+/* One centered V3 Pro console replaces the left/right Air2 pump pair. */
+#demo .v4-control > .v3-pro-main-visual {
+  top: 116px !important;
+  left: 50% !important;
+  right: auto !important;
+  display: flex !important;
+  width: 238px !important;
+  height: 154px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  transform: translateX(-50%) !important;
+}
+#demo .v3-pro-main-visual > img {
+  display: block !important;
+  width: 400px !important;
+  height: 246px !important;
+  max-width: none !important;
+  object-fit: fill !important;
+  filter: drop-shadow(0 16px 22px rgba(62, 0, 16, .10));
+}
+#demo .v3-pro-dock-visual { display: block !important; width: 76px !important; height: 44px !important; }
+#demo .v3-pro-dock-visual > img { display: block !important; width: 76px !important; height: 44px !important; object-fit: contain !important; }
+#demo .v4-device-card .v3-pro-device-art { right: 6px !important; bottom: 8px !important; width: 210px !important; height: 150px !important; object-fit: contain !important; }
 
 /* Collapse the space reserved for the detached Auto Switch component. */
 #demo .v4-controls > .auto-switch-component + .v4-levels {
