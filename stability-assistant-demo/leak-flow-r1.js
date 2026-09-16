@@ -190,17 +190,38 @@
     '</div>';
   }
 
+  function sessionSummaryKind() {
+    var hasMajorLeak = Array.isArray(state.v3LeakEvents) && state.v3LeakEvents.some(function (event) {
+      return event && event.severity === 'major';
+    });
+    if (hasMajorLeak) return 'major-leak';
+    return state.air2SessionSummaryKind;
+  }
+
+  function hasUnresolvedMajorLeak() {
+    return Array.isArray(state.v3LeakEvents) && state.v3LeakEvents.some(function (event) {
+      return event && event.severity === 'major' && event.resolutionStatus !== 'resolved';
+    });
+  }
+
   function loggedSummaryMarkup() {
-    var kind = state.air2SessionSummaryKind;
+    var kind = sessionSummaryKind();
+    var unresolvedMajor = kind === 'major-leak' && hasUnresolvedMajorLeak();
     var guideIndex = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(state.v3LoggedGuideIndex) || 0));
     var guideOpen = !!state.v3LoggedGuideOpen;
-    var copy = kind === 'major-leak'
-      ? 'A serious air leak was detected. Check your setup before your next session.'
-      : kind === 'minor-leak'
-        ? 'A slight air leak was detected and corrected automatically. Check your setup before your next session.'
-        : 'Check your setup before your next pumping session.';
+    var title = kind === 'major-leak' ? 'Serious air leak recorded' : 'Session issue recorded';
+    var copy;
+    if (unresolvedMajor) {
+      copy = 'A serious air leak continued through this session and should not be ignored. A more secure fit can help prevent it next time.';
+    } else if (kind === 'major-leak') {
+      copy = 'A serious air leak interrupted this session but was corrected. A more secure fit can help prevent it next time.';
+    } else if (kind === 'minor-leak') {
+      copy = 'A slight air leak was detected and corrected automatically. Check your setup before your next session.';
+    } else {
+      copy = 'Check your setup before your next pumping session.';
+    }
     return '<div class="air2-logged-summary sa-major-summary' + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
-      '<b>Session issue recorded</b><p>' + copy + '</p>' +
+      '<b>' + title + '</b><p>' + copy + '</p>' +
       '<button type="button" data-air2-wear-guide>Learn how to get a secure fit</button></div>' +
       '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>' +
       '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
@@ -278,7 +299,7 @@
     if (typeof window.v4Logged === 'function') {
       baseLogged = window.v4Logged;
       window.v4Logged = v4Logged = function () {
-        var summaryKind = state.air2SessionSummaryKind;
+        var summaryKind = sessionSummaryKind();
         var needsSummary = summaryKind === 'minor-leak' || summaryKind === 'major-leak';
         var previousSummaryState = state.air2ShowLoggedSummary;
         var html;
@@ -525,7 +546,7 @@
   }
 
   function decorateLatestRecord() {
-    if (state.air2SessionSummaryKind !== 'major-leak' || !Array.isArray(state.air2SessionHistory)) return;
+    if (sessionSummaryKind() !== 'major-leak' || !Array.isArray(state.air2SessionHistory)) return;
     var id = state.air2ActiveSessionId;
     var record = state.air2SessionHistory.find(function (item) { return item.id === id; });
     if (!record) record = state.air2SessionHistory[state.air2SessionHistory.length - 1];
