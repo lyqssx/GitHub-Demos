@@ -82,48 +82,277 @@ html body #demo .r49-boost-card .r49-boost__arrow img {
   transform: rotate(180deg) !important;
 }
 html body #demo .r49-boost-card .r49-boost__program {
-  top: 64px !important;
-  right: 64px !important;
-  left: 20px !important;
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  left: auto !important;
+  display: flex !important;
+  width: auto !important;
   height: 10px !important;
+  flex: 1 1 auto !important;
+  gap: 1px !important;
+  overflow: hidden !important;
   border-radius: 99px !important;
-  background: url('./assets/v3-pro-milk-boost-progress.svg') center / 100% 10px no-repeat !important;
+  background: transparent !important;
 }
-#demo .r49-boost-card .r49-boost__program > * { display: none !important; }
-#demo .r49-boost-card .r49-boost__program::after {
+#demo .r49-boost-card .r49-boost__program > span {
+  display: block !important;
+  height: 10px !important;
+  min-width: 0 !important;
+}
+#demo .r49-boost-card .r49-boost__program > .v3-pro-boost-short {
+  flex: 33 1 0 !important;
+  background: #bd5a62 !important;
+}
+#demo .r49-boost-card .r49-boost__program > .v3-pro-boost-long {
+  flex: 109 1 0 !important;
+  background: #f89368 !important;
+}
+html body #demo .r49-boost-card .r49-boost__program::after {
+  display: none !important;
+  content: none !important;
+}
+#demo .v3-pro-boost-flow {
   position: absolute;
-  top: -4px;
-  left: calc(100% + 16px);
+  z-index: 2;
+  top: 64px;
+  right: 20px;
+  left: 20px;
+  display: flex;
+  height: 18px;
+  align-items: center;
+  gap: 8px;
+}
+#demo .v3-pro-boost-duration {
+  display: block;
+  flex: 0 0 auto;
   color: rgba(62, 0, 16, .8);
   font-size: 12px;
+  font-weight: 400;
   line-height: 18px;
-  content: '20min';
+  white-space: nowrap;
 }
 
-/* One centered V3 Pro console replaces the left/right Air2 pump pair. */
+/* Figma 1660:16320: exact 180px device frame with transparent crop and reflection. */
 #demo .v4-control > .v3-pro-main-visual {
-  top: 116px !important;
+  top: 105px !important;
   left: 50% !important;
   right: auto !important;
-  display: flex !important;
-  width: 238px !important;
-  height: 154px !important;
-  align-items: center !important;
-  justify-content: center !important;
-  overflow: hidden !important;
+  display: block !important;
+  width: 180px !important;
+  height: 180px !important;
+  overflow: visible !important;
   transform: translateX(-50%) !important;
 }
-#demo .v3-pro-main-visual > img {
+#demo .v3-pro-device-frame {
+  position: relative;
   display: block !important;
-  width: 400px !important;
-  height: 246px !important;
-  max-width: none !important;
-  object-fit: fill !important;
-  filter: drop-shadow(0 16px 22px rgba(62, 0, 16, .10));
+  width: 180px;
+  height: 180px;
+  overflow: hidden;
+  background: transparent;
+}
+#demo .v3-pro-device-main {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: block;
+  overflow: hidden;
+}
+#demo .v3-pro-device-main > img {
+  position: absolute;
+  top: -21px;
+  left: -84.44px;
+  display: block;
+  width: 336.85px;
+  height: 207px;
+  max-width: none;
+  object-fit: fill;
+}
+#demo .v3-pro-device-reflection {
+  position: absolute;
+  z-index: 1;
+  top: 75px;
+  left: 0;
+  display: block;
+  width: 180px;
+  height: 105px;
+  overflow: hidden;
+  opacity: .18;
+  transform: scaleY(-1);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent 62%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.5), transparent 62%);
+}
+#demo .v3-pro-device-reflection > img {
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  display: block;
+  width: 176px;
+  height: 130px;
+  max-width: none;
+  object-fit: cover;
+  filter: blur(6.25px);
 }
 #demo .v3-pro-dock-visual { display: block !important; width: 76px !important; height: 44px !important; }
 #demo .v3-pro-dock-visual > img { display: block !important; width: 76px !important; height: 44px !important; object-fit: contain !important; }
 #demo .v4-device-card .v3-pro-device-art { right: 6px !important; bottom: 8px !important; width: 210px !important; height: 150px !important; object-fit: contain !important; }
+
+/* Figma 1660:16756: Night Light, including L0-L3 and the automatic-light thumb. */
+#demo .v3-pro-night-light {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-height: 96px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: 24px;
+  background: #fff;
+}
+#demo .v3-pro-night-light.is-off {
+  min-height: 52px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+#demo .v3-pro-night-light__header {
+  display: flex;
+  width: 100%;
+  height: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+#demo .v3-pro-night-light__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#demo .v3-pro-night-light__title img {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+#demo .v3-pro-night-light__title b {
+  color: #240f1b;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 18px;
+  letter-spacing: .28px;
+}
+#demo .v3-pro-night-light__switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex: 0 0 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: rgba(62, 0, 16, .2);
+  cursor: pointer;
+}
+#demo .v3-pro-night-light.is-on .v3-pro-night-light__switch { background: #770523; }
+#demo .v3-pro-night-light__switch i {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 .963px rgba(0,0,0,.04), 0 2.889px 7.704px rgba(0,0,0,.15), 0 2.889px .963px rgba(0,0,0,.06);
+  transition: transform .2s ease;
+}
+#demo .v3-pro-night-light.is-on .v3-pro-night-light__switch i { transform: translateX(18px); }
+#demo .v3-pro-night-light__track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+#demo .v3-pro-night-light__track::before {
+  position: absolute;
+  top: 6px;
+  right: 0;
+  left: 0;
+  height: 12px;
+  border-radius: 29px;
+  background: rgba(217, 217, 217, .4);
+  content: '';
+}
+#demo .v3-pro-night-light__fill {
+  position: absolute;
+  z-index: 1;
+  top: 6px;
+  left: 0;
+  width: 33.14%;
+  height: 12px;
+  border-radius: 56px;
+  background: linear-gradient(90deg, pink, #770523);
+}
+#demo .v3-pro-night-light__marks {
+  position: absolute;
+  z-index: 2;
+  top: 9px;
+  right: 3px;
+  left: 3px;
+  display: flex;
+  height: 6px;
+  align-items: center;
+  justify-content: space-between;
+}
+#demo .v3-pro-night-light__marks i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #bdb7ba;
+}
+#demo .v3-pro-night-light__marks i:first-child { background: #fff; }
+#demo .v3-pro-night-light__thumb {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 32.84%;
+  display: flex;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 96px;
+  background: #fff;
+  box-shadow: 0 0 0 rgba(0,0,0,.04), 0 2.889px 3.852px rgba(0,0,0,.15), 0 2.889px .481px rgba(0,0,0,.06);
+  color: rgba(36, 15, 27, .55);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+#demo .v3-pro-night-light[data-level="2"] .v3-pro-night-light__fill { width: 66.86%; }
+#demo .v3-pro-night-light[data-level="2"] .v3-pro-night-light__thumb { left: 66.86%; }
+#demo .v3-pro-night-light[data-level="3"] .v3-pro-night-light__fill { width: 100%; }
+#demo .v3-pro-night-light[data-level="3"] .v3-pro-night-light__thumb { left: 96.15%; }
+
+/* V3 Pro has no Auto Switch UI, so its animated linking contour is disabled. */
+html body #demo .v4-control > .v4-controls.auto-switch-ring-on::before,
+html body #demo .v4-control > .v4-controls.auto-switch-ring-on::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+html body #demo .v4-control .v4-auto-card,
+html body #demo .v4-control .v4-manual-card,
+html body #demo .v4-control .r49-boost-card[data-r49-boost-state] {
+  animation: none !important;
+  transform: none !important;
+}
 
 /* Collapse the space reserved for the detached Auto Switch component. */
 #demo .v4-controls > .auto-switch-component + .v4-levels {

@@ -1,6 +1,6 @@
 /* V3 Pro model-specific capability guards. */
 (function () {
-  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 2) return;
+  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 3) return;
 
   var root = document.getElementById('demo');
 
@@ -13,6 +13,12 @@
     if (!current) return;
     current.v3ProCapabilities = current.v3ProCapabilities || {};
     current.v3ProCapabilities.autoSwitch = false;
+    if (!Number.isInteger(current.v3ProCapabilities.nightLightLevel)) {
+      current.v3ProCapabilities.nightLightLevel = 1;
+    }
+    if (!Number.isInteger(current.v3ProCapabilities.lastNightLightLevel) || current.v3ProCapabilities.lastNightLightLevel < 1) {
+      current.v3ProCapabilities.lastNightLightLevel = 1;
+    }
 
     /* Program sequencing remains available. Outside a selected program, the
        legacy state must not silently retain sensor-led automatic switching. */
@@ -22,9 +28,12 @@
   function replaceProductVisuals() {
     if (!root) return;
     var pumpRow = root.querySelector('.v4-control > .v4-pump-row');
-    if (pumpRow && !pumpRow.classList.contains('v3-pro-main-visual')) {
+    if (pumpRow && !pumpRow.querySelector('.v3-pro-device-frame')) {
       pumpRow.className = 'v4-pump-row v3-pro-main-visual';
-      pumpRow.innerHTML = '<img src="./assets/v3-pro-main.png" alt="V3 Pro pump">';
+      pumpRow.innerHTML = '<div class="v3-pro-device-frame" aria-label="V3 Pro pump">' +
+        '<span class="v3-pro-device-reflection" aria-hidden="true"><img src="./assets/v3-pro-device-reflection.png" alt=""></span>' +
+        '<span class="v3-pro-device-main"><img src="./assets/v3-pro-main.png" alt=""></span>' +
+      '</div>';
     }
 
     var dockPumps = root.querySelector('.v4-home-dock .v4-dock-pumps');
@@ -58,8 +67,86 @@
       '<div class="r49-boost__header"><span class="r49-boost__title">Milk Boost</span>' +
       '<em class="r49-boost__timer">' + timer + '</em></div>' +
       '<button class="r49-boost__arrow" data-v4="list" aria-label="Open list"><img src="./assets/v3-pro-chevron.svg" alt=""></button>' +
-      '<div class="r49-boost__program" aria-label="Milk Boost program sequence"><i></i><b></b></div>' +
+      '<div class="v3-pro-boost-flow"><div class="r49-boost__program" aria-label="Milk Boost program sequence">' +
+        '<span class="v3-pro-boost-short"></span><span class="v3-pro-boost-long"></span>' +
+        '<span class="v3-pro-boost-short"></span><span class="v3-pro-boost-long"></span>' +
+      '</div><span class="v3-pro-boost-duration">20min</span></div>' +
     '</section>';
+  }
+
+  function nightLightCard() {
+    var current = currentState();
+    var capability = current.v3ProCapabilities;
+    var level = Math.max(0, Math.min(3, capability.nightLightLevel));
+    var isOn = level > 0;
+    return '<section class="v3-pro-night-light ' + (isOn ? 'is-on' : 'is-off') + '" data-v3-light-card data-level="' + level + '">' +
+      '<div class="v3-pro-night-light__header"><span class="v3-pro-night-light__title">' +
+        '<img src="./assets/v3-pro-night-light.svg" alt=""><b>Night Light</b></span>' +
+        '<button class="v3-pro-night-light__switch" data-v3-light-toggle role="switch" aria-checked="' + isOn + '" aria-label="Night Light"><i></i></button>' +
+      '</div>' +
+      (isOn ? '<button class="v3-pro-night-light__track" data-v3-light-track role="slider" aria-label="Night Light brightness" aria-valuemin="0" aria-valuemax="3" aria-valuenow="' + level + '" style="--night-light-level:' + level + '">' +
+        '<span class="v3-pro-night-light__fill"></span>' +
+        '<span class="v3-pro-night-light__marks"><i></i><i></i><i></i><i></i></span>' +
+        '<span class="v3-pro-night-light__thumb">Auto</span>' +
+      '</button>' : '') +
+    '</section>';
+  }
+
+  function installNightLight() {
+    if (!root) return;
+    var existing = root.querySelector('[data-v3-light-card]');
+    var current = currentState();
+    if (existing && current) {
+      var expectedLevel = String(current.v3ProCapabilities.nightLightLevel);
+      if (existing.getAttribute('data-level') !== expectedLevel) existing.outerHTML = nightLightCard();
+      return;
+    }
+    var speed = root.querySelector('.v4-control .v4-controls > .v4-speed');
+    if (speed) speed.insertAdjacentHTML('afterend', nightLightCard());
+  }
+
+  function updateNightLight(level) {
+    var current = currentState();
+    if (!current) return;
+    enforce();
+    var capability = current.v3ProCapabilities;
+    level = Math.max(0, Math.min(3, Math.round(Number(level) || 0)));
+    if (level > 0) capability.lastNightLightLevel = level;
+    capability.nightLightLevel = level;
+    if (typeof window.v4View === 'function') window.v4View();
+    refresh();
+  }
+
+  function installNightLightEvents() {
+    if (window.__v3ProNightLightEvents) return;
+    window.__v3ProNightLightEvents = true;
+
+    document.addEventListener('click', function (event) {
+      var toggle = event.target.closest && event.target.closest('[data-v3-light-toggle]');
+      var track = event.target.closest && event.target.closest('[data-v3-light-track]');
+      if (!toggle && !track) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      var current = currentState();
+      if (!current) return;
+      enforce();
+      var capability = current.v3ProCapabilities;
+      if (toggle) {
+        updateNightLight(capability.nightLightLevel > 0 ? 0 : capability.lastNightLightLevel);
+        return;
+      }
+      var rect = track.getBoundingClientRect();
+      updateNightLight(Math.round(((event.clientX - rect.left) / rect.width) * 3));
+    }, true);
+
+    document.addEventListener('keydown', function (event) {
+      var track = event.target.closest && event.target.closest('[data-v3-light-track]');
+      if (!track || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+      event.preventDefault();
+      var current = currentState();
+      if (!current) return;
+      updateNightLight(current.v3ProCapabilities.nightLightLevel + (event.key === 'ArrowRight' ? 1 : -1));
+    }, true);
   }
 
   function installCardOverride() {
@@ -76,9 +163,11 @@
   function refresh() {
     enforce();
     replaceProductVisuals();
+    installNightLight();
   }
 
   function boot() {
+    installNightLightEvents();
     refresh();
     if (root) new MutationObserver(refresh).observe(root, { childList: true, subtree: true });
     var attempts = 0;
@@ -89,7 +178,7 @@
     }, 200);
   }
 
-  window.V3ProCapabilities = { version: 2, enforce: refresh };
+  window.V3ProCapabilities = { version: 3, enforce: refresh };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());
