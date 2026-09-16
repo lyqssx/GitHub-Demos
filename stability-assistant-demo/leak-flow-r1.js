@@ -119,6 +119,40 @@
     '</div>';
   }
 
+  function loggedGuideStepMarkup(index) {
+    index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
+    return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
+      '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary">‹</button>' +
+        '<span><b>Wear guide</b><small>Step ' + (index + 1) + ' of 3</small></span></div>' +
+      '<div class="sa-log-guide-body"><span class="sa-log-guide-media"><img class="sa-log-guide-image sa-log-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></span>' +
+        '<span class="sa-log-guide-copy"><strong>' + GUIDE_TITLES[index] + '</strong><small>' + GUIDE_COPY[index] + '</small></span></div>' +
+      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous wear guide step" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
+        '<span class="sa-log-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
+        '<button type="button" data-sa-log-guide="next" aria-label="Next wear guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>›</button></div>' +
+    '</div>';
+  }
+
+  function loggedSummaryMarkup() {
+    var kind = state.air2SessionSummaryKind;
+    var copy = kind === 'major-leak'
+      ? 'A serious air leak was detected. Review all three checks before your next session.'
+      : kind === 'minor-leak'
+        ? 'A slight air leak was detected and compensated automatically. Review the fit before your next session.'
+        : 'Review the three fit checks before your next pumping session.';
+    return '<div class="air2-logged-summary sa-major-summary"><div class="air2-logged-summary-main">' +
+      '<b>Session issue recorded</b><p>' + copy + '</p>' +
+      '<button type="button" data-air2-wear-guide>Review the 3-step guide</button></div>' +
+      '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(0) + '</div></div>' +
+      '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
+  }
+
+  function renderLoggedGuideStep(card, index) {
+    var guide = card && card.querySelector('.sa-log-guide');
+    if (!guide) return;
+    index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
+    guide.innerHTML = loggedGuideStepMarkup(index);
+  }
+
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
       '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet sa-rechecking">' +
@@ -197,13 +231,15 @@
     if (typeof window.v4Logged === 'function') {
       baseLogged = window.v4Logged;
       window.v4Logged = v4Logged = function () {
-        var html = baseLogged.apply(this, arguments);
-        if (state.air2SessionSummaryKind !== 'major-leak') return html;
-        var summary = '<div class="air2-logged-summary sa-major-summary"><div class="air2-logged-summary-main">' +
-          '<b>Session issue recorded</b><p>A serious air leak was detected. Review all three checks before your next session.</p>' +
-          '</div></div><button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
+        var needsSummary = !!state.air2ShowLoggedSummary || state.air2SessionSummaryKind === 'major-leak';
+        var previousSummaryState = state.air2ShowLoggedSummary;
+        var html;
+        if (!needsSummary) return baseLogged.apply(this, arguments);
+        state.air2ShowLoggedSummary = false;
+        html = baseLogged.apply(this, arguments);
+        state.air2ShowLoggedSummary = previousSummaryState;
         return html.replace('v4-logged', 'v4-logged air2-abnormal-logged')
-          .replace('<i class="v4-home-indicator"></i>', summary + '<i class="v4-home-indicator"></i>');
+          .replace('<i class="v4-home-indicator"></i>', loggedSummaryMarkup() + '<i class="v4-home-indicator"></i>');
       };
     }
     window.__v3LeakFlowWrapped = true;
@@ -453,7 +489,25 @@
     var triggerButton = event.target.closest && event.target.closest('[data-sa-trigger]');
     var actionButton = event.target.closest && event.target.closest('#demo [data-sa-action]');
     var resumeButton = event.target.closest && event.target.closest('#demo [data-v4="pause"]');
+    var loggedGuideButton = event.target.closest && event.target.closest('#demo [data-sa-log-guide]');
+    var loggedGuideBack = event.target.closest && event.target.closest('#demo [data-sa-log-guide-back]');
     if (resumeButton) markExplicitResume();
+    if (loggedGuideBack) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      var backCard = loggedGuideBack.closest('.air2-logged-summary');
+      if (backCard) backCard.classList.remove('is-guide-open');
+      return;
+    }
+    if (loggedGuideButton) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      var card = loggedGuideButton.closest('.air2-logged-summary');
+      var currentStep = card && card.querySelector('[data-sa-log-guide-step]');
+      var index = Number(currentStep && currentStep.getAttribute('data-sa-log-guide-step')) || 0;
+      renderLoggedGuideStep(card, index + (loggedGuideButton.getAttribute('data-sa-log-guide') === 'next' ? 1 : -1));
+      return;
+    }
     if (triggerButton) {
       event.preventDefault();
       event.stopImmediatePropagation();
