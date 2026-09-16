@@ -34,7 +34,7 @@
       title: 'Check Your Fit',
       label: 'Nipple and flange fit',
       copy: 'Center the nipple and seal the flange firmly.',
-      assets: ['./assets/stability-assistant/figma-guide-fit-cutout.png']
+      assets: ['./assets/stability-assistant/figma-check-fit-original.png']
     }
   ];
   var RECHECK_TIMEOUT_MS = 10000;
