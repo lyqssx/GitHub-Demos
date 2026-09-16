@@ -247,7 +247,7 @@
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
-    if (screen && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
+    if (screen && state.running && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
       screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved'));
     }
@@ -659,7 +659,7 @@
     var f = flow();
     var needsLayer = f.stage === 'guide' ||
       f.stage === 'rechecking';
-    var needsStatus = !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
+    var needsStatus = state.running && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();
   }
