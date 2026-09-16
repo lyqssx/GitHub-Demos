@@ -8,33 +8,28 @@
       title: 'Check Left Tubing',
       label: 'Left tubing connection',
       copy: 'Push the left tubing connector in firmly.',
-      assets: ['./assets/stability-assistant/figma-tubing-left-cutout.png']
+      assets: ['./assets/stability-assistant/figma-tubing-left-original.png']
     },
     {
       kind: 'tube-right',
       title: 'Check Right Tubing',
       label: 'Right tubing connection',
       copy: 'Push the right tubing connector in firmly.',
-      assets: ['./assets/stability-assistant/figma-tubing-right-cutout.png']
+      assets: ['./assets/stability-assistant/figma-tubing-right-original.png']
     },
     {
-      kind: 'cup',
-      title: 'Check Cup Assembly',
-      label: 'Cup and flange assembly',
-      copy: 'Snap the rim shut and seat the duckbill valve securely.',
-      assets: [
-        './assets/stability-assistant/figma-cup-body-cutout.png',
-        './assets/stability-assistant/figma-cup-flange-cutout.png',
-        './assets/stability-assistant/figma-cup-arrow-left-cutout.png',
-        './assets/stability-assistant/figma-cup-arrow-right-cutout.png'
-      ]
+      kind: 'fit-center',
+      title: 'Center the Nipple',
+      label: 'Center the nipple in the tunnel',
+      copy: 'Center the nipple in the tunnel before securing the flange.',
+      assets: ['./assets/stability-assistant/figma-fit-center-original.png']
     },
     {
-      kind: 'fit',
-      title: 'Check Your Fit',
-      label: 'Nipple and flange fit',
-      copy: 'Center the nipple and seal the flange firmly.',
-      assets: ['./assets/stability-assistant/figma-check-fit-original.png']
+      kind: 'fit-seal',
+      title: 'Seal the Flange',
+      label: 'Secure the flange against the breast',
+      copy: 'Press the flange firmly against the breast to create a complete seal.',
+      assets: ['./assets/stability-assistant/figma-fit-seal-original.png']
     }
   ];
   var RECHECK_TIMEOUT_MS = 10000;
@@ -149,19 +144,16 @@
   function guideArtMarkup(index) {
     var step = GUIDE_STEPS[index];
     var asset = step.assets[0];
-    if (step.kind === 'cup') {
-      return '<span class="sa-guide-art sa-guide-art-cup" role="img" aria-label="' + step.label + '">' +
-        '<span class="sa-cup-scene">' +
-          '<img class="sa-cup-body" src="' + step.assets[0] + '" alt="">' +
-          '<img class="sa-cup-flange" src="' + step.assets[1] + '" alt="">' +
-          '<img class="sa-cup-arrow sa-cup-arrow-left" src="' + step.assets[2] + '" alt="">' +
-          '<img class="sa-cup-arrow sa-cup-arrow-right" src="' + step.assets[3] + '" alt="">' +
-        '</span></span>';
-    }
+    var isTubing = step.kind === 'tube-left' || step.kind === 'tube-right';
+    var sideSelector = isTubing
+      ? '<span class="sa-tube-side-selector" aria-hidden="true">' +
+          '<b class="' + (step.kind === 'tube-left' ? 'is-active' : '') + '">L</b>' +
+          '<b class="' + (step.kind === 'tube-right' ? 'is-active' : '') + '">R</b>' +
+        '</span>'
+      : '';
     return '<span class="sa-guide-art sa-guide-art-' + step.kind + '" role="img" aria-label="' + step.label + '">' +
+      sideSelector +
       '<img class="sa-guide-art-image" src="' + asset + '" alt="">' +
-      (step.kind === 'tube-left' ? '<b class="sa-side-label">L</b>' : '') +
-      (step.kind === 'tube-right' ? '<b class="sa-side-label">R</b>' : '') +
     '</span>';
   }
 
