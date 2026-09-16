@@ -1,19 +1,43 @@
 /* V3 Pro stability assistant: reviewer-triggered severe leak flow. */
 (function () {
-  if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 1) return;
+  if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 2) return;
 
-  var GUIDE_ASSETS = [
-    './assets/stability-assistant/figma-guide-tubing.png',
-    './assets/stability-assistant/figma-guide-cup.png',
-    './assets/stability-assistant/figma-guide-fit.png'
+  var GUIDE_STEPS = [
+    {
+      kind: 'tube-left',
+      title: 'Check Left Tubing',
+      label: 'Left tubing connection',
+      copy: 'Push the left tubing connector in firmly.',
+      assets: ['./assets/stability-assistant/figma-tubing-left-cutout.png']
+    },
+    {
+      kind: 'tube-right',
+      title: 'Check Right Tubing',
+      label: 'Right tubing connection',
+      copy: 'Push the right tubing connector in firmly.',
+      assets: ['./assets/stability-assistant/figma-tubing-right-cutout.png']
+    },
+    {
+      kind: 'cup',
+      title: 'Check Cup Assembly',
+      label: 'Cup and flange assembly',
+      copy: 'Snap the rim shut and seat the duckbill valve securely.',
+      assets: [
+        './assets/stability-assistant/figma-cup-body-cutout.png',
+        './assets/stability-assistant/figma-cup-flange-cutout.png',
+        './assets/stability-assistant/figma-cup-arrow-left-cutout.png',
+        './assets/stability-assistant/figma-cup-arrow-right-cutout.png'
+      ]
+    },
+    {
+      kind: 'fit',
+      title: 'Check Your Fit',
+      label: 'Nipple and flange fit',
+      copy: 'Center the nipple and seal the flange firmly.',
+      assets: ['./assets/stability-assistant/figma-guide-fit-cutout.png']
+    }
   ];
-  var GUIDE_LABELS = ['Air-seal tubing connection', 'Cup assembly', 'Nipple and flange fit'];
-  var GUIDE_TITLES = ['Check Air Seal', 'Check Cup', 'Check Fit'];
-  var GUIDE_COPY = [
-    'Reinsert both tubing connectors firmly.',
-    'Snap the rim shut and seat the duckbill valve securely.',
-    'Center the nipple and seal the flange firmly.'
-  ];
+  var RECHECK_TIMEOUT_MS = 10000;
   var root = document.getElementById('demo');
   var baseView;
   var baseFit;
@@ -21,13 +45,16 @@
   var swipe = null;
   var loggedSwipe = null;
   var resolvedTimer = null;
+  var recheckTimer = null;
 
   function now() { return Date.now(); }
 
   function preloadGuides() {
-    for (var i = 0; i < GUIDE_ASSETS.length; i += 1) {
-      var image = new Image();
-      image.src = GUIDE_ASSETS[i];
+    for (var i = 0; i < GUIDE_STEPS.length; i += 1) {
+      for (var j = 0; j < GUIDE_STEPS[i].assets.length; j += 1) {
+        var image = new Image();
+        image.src = GUIDE_STEPS[i].assets[j];
+      }
     }
   }
 
@@ -40,9 +67,11 @@
         guideIndex: 0,
         wasRunning: false,
         activeEventId: null,
+        guideNotice: '',
         message: ''
       };
     }
+    if (typeof state.v3LeakFlow.guideNotice !== 'string') state.v3LeakFlow.guideNotice = '';
     if (!Array.isArray(state.v3LeakEvents)) state.v3LeakEvents = [];
     return state.v3LeakFlow;
   }
@@ -60,16 +89,23 @@
     syncTriggerStatus();
   }
 
+  function clearRecheckTimer() {
+    clearTimeout(recheckTimer);
+    recheckTimer = null;
+  }
+
   function resetSessionLeakTracking() {
     var f = flow();
     clearTimeout(resolvedTimer);
     resolvedTimer = null;
+    clearRecheckTimer();
     f.status = 'none';
     f.stage = 'idle';
     f.source = null;
     f.guideIndex = 0;
     f.wasRunning = false;
     f.activeEventId = null;
+    f.guideNotice = '';
     f.message = '';
     state.v3LeakEvents = [];
     state.air2SessionSummaryKind = null;
@@ -82,8 +118,7 @@
   }
 
   function lockedStage(stage) {
-    return stage === 'guide' || stage === 'rechecking' ||
-      stage === 'recheck_failed';
+    return stage === 'guide' || stage === 'rechecking';
   }
 
   function enforceState() {
@@ -103,49 +138,82 @@
     renderAddon();
   }
 
+  function dotsMarkup(index, className) {
+    var dots = '';
+    for (var i = 0; i < GUIDE_STEPS.length; i += 1) {
+      dots += '<i class="' + (i === index ? 'is-active' : '') + '"></i>';
+    }
+    return '<span class="' + className + '" aria-hidden="true">' + dots + '</span>';
+  }
+
+  function guideArtMarkup(index) {
+    var step = GUIDE_STEPS[index];
+    var asset = step.assets[0];
+    if (step.kind === 'cup') {
+      return '<span class="sa-guide-art sa-guide-art-cup" role="img" aria-label="' + step.label + '">' +
+        '<span class="sa-cup-scene">' +
+          '<img class="sa-cup-body" src="' + step.assets[0] + '" alt="">' +
+          '<img class="sa-cup-flange" src="' + step.assets[1] + '" alt="">' +
+          '<img class="sa-cup-arrow sa-cup-arrow-left" src="' + step.assets[2] + '" alt="">' +
+          '<img class="sa-cup-arrow sa-cup-arrow-right" src="' + step.assets[3] + '" alt="">' +
+        '</span></span>';
+    }
+    return '<span class="sa-guide-art sa-guide-art-' + step.kind + '" role="img" aria-label="' + step.label + '">' +
+      '<img class="sa-guide-art-image" src="' + asset + '" alt="">' +
+      (step.kind === 'tube-left' ? '<b class="sa-side-label">L</b>' : '') +
+      (step.kind === 'tube-right' ? '<b class="sa-side-label">R</b>' : '') +
+    '</span>';
+  }
+
   function guideMarkup() {
     var f = flow();
-    var index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(f.guideIndex) || 0));
+    var index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(f.guideIndex) || 0));
+    var step = GUIDE_STEPS[index];
+    var notice = f.guideNotice
+      ? '<div class="sa-guide-notice" role="status"><i>!</i><span><b>Air leak is still detected</b><small>Continue troubleshooting each step.</small></span></div>'
+      : '';
     return '<div class="sa-layer sa-guide-layer" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
-      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
-        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + GUIDE_TITLES[index] + '</h2></div>' +
+      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel' + (f.guideNotice ? ' has-notice' : '') + '">' +
+        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + step.title + '</h2></div>' +
           '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
-        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of 3</span></div>' +
-        '<div class="sa-guide-media"><img class="sa-guide-image sa-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></div>' +
-        '<p class="sa-guide-copy">' + GUIDE_COPY[index] + '</p>' +
+        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
+        notice +
+        '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
+        '<p class="sa-guide-copy">' + step.copy + '</p>' +
         '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
-          '<span class="sa-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
-          '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === GUIDE_ASSETS.length - 1 ? 'Finish guidance' : 'Next guidance page') + '">' + (index === GUIDE_ASSETS.length - 1 ? '✓' : '›') + '</button></footer>' +
+          dotsMarkup(index, 'sa-guide-dots') +
+          '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === GUIDE_STEPS.length - 1 ? 'Finish guidance and check the seal' : 'Next guidance page') + '">' + (index === GUIDE_STEPS.length - 1 ? '✓' : '›') + '</button></footer>' +
       '</section>' +
-      '<span class="sa-sr-only" aria-live="polite">Page ' + (index + 1) + ' of 3: ' + GUIDE_LABELS[index] + '</span>' +
+      '<span class="sa-sr-only" aria-live="polite">Page ' + (index + 1) + ' of ' + GUIDE_STEPS.length + ': ' + step.label + '</span>' +
     '</div>';
   }
 
   function loggedGuideStepMarkup(index) {
-    index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
+    index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(index) || 0));
+    var step = GUIDE_STEPS[index];
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
       '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary"><span aria-hidden="true">←</span> Summary</button>' +
-        '<span><b>Air seal guide</b><small>Step ' + (index + 1) + ' of 3</small></span></div>' +
-      '<div class="sa-log-guide-body"><span class="sa-log-guide-media"><img class="sa-log-guide-image sa-log-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></span>' +
-        '<span class="sa-log-guide-copy"><strong>' + GUIDE_TITLES[index] + '</strong><small>' + GUIDE_COPY[index] + '</small></span></div>' +
+        '<span><b>Air seal guide</b><small>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</small></span></div>' +
+      '<div class="sa-log-guide-body"><span class="sa-log-guide-media">' + guideArtMarkup(index) + '</span>' +
+        '<span class="sa-log-guide-copy"><strong>' + step.title + '</strong><small>' + step.copy + '</small></span></div>' +
       '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '><span aria-hidden="true">←</span> Previous</button>' +
-        '<span class="sa-log-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
-        '<button type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
+        dotsMarkup(index, 'sa-log-guide-dots') +
+        '<button type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_STEPS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
     '</div>';
   }
 
   function loggedSummaryMarkup() {
     var kind = state.air2SessionSummaryKind;
-    var guideIndex = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(state.v3LoggedGuideIndex) || 0));
+    var guideIndex = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(state.v3LoggedGuideIndex) || 0));
     var guideOpen = !!state.v3LoggedGuideOpen;
     var copy = kind === 'major-leak'
-      ? 'A serious air leak was detected. Review all three checks before your next session.'
+      ? 'A serious air leak was detected. Review all four checks before your next session.'
       : kind === 'minor-leak'
         ? 'A slight air leak was detected and compensated automatically. Review the fit before your next session.'
-        : 'Review the three fit checks before your next pumping session.';
+        : 'Review the four air seal checks before your next pumping session.';
     return '<div class="air2-logged-summary sa-major-summary' + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
       '<b>Session issue recorded</b><p>' + copy + '</p>' +
-      '<button type="button" data-air2-wear-guide>Review the 3-step guide</button></div>' +
+      '<button type="button" data-air2-wear-guide>Review the 4-step guide</button></div>' +
       '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>' +
       '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
   }
@@ -153,7 +221,7 @@
   function renderLoggedGuideStep(card, index) {
     var guide = card && card.querySelector('.sa-log-guide');
     if (!guide) return;
-    index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
+    index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(index) || 0));
     guide.innerHTML = loggedGuideStepMarkup(index);
   }
 
@@ -164,22 +232,8 @@
           '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
         '<div class="sa-guide-status sa-recheck-status"><i aria-hidden="true">•</i><b>Monitoring suction seal</b><span>Live</span></div>' +
         '<div class="sa-recheck-body"><span class="sa-seal-spinner" aria-hidden="true"><i></i></span>' +
-          '<strong>Checking for a stable seal</strong><p>Pumping stays paused while V3 Pro checks suction and the air seal.</p></div>' +
-      '</section></div>';
-  }
-
-  function failedMarkup() {
-    return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-failed-title">' +
-      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-recheck-failed">' +
-        '<header class="sa-guide-header"><div><span>Recheck complete</span><h2 id="sa-failed-title">Air leak still detected</h2></div>' +
-          '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
-        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Not cleared</span></div>' +
-        '<div class="sa-failed-body"><span class="sa-failed-icon" aria-hidden="true">×</span>' +
-          '<strong>Check all three causes again</strong><p>Review the guide, or ignore this warning and decide when to resume pumping.</p></div>' +
-        '<div class="sa-actions sa-failed-actions">' +
-          '<button class="sa-primary" type="button" data-sa-action="review-again">Review guidance</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Ignore for now</button>' +
-        '</div>' +
+          '<strong>Checking for a stable seal</strong><p>Pumping stays paused while V3 Pro checks suction and the air seal for up to 10 seconds.</p>' +
+          '<span class="sa-recheck-progress" aria-hidden="true"><i></i></span></div>' +
       '</section></div>';
   }
 
@@ -204,7 +258,6 @@
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
-    if (f.stage === 'recheck_failed') root.insertAdjacentHTML('beforeend', failedMarkup());
     if (screen && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
       screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved'));
@@ -261,6 +314,7 @@
       setMessage('Start Fit Check before triggering a self-check serious leak.');
       return false;
     }
+    clearRecheckTimer();
     var eventId = 'leak-' + now();
     f.status = 'major_active';
     f.stage = 'guide';
@@ -268,6 +322,7 @@
     f.guideIndex = 0;
     f.wasRunning = source === 'pumping' ? !!state.running : false;
     f.activeEventId = eventId;
+    f.guideNotice = '';
     f.message = '';
     state.v3LeakEvents.push({
       eventId: eventId,
@@ -292,6 +347,7 @@
   function ignoreForNow() {
     var f = flow();
     var event = activeEvent();
+    clearRecheckTimer();
     f.status = 'major_ignored';
     f.stage = 'ignored_paused';
     if (event) {
@@ -321,6 +377,7 @@
     var f = flow();
     var event = activeEvent();
     var previousStage = f.stage;
+    clearRecheckTimer();
     if (f.status !== 'major_active' && f.status !== 'major_ignored') {
       setMessage('Trigger a normal result while a serious leak is active.');
       return false;
@@ -354,8 +411,11 @@
       setMessage('Open Recheck air seal before returning a failed result.');
       return false;
     }
+    clearRecheckTimer();
     f.status = 'major_active';
-    f.stage = 'recheck_failed';
+    f.stage = 'guide';
+    f.guideIndex = 0;
+    f.guideNotice = 'Air leak is still detected. Continue troubleshooting each step.';
     if (event) {
       event.userAction = 'retry';
       event.resolutionStatus = 'active';
@@ -364,15 +424,34 @@
     return true;
   }
 
+  function startRecheck() {
+    var f = flow();
+    clearRecheckTimer();
+    f.status = 'major_active';
+    f.stage = 'rechecking';
+    f.guideNotice = '';
+    var event = activeEvent();
+    if (event) event.userAction = 'retry';
+    repaint();
+    var eventId = f.activeEventId;
+    recheckTimer = setTimeout(function () {
+      var current = flow();
+      if (current.stage !== 'rechecking' || current.activeEventId !== eventId) return;
+      recheckFailed();
+    }, RECHECK_TIMEOUT_MS);
+  }
+
   function resetLeak() {
     var f = flow();
     clearTimeout(resolvedTimer);
     resolvedTimer = null;
+    clearRecheckTimer();
     f.status = 'none';
     f.stage = 'idle';
     f.source = null;
     f.guideIndex = 0;
     f.activeEventId = null;
+    f.guideNotice = '';
     f.message = '';
     state.paused = false;
     state.controlNotice = null;
@@ -417,11 +496,9 @@
     var f = flow();
     var next = f.guideIndex + delta;
     if (next < 0) return;
-    if (next >= GUIDE_ASSETS.length) {
-      f.status = 'major_active';
-      f.stage = 'rechecking';
-      var event = activeEvent();
-      if (event) event.userAction = 'retry';
+    if (next >= GUIDE_STEPS.length) {
+      startRecheck();
+      return;
     } else {
       f.guideIndex = next;
     }
@@ -432,8 +509,10 @@
     var f = flow();
     var event = activeEvent();
     if (id === 'start-guide' || id === 'review-again') {
+      clearRecheckTimer();
       f.stage = 'guide';
       f.guideIndex = 0;
+      f.guideNotice = '';
       state.paused = true;
       if (event) event.userAction = 'troubleshoot';
     } else if (id === 'guide-prev') {
@@ -513,7 +592,7 @@
       var currentStep = card && card.querySelector('[data-sa-log-guide-step]');
       var index = Number(currentStep && currentStep.getAttribute('data-sa-log-guide-step')) || 0;
       state.v3LoggedGuideOpen = true;
-      state.v3LoggedGuideIndex = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, index + (loggedGuideButton.getAttribute('data-sa-log-guide') === 'next' ? 1 : -1)));
+      state.v3LoggedGuideIndex = Math.max(0, Math.min(GUIDE_STEPS.length - 1, index + (loggedGuideButton.getAttribute('data-sa-log-guide') === 'next' ? 1 : -1)));
       renderLoggedGuideStep(card, state.v3LoggedGuideIndex);
       return;
     }
@@ -573,7 +652,7 @@
   function maintainAddon() {
     var f = flow();
     var needsLayer = f.stage === 'guide' ||
-      f.stage === 'rechecking' || f.stage === 'recheck_failed';
+      f.stage === 'rechecking';
     var needsStatus = f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved';
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();
@@ -602,7 +681,7 @@
     setInterval(maintainAddon, 250);
   }
 
-  window.V3ProLeakFlow = { version: 1, trigger: trigger, state: flow, resetSession: resetSessionLeakTracking };
+  window.V3ProLeakFlow = { version: 2, trigger: trigger, state: flow, resetSession: resetSessionLeakTracking };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());
