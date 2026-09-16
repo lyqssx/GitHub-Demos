@@ -482,6 +482,26 @@
     return result;
   }
 
+  function startProgramFitCheck() {
+    state.page = 'control';
+    state.modal = null;
+    state.selectedProgram = 'Milk Boost';
+    state.mode = 'stimulation';
+    state.auto = true;
+    state.timer = 0;
+    state.running = false;
+    state.paused = false;
+    state.air2SessionEnded = false;
+    state.air2ActiveSessionId = 'session-' + now();
+    if (typeof window.v4RunFit === 'function') {
+      window.v4RunFit();
+      return true;
+    }
+    setMessage('Fit Check is not ready.');
+    repaint();
+    return false;
+  }
+
   function trigger(id) {
     var f = flow();
     if (id === 'suction-normal') {
@@ -590,12 +610,19 @@
 
   function onClick(event) {
     var sessionStartButton = event.target.closest && event.target.closest('#demo [data-v4="start"]');
+    var programConfirmButton = event.target.closest && event.target.closest('#demo [data-v4="confirm"]');
     var triggerButton = event.target.closest && event.target.closest('[data-sa-trigger]');
     var actionButton = event.target.closest && event.target.closest('#demo [data-sa-action]');
     var resumeButton = event.target.closest && event.target.closest('#demo [data-v4="pause"]');
     var loggedGuideButton = event.target.closest && event.target.closest('#demo [data-sa-log-guide]');
     var loggedGuideBack = event.target.closest && event.target.closest('#demo [data-sa-log-guide-back]');
     var loggedOpen = event.target.closest && event.target.closest('#demo [data-air2-wear-guide]');
+    if (programConfirmButton && state.modal === 'confirm') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      startProgramFitCheck();
+      return;
+    }
     if (sessionStartButton) resetSessionLeakTracking();
     if (resumeButton) markExplicitResume();
     if (loggedOpen) {
