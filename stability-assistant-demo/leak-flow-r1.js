@@ -8,28 +8,28 @@
       title: 'Check Left Tubing',
       label: 'Left tubing connection',
       copy: 'Push the left tubing connector in firmly.',
-      assets: ['./assets/stability-assistant/figma-tubing-left-original.png']
+      assets: ['./assets/stability-assistant/figma-tubing-left-guide-crop.png']
     },
     {
       kind: 'tube-right',
       title: 'Check Right Tubing',
       label: 'Right tubing connection',
       copy: 'Push the right tubing connector in firmly.',
-      assets: ['./assets/stability-assistant/figma-tubing-right-original.png']
+      assets: ['./assets/stability-assistant/figma-tubing-right-guide-crop.png']
     },
     {
-      kind: 'fit-center',
-      title: 'Center the Nipple',
+      kind: 'cup',
+      title: 'Check Cup Assembly',
+      label: 'Cup and flange assembly',
+      copy: 'Snap the rim shut and seat the duckbill valve securely.',
+      assets: ['./assets/stability-assistant/figma-cup-guide-crop.png']
+    },
+    {
+      kind: 'fit',
+      title: 'Check Your Fit',
       label: 'Center the nipple in the tunnel',
-      copy: 'Center the nipple in the tunnel before securing the flange.',
+      copy: 'Center the nipple in the tunnel and press the flange firmly against the breast.',
       assets: ['./assets/stability-assistant/figma-fit-center-original.png']
-    },
-    {
-      kind: 'fit-seal',
-      title: 'Seal the Flange',
-      label: 'Secure the flange against the breast',
-      copy: 'Press the flange firmly against the breast to create a complete seal.',
-      assets: ['./assets/stability-assistant/figma-fit-seal-original.png']
     }
   ];
   var RECHECK_TIMEOUT_MS = 10000;
@@ -144,15 +144,7 @@
   function guideArtMarkup(index) {
     var step = GUIDE_STEPS[index];
     var asset = step.assets[0];
-    var isTubing = step.kind === 'tube-left' || step.kind === 'tube-right';
-    var sideSelector = isTubing
-      ? '<span class="sa-tube-side-selector" aria-hidden="true">' +
-          '<b class="' + (step.kind === 'tube-left' ? 'is-active' : '') + '">L</b>' +
-          '<b class="' + (step.kind === 'tube-right' ? 'is-active' : '') + '">R</b>' +
-        '</span>'
-      : '';
     return '<span class="sa-guide-art sa-guide-art-' + step.kind + '" role="img" aria-label="' + step.label + '">' +
-      sideSelector +
       '<img class="sa-guide-art-image" src="' + asset + '" alt="">' +
     '</span>';
   }
@@ -184,14 +176,14 @@
     index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(index) || 0));
     var step = GUIDE_STEPS[index];
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
-      '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + step.title + '</h2></div>' +
-        '<button class="sa-guide-skip" type="button" data-sa-log-guide-back aria-label="Back to session summary">Back</button></header>' +
-      '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
+      '<header class="sa-log-guide-header"><div><span>Fit Guide</span><h2>' + step.title + '</h2></div>' +
+        '<button class="sa-log-guide-close" type="button" data-sa-log-guide-back aria-label="Close fit guide">×</button></header>' +
+      '<div class="sa-log-guide-progress"><span>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
       '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
       '<p class="sa-guide-copy">' + step.copy + '</p>' +
       '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
         dotsMarkup(index, 'sa-guide-dots') +
-        '<button class="sa-guide-next" type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_STEPS.length - 1 ? 'disabled' : '') + '>' + (index === GUIDE_STEPS.length - 1 ? '✓' : '›') + '</button></footer>' +
+        '<button class="sa-guide-next" type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_STEPS.length - 1 ? 'disabled' : '') + '>›</button></footer>' +
     '</div>';
   }
 
@@ -568,16 +560,22 @@
     var resumeButton = event.target.closest && event.target.closest('#demo [data-v4="pause"]');
     var loggedGuideButton = event.target.closest && event.target.closest('#demo [data-sa-log-guide]');
     var loggedGuideBack = event.target.closest && event.target.closest('#demo [data-sa-log-guide-back]');
+    var loggedOpen = event.target.closest && event.target.closest('#demo [data-air2-wear-guide]');
     if (sessionStartButton) resetSessionLeakTracking();
     if (resumeButton) markExplicitResume();
+    if (loggedOpen) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      state.v3LoggedGuideOpen = true;
+      state.v3LoggedGuideIndex = 0;
+      repaint();
+      return;
+    }
     if (loggedGuideBack) {
       event.preventDefault();
       event.stopImmediatePropagation();
       state.v3LoggedGuideOpen = false;
-      var backCard = loggedGuideBack.closest('.air2-logged-summary');
-      if (backCard) backCard.classList.remove('is-guide-open');
-      var backSheet = loggedGuideBack.closest('.v4-logged');
-      if (backSheet) backSheet.classList.remove('sa-guide-open');
+      repaint();
       return;
     }
     if (loggedGuideButton) {
@@ -613,15 +611,8 @@
   function onPointerDown(event) {
     var guide = event.target.closest && event.target.closest('#demo .sa-guide-layer');
     if (guide) swipe = { id: event.pointerId, x: event.clientX };
-    var loggedOpen = event.target.closest && event.target.closest('#demo [data-air2-wear-guide]');
-    if (loggedOpen) {
-      state.v3LoggedGuideOpen = true;
-      state.v3LoggedGuideIndex = 0;
-      var loggedSheet = loggedOpen.closest('.v4-logged');
-      if (loggedSheet) loggedSheet.classList.add('sa-guide-open');
-    }
     var loggedCard = event.target.closest && event.target.closest('#demo .air2-logged-summary');
-    if (loggedCard) loggedSwipe = { id: event.pointerId, x: event.clientX };
+    if (loggedCard && state.v3LoggedGuideOpen) loggedSwipe = { id: event.pointerId, x: event.clientX, card: loggedCard };
     var finish = event.target.closest && event.target.closest('#demo [data-v4="finish"],#demo [data-action="finish"]');
     if (finish && state.v3LeakEvents && state.v3LeakEvents.length) state.air2SessionSummaryKind = 'major-leak';
   }
@@ -629,8 +620,12 @@
   function onPointerUp(event) {
     if (loggedSwipe && loggedSwipe.id === event.pointerId) {
       var loggedDx = event.clientX - loggedSwipe.x;
+      var loggedCard = loggedSwipe.card;
       loggedSwipe = null;
-      if (Math.abs(loggedDx) >= 28) state.v3LoggedGuideOpen = loggedDx < 0;
+      if (Math.abs(loggedDx) >= 42) {
+        state.v3LoggedGuideIndex = Math.max(0, Math.min(GUIDE_STEPS.length - 1, state.v3LoggedGuideIndex + (loggedDx < 0 ? 1 : -1)));
+        renderLoggedGuideStep(loggedCard, state.v3LoggedGuideIndex);
+      }
     }
     if (!swipe || swipe.id !== event.pointerId) return;
     var dx = event.clientX - swipe.x;

@@ -241,11 +241,6 @@
 #demo .sa-guide-art { position: absolute; inset: 0; display: block; isolation: isolate; pointer-events: none; user-select: none; }
 #demo .sa-guide-art img { display: block; max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 #demo .sa-guide-art-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: none; }
-#demo .sa-guide-art-tube-left .sa-guide-art-image,
-#demo .sa-guide-art-tube-right .sa-guide-art-image { top: 20px; height: calc(100% - 20px); }
-#demo .sa-tube-side-selector { position: absolute; z-index: 2; top: 13px; left: 50%; display: grid; width: 70px; height: 25px; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 16px; background: #272427; transform: translateX(-50%); }
-#demo .sa-tube-side-selector b { display: grid; place-items: center; border-radius: 12px; color: rgba(255,255,255,.45); font-size: 10px; font-weight: 700; line-height: 1; }
-#demo .sa-tube-side-selector b.is-active { color: #fff; background: #9e2547; }
 #demo .sa-guide-copy { min-height: 34px; margin: 2px 42px 0; color: rgba(255,255,255,.82); font-size: 12px; line-height: 17px; text-align: center; }
 #demo .sa-guide-footer { position: absolute; inset: 0; pointer-events: none; }
 #demo .sa-guide-prev,
@@ -345,26 +340,27 @@
 #demo .air2-logged-done { margin-top: 16px; }
 
 #demo .sa-log-guide { min-width: 100%; padding: 0; }
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open { height: 450px; padding: 20px 16px !important; background: transparent; }
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open > img,
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open > h1,
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open > p,
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open > .air2-logged-done { display: none !important; }
-#demo .v4-logged.air2-abnormal-logged.sa-guide-open .sa-major-summary.is-guide-open { display: block; height: 410px; min-height: 410px; margin: 0; overflow: visible; border: 0; border-radius: 32px; background: transparent; box-shadow: none; }
+#demo .v4-logged.air2-abnormal-logged.sa-guide-open { height: 620px; padding: 0 24px !important; }
+#demo .v4-logged.air2-abnormal-logged.sa-guide-open .sa-major-summary.is-guide-open { display: block; height: 360px; min-height: 360px; margin-top: 18px; overflow: hidden; border: 1px solid rgba(153,20,57,.12); border-radius: 20px; background: #fff7f7; box-shadow: none; }
 #demo .sa-major-summary.is-guide-open .air2-logged-summary-main { display: none; }
 #demo .sa-major-summary.is-guide-open .air2-logged-guide { width: 100%; min-width: 100%; padding: 0; transform: none !important; }
-#demo .sa-log-guide-step { position: relative; display: flex; height: 410px; flex-direction: column; box-sizing: border-box; padding: 24px; overflow: hidden; border-radius: 32px; color: #fff; background: radial-gradient(115% 90% at 80% 104%, rgba(197,53,91,.34), transparent 58%), linear-gradient(148deg,#a81948,#770523 70%); box-shadow: 0 -14px 40px rgba(76,0,24,.22); }
-#demo .sa-log-guide-step .sa-guide-media { margin-top: 2px; }
-#demo .sa-major-summary .sa-log-guide-step .sa-guide-header span { color: rgba(255,255,255,.68); }
-#demo .sa-major-summary .sa-log-guide-step .sa-guide-status b { display: block; color: rgba(255,255,255,.94); font-size: 11px; font-weight: 600; line-height: normal; }
-#demo .sa-major-summary .sa-log-guide-step .sa-guide-copy { margin: 2px 42px 0; color: rgba(255,255,255,.82); font-size: 12px; line-height: 17px; }
-#demo .sa-major-summary .sa-log-guide-step .sa-guide-skip { width: auto; height: 30px; padding: 0 13px; border: 1px solid rgba(255,255,255,.25); border-radius: 15px; color: #fff; background: rgba(255,255,255,.12); box-shadow: none; font-size: 12px; font-weight: 600; }
+#demo .sa-log-guide-step { position: relative; display: flex; height: 360px; flex-direction: column; box-sizing: border-box; padding: 18px 20px; overflow: hidden; color: #4a2130; background: transparent; }
+#demo .sa-log-guide-header { display: flex; min-height: 43px; align-items: flex-start; justify-content: space-between; }
+#demo .sa-log-guide-header span { display: block; color: rgba(74,33,48,.52); font-size: 10px; font-weight: 650; line-height: 13px; }
+#demo .sa-log-guide-header h2 { margin: 2px 0 0; color: #97002d; font-size: 17px; font-weight: 700; line-height: 21px; letter-spacing: 0; }
+#demo .sa-major-summary .sa-log-guide-close { display: grid; width: 30px; height: 30px; place-items: center; padding: 0; border: 1px solid rgba(74,33,48,.12); border-radius: 50%; color: rgba(74,33,48,.68); background: rgba(255,255,255,.72); font-size: 20px; font-weight: 400; line-height: 1; }
+#demo .sa-log-guide-progress { display: flex; height: 16px; align-items: center; justify-content: flex-end; color: rgba(74,33,48,.52); font-size: 10px; line-height: 1; }
+#demo .sa-log-guide-step .sa-guide-media { width: 202px; height: 184px; flex-basis: 184px; margin-top: 0; border-radius: 18px; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-copy { min-height: 30px; margin: 3px 34px 0; color: rgba(74,33,48,.72); font-size: 11px; line-height: 15px; }
 #demo .sa-major-summary .sa-log-guide-step .sa-guide-prev,
-#demo .sa-major-summary .sa-log-guide-step .sa-guide-next { width: 42px; height: 42px; padding: 0; border: 1px solid rgba(255,255,255,.3); border-radius: 50%; color: #fff; background: rgba(255,255,255,.16); box-shadow: 0 6px 18px rgba(55,0,18,.16); font-size: 26px; font-weight: 400; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-next { top: 235px; width: 36px; height: 36px; padding: 0; border: 1px solid rgba(151,0,45,.18); border-radius: 50%; color: #97002d; background: rgba(255,255,255,.82); box-shadow: none; font-size: 23px; font-weight: 400; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-prev { left: 12px; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-next { right: 12px; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-next:disabled { opacity: 0; pointer-events: none; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-dots { bottom: 11px; }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-dots i { background: rgba(151,0,45,.2); }
+#demo .sa-major-summary .sa-log-guide-step .sa-guide-dots i.is-active { background: #97002d; }
 #demo .v4-logged.air2-abnormal-logged .sa-log-guide-step .sa-guide-art-image { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; object-fit: contain !important; }
-#demo .v4-logged.air2-abnormal-logged .sa-log-guide-step .sa-guide-art-tube-left .sa-guide-art-image,
-#demo .v4-logged.air2-abnormal-logged .sa-log-guide-step .sa-guide-art-tube-right .sa-guide-art-image { top: 20px !important; bottom: auto !important; height: calc(100% - 20px) !important; }
-#demo .v4-logged.air2-abnormal-logged .sa-log-guide-step .sa-tube-side-selector b { font-size: 10px; line-height: 1; }
 
 .sa-trigger-status {
   min-height: 28px;
@@ -385,7 +381,7 @@
   #demo .sa-copy { margin-top: 10px; }
   #demo .sa-actions { padding-top: 18px; }
   #demo .v4-logged.air2-abnormal-logged { height: 500px; }
-  #demo .v4-logged.air2-abnormal-logged.sa-guide-open { height: 430px; padding-top: 10px !important; padding-bottom: 10px !important; }
+  #demo .v4-logged.air2-abnormal-logged.sa-guide-open { height: 600px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
