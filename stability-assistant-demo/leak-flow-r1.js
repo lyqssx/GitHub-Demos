@@ -192,13 +192,14 @@
     index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(index) || 0));
     var step = GUIDE_STEPS[index];
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
-      '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary"><span aria-hidden="true">←</span> Summary</button>' +
-        '<span><b>Air seal guide</b><small>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</small></span></div>' +
-      '<div class="sa-log-guide-body"><span class="sa-log-guide-media">' + guideArtMarkup(index) + '</span>' +
-        '<span class="sa-log-guide-copy"><strong>' + step.title + '</strong><small>' + step.copy + '</small></span></div>' +
-      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '><span aria-hidden="true">←</span> Previous</button>' +
-        dotsMarkup(index, 'sa-log-guide-dots') +
-        '<button type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_STEPS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
+      '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + step.title + '</h2></div>' +
+        '<button class="sa-guide-skip" type="button" data-sa-log-guide-back aria-label="Back to session summary">Back</button></header>' +
+      '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
+      '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
+      '<p class="sa-guide-copy">' + step.copy + '</p>' +
+      '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
+        dotsMarkup(index, 'sa-guide-dots') +
+        '<button class="sa-guide-next" type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_STEPS.length - 1 ? 'disabled' : '') + '>' + (index === GUIDE_STEPS.length - 1 ? '✓' : '›') + '</button></footer>' +
     '</div>';
   }
 
@@ -207,13 +208,13 @@
     var guideIndex = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(state.v3LoggedGuideIndex) || 0));
     var guideOpen = !!state.v3LoggedGuideOpen;
     var copy = kind === 'major-leak'
-      ? 'A serious air leak was detected. Review all four checks before your next session.'
+      ? 'A serious air leak was detected. Check your setup before your next session.'
       : kind === 'minor-leak'
-        ? 'A slight air leak was detected and compensated automatically. Review the fit before your next session.'
-        : 'Review the four air seal checks before your next pumping session.';
+        ? 'A slight air leak was detected and corrected automatically. Check your setup before your next session.'
+        : 'Check your setup before your next pumping session.';
     return '<div class="air2-logged-summary sa-major-summary' + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
       '<b>Session issue recorded</b><p>' + copy + '</p>' +
-      '<button type="button" data-air2-wear-guide>Review the 4-step guide</button></div>' +
+      '<button type="button" data-air2-wear-guide>Learn how to get a secure fit</button></div>' +
       '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>' +
       '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
   }
@@ -297,7 +298,7 @@
         html = baseLogged.apply(this, arguments);
         state.air2ShowLoggedSummary = previousSummaryState;
         if (!needsSummary) return html;
-        return html.replace('v4-logged', 'v4-logged air2-abnormal-logged')
+        return html.replace('v4-logged', 'v4-logged air2-abnormal-logged' + (state.v3LoggedGuideOpen ? ' sa-guide-open' : ''))
           .replace('<i class="v4-home-indicator"></i>', loggedSummaryMarkup() + '<i class="v4-home-indicator"></i>');
       };
     }
@@ -583,6 +584,8 @@
       state.v3LoggedGuideOpen = false;
       var backCard = loggedGuideBack.closest('.air2-logged-summary');
       if (backCard) backCard.classList.remove('is-guide-open');
+      var backSheet = loggedGuideBack.closest('.v4-logged');
+      if (backSheet) backSheet.classList.remove('sa-guide-open');
       return;
     }
     if (loggedGuideButton) {
@@ -622,6 +625,8 @@
     if (loggedOpen) {
       state.v3LoggedGuideOpen = true;
       state.v3LoggedGuideIndex = 0;
+      var loggedSheet = loggedOpen.closest('.v4-logged');
+      if (loggedSheet) loggedSheet.classList.add('sa-guide-open');
     }
     var loggedCard = event.target.closest && event.target.closest('#demo .air2-logged-summary');
     if (loggedCard) loggedSwipe = { id: event.pointerId, x: event.clientX };
