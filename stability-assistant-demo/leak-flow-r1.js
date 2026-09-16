@@ -7,7 +7,7 @@
     './assets/stability-assistant/cup-check.png',
     './assets/stability-assistant/fit-check.png'
   ];
-  var GUIDE_LABELS = ['Tubing check', 'Cup check', 'Fit check'];
+  var GUIDE_LABELS = ['Tubing connection', 'Cup assembly', 'Nipple positioning'];
   var root = document.getElementById('demo');
   var baseView;
   var baseFit;
@@ -334,7 +334,7 @@
     if (id === 'minor-leak') return runLegacyTrigger('minor-leak', 'Start pumping before triggering a minor leak.');
     if (id === 'self-check-severe') return beginSevere('self_check');
     if (id === 'pumping-severe') return beginSevere('pumping');
-    if (id === 'recheck-passed' || id === 'leak-resolved') return resolveLeak();
+    if (id === 'recheck-passed') return resolveLeak();
     if (id === 'recheck-failed') return recheckFailed();
     if (id === 'reset-leak') { resetLeak(); return true; }
     return false;
@@ -396,15 +396,14 @@
   }
 
   function triggerGroupMarkup() {
-    return '<section class="demo-trigger-group sa-trigger-group"><h3>V3 Pro fit and leak</h3>' +
+    return '<section class="demo-trigger-group sa-trigger-group"><h3>V3 Pro suction and air seal</h3>' +
       '<div class="demo-trigger-grid">' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="fit-check-passed"><b>Fit check passed</b></button>' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="self-check-severe"><b>Self-check leak</b></button>' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="pumping-severe"><b>Pumping leak</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Minor leak</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="self-check-severe"><b>Fit check severe leak</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="pumping-severe"><b>Pumping severe leak</b></button>' +
+        '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Pumping slight leak</b></button>' +
         '<button class="demo-trigger-action" type="button" data-sa-trigger="recheck-passed"><b>Recheck passed</b></button>' +
         '<button class="demo-trigger-action" type="button" data-sa-trigger="recheck-failed"><b>Recheck failed</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="leak-resolved"><b>Leak resolved</b></button>' +
         '<button class="demo-trigger-action" type="button" data-sa-trigger="reset-leak"><b>Reset leak demo</b></button>' +
       '</div><p class="sa-trigger-status" data-sa-trigger-status></p></section>';
   }
@@ -412,12 +411,9 @@
   function installTriggerGroup() {
     var host = document.querySelector('.demo-trigger-root');
     var content = host && host.querySelector('.demo-trigger-content');
-    if (!content || content.querySelector('.sa-trigger-group')) return;
+    if (!content) return;
     var groups = content.querySelectorAll('.demo-trigger-group');
-    for (var i = 0; i < groups.length; i += 1) {
-      var title = groups[i].querySelector('h3');
-      if (title && title.textContent.trim() === 'Air leak') groups[i].remove();
-    }
+    for (var i = 0; i < groups.length; i += 1) groups[i].remove();
     content.insertAdjacentHTML('afterbegin', triggerGroupMarkup());
     syncTriggerStatus();
   }

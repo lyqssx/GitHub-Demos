@@ -198,6 +198,10 @@ html body #demo .r49-boost-card .r49-boost__program::after {
 #demo .v3-pro-dock-visual > img { display: block !important; width: 76px !important; height: 44px !important; object-fit: contain !important; }
 #demo .v4-device-card .v3-pro-device-art { right: 6px !important; bottom: 8px !important; width: 210px !important; height: 150px !important; object-fit: contain !important; }
 
+/* The home dock is re-rendered by legacy Home code, so target the V3 child marker. */
+#demo .v3-pro-dock-visual { display: flex !important; width: 96px !important; height: 44px !important; flex: 0 0 96px !important; align-items: center !important; justify-content: center !important; overflow: visible !important; }
+#demo .v3-pro-dock-visual > img[data-v3-pro-dock-device] { position: static !important; display: block !important; width: 82px !important; height: 50px !important; max-width: 82px !important; object-fit: contain !important; }
+
 /* Figma 1660:16756: Night Light, including L0-L3 and the automatic-light thumb. */
 #demo .v3-pro-night-light {
   position: relative;

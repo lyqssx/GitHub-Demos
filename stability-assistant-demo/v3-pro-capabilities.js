@@ -36,10 +36,10 @@
       '</div>';
     }
 
-    var dockPumps = root.querySelector('.v4-home-dock .v4-dock-pumps');
-    if (dockPumps && !dockPumps.classList.contains('v3-pro-dock-visual')) {
-      dockPumps.className = 'v4-dock-pumps v3-pro-dock-visual';
-      dockPumps.innerHTML = '<img src="./assets/v3-pro-main.png" alt="V3 Pro pump">';
+    var dockPumps = root.querySelector('.v4-home-dock .h7-pump-pair, .v4-home-dock .v4-dock-pumps');
+    if (dockPumps && !dockPumps.querySelector('[data-v3-pro-dock-device]')) {
+      dockPumps.classList.add('v3-pro-dock-visual');
+      dockPumps.innerHTML = '<img data-v3-pro-dock-device src="./assets/v3-pro-main.png" alt="V3 Pro pump">';
     }
 
     var deviceArt = root.querySelector('.v4-device-card .art');

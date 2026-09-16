@@ -1,24 +1,27 @@
-# Air2 interactive H5 demo
+# V3 Pro Stability Assistant interactive H5 demo
 
-Run locally:
+Open `index.html` directly as a static page. The demo is implemented with DOM, CSS, and JavaScript and does not require a local server.
 
-```sh
-python3 -m http.server 4173 --directory air2-h5-demo
-```
+## Current V3 Pro scope
 
-This is a DOM/CSS/JavaScript implementation. It does not use a full-screen Figma export or a click-through image map. The Figma-exported assets used by the current build are under `assets/figma-v2`.
+1. The product visuals use one centered V3 Pro console, including the Pump Control hero and the Breast Pump home dock.
+2. V3 Pro does not expose sensor-led Auto Switch. Manual mode and Milk Boost remain available.
+3. Fit Check contains one item only: `Suction`. It waits for a manual trigger result and does not complete automatically.
+4. A slight in-session leak is compensated in the background and is recorded for the session summary.
+5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance: tubing connection, cup assembly, and nipple/channel positioning.
+6. V3 Pro cannot locate the leak side or exact leak source, so the guidance always asks the user to review all three causes.
+7. The user may continue pumping with an unresolved serious leak. The active status remains visible and the resulting record is marked abnormal.
 
-Implemented states follow the Figma nodes:
+## Event triggers
 
-1. Device (`1:13028`) → Breast Pump home (`1:13118`) → Pump Control (`1:18104`).
-2. Start → Fit Check overlay with posture/alignment progression (`1:14443`).
-3. Manual Stimulation with mode tabs, Auto Switch, left/right level tracks, Both control, and speed selector.
-4. Running control layout (`1:18307`) with live time/volume, Auto Switch to Expression, pause, and hold to finish.
-5. Full program list with expanded Milk Boost (`1:16863`) → confirmation (`1:19722`).
-6. Log Pumping Amount (`1:13633`) → Logged feedback (`3:5292`).
+All detection events are reviewer-triggered. There are no timed leak, let-down, posture, alignment, or battery event sequences.
 
-## Review mode
+- `Fit check passed`
+- `Fit check severe leak`
+- `Pumping severe leak`
+- `Pumping slight leak`
+- `Recheck passed`
+- `Recheck failed`
+- `Reset leak demo`
 
-Open `http://127.0.0.1:4173/?review=1`.
-
-Select **Mark screen**, click the exact target, and write the adjustment. **Export JSON** downloads the notes; attaching that file here lets the next revision target the active screen, overlay state, and exact x/y coordinate.
+The serious-leak guidance supports the on-screen previous/next controls, horizontal swipe, and keyboard arrow keys.

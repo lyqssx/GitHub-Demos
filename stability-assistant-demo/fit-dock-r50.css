@@ -9,3 +9,6 @@
 /* Never allow the legacy standalone Fit Check/Start overlay to surface. */
 #demo>.v4-overlay:has(.v4-fit){display:none!important}
 @keyframes r50-spin{to{transform:rotate(360deg)}}@keyframes r50-angle{0%,100%{transform:rotate(18deg)}55%{transform:rotate(0)}}@keyframes r50-start-word{0%{opacity:0;transform:scale(.55);letter-spacing:1px}55%{opacity:1;transform:scale(1.1);letter-spacing:7px}100%{opacity:1;transform:scale(1);letter-spacing:5px}}@keyframes r50-start-ring{0%{opacity:0;transform:scale(.35)}60%{opacity:1;transform:scale(1.08)}100%{opacity:.72;transform:scale(1)}}@keyframes r50-start-copy{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){#demo .r50-check-icon b,#demo .r50-guide.is-adjusting .r50-hardware,#demo .r50-start-ceremony>*{animation:none}}
+
+/* V3 Pro Fit Check has one capability: suction/air-seal detection. */
+#demo .r50-fit-checks{grid-template-columns:minmax(0,1fr)}
