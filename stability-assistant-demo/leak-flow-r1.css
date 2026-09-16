@@ -292,8 +292,9 @@
 
 #demo .sa-log-guide { min-width: 100%; padding: 0; }
 #demo .sa-log-guide-step { display: grid; height: 348px; grid-template-rows: 40px minmax(0, 1fr) 40px; box-sizing: border-box; padding: 14px 16px 12px; }
-#demo .sa-log-guide-head { display: flex; align-items: center; gap: 8px; }
-#demo .sa-log-guide-head > button { display: grid; width: 34px; height: 34px; place-items: center; padding: 0; color: #7d1434; background: rgba(125,20,52,.08); font-size: 23px; }
+#demo .sa-log-guide-head { display: flex; align-items: center; gap: 10px; }
+#demo .sa-major-summary .sa-log-guide-head > button { display: inline-flex; width: auto; height: 34px; align-items: center; gap: 5px; padding: 0 4px 0 0; border: 0; border-radius: 0; color: rgba(92, 29, 49, .66); background: transparent; box-shadow: none; font-size: 11px; font-weight: 600; }
+#demo .sa-log-guide-head > button span { font-size: 16px; line-height: 1; }
 #demo .sa-log-guide-head > span { display: flex; min-width: 0; flex: 1; align-items: baseline; justify-content: space-between; }
 #demo .sa-log-guide-head b { font-size: 16px; }
 #demo .sa-log-guide-head small { color: rgba(74,33,48,.5); font-size: 11px; }
@@ -305,10 +306,11 @@
 #demo .sa-log-guide-copy small { display: block; }
 #demo .sa-log-guide-copy strong { color: #6e0b2b; font-size: 15px; line-height: 19px; }
 #demo .sa-log-guide-copy small { margin: 4px auto 0; max-width: 290px; color: rgba(74,33,48,.62); font-size: 12px; line-height: 16px; }
-#demo .sa-log-guide-footer { display: grid; grid-template-columns: 38px 1fr 38px; align-items: center; }
-#demo .sa-log-guide-footer > button { display: grid; width: 36px; height: 36px; place-items: center; padding: 0; color: #fff; background: #91002d; font-size: 23px; }
+#demo .sa-log-guide-footer { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+#demo .sa-major-summary .sa-log-guide-footer > button { display: inline-flex; width: auto; height: 40px; align-items: center; gap: 5px; padding: 0; border: 0; border-radius: 0; color: #7d1434; background: transparent; box-shadow: none; font-size: 11px; font-weight: 650; }
+#demo .sa-log-guide-footer > button span { font-size: 16px; line-height: 1; }
 #demo .sa-log-guide-footer > button:last-child { justify-self: end; }
-#demo .sa-log-guide-footer > button:disabled { color: rgba(74,33,48,.26); background: rgba(74,33,48,.07); }
+#demo .sa-major-summary .sa-log-guide-footer > button:disabled { color: rgba(74,33,48,.2); background: transparent; }
 #demo .sa-log-guide-dots { display: flex; align-items: center; justify-content: center; gap: 5px; }
 #demo .sa-log-guide-dots i { display: block; width: 5px; height: 5px; border-radius: 50%; background: rgba(145,0,45,.22); }
 #demo .sa-log-guide-dots i.is-active { width: 14px; border-radius: 4px; background: #91002d; }

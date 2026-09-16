@@ -144,13 +144,13 @@
   function loggedGuideStepMarkup(index) {
     index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
-      '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary">‹</button>' +
+      '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary"><span aria-hidden="true">←</span> Summary</button>' +
         '<span><b>Wear guide</b><small>Step ' + (index + 1) + ' of 3</small></span></div>' +
       '<div class="sa-log-guide-body"><span class="sa-log-guide-media"><img class="sa-log-guide-image sa-log-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></span>' +
         '<span class="sa-log-guide-copy"><strong>' + GUIDE_TITLES[index] + '</strong><small>' + GUIDE_COPY[index] + '</small></span></div>' +
-      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous wear guide step" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
+      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous wear guide step" ' + (index === 0 ? 'disabled' : '') + '><span aria-hidden="true">←</span> Previous</button>' +
         '<span class="sa-log-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
-        '<button type="button" data-sa-log-guide="next" aria-label="Next wear guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>›</button></div>' +
+        '<button type="button" data-sa-log-guide="next" aria-label="Next wear guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
     '</div>';
   }
 
