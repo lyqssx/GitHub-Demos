@@ -1,0 +1,15 @@
+/* Keep the reviewer tool clear of the guidance and pumping actions. */
+body:has(#demo .sa-layer) .demo-trigger-root,
+body:has(#demo .sa-status) .demo-trigger-root {
+  top: max(12px, env(safe-area-inset-top)) !important;
+  right: max(12px, env(safe-area-inset-right)) !important;
+  bottom: auto !important;
+  left: auto !important;
+}
+
+body:has(#demo .sa-layer) .demo-trigger-panel,
+body:has(#demo .sa-status) .demo-trigger-panel {
+  top: 60px;
+  bottom: auto;
+  transform-origin: right top;
+}

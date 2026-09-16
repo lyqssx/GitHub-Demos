@@ -1,0 +1,11 @@
+{
+  "name": "V3 Pro Stability Assistant",
+  "short_name": "V3 Pro",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#f9f7f5",
+  "theme_color": "#f9f7f5",
+  "orientation": "portrait"
+}
