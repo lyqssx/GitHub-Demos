@@ -101,11 +101,11 @@ html body #demo .r49-boost-card .r49-boost__program {
   min-width: 0 !important;
 }
 #demo .r49-boost-card .r49-boost__program > .v3-pro-boost-short {
-  flex: 33 1 0 !important;
+  flex: 2 1 0 !important;
   background: #bd5a62 !important;
 }
 #demo .r49-boost-card .r49-boost__program > .v3-pro-boost-long {
-  flex: 109 1 0 !important;
+  flex: 8 1 0 !important;
   background: #f89368 !important;
 }
 html body #demo .r49-boost-card .r49-boost__program::after {
@@ -202,6 +202,10 @@ html body #demo .r49-boost-card .r49-boost__program::after {
 #demo .v3-pro-dock-visual { display: flex !important; width: 96px !important; height: 44px !important; flex: 0 0 96px !important; align-items: center !important; justify-content: center !important; overflow: visible !important; }
 #demo .v3-pro-dock-visual > img[data-v3-pro-dock-device] { position: static !important; display: block !important; width: 82px !important; height: 50px !important; max-width: 82px !important; object-fit: contain !important; }
 
+/* Figma 1669:16946: crop the transparent source so the console has the intended visual size. */
+#demo .v3-pro-dock-visual { width: 72px !important; height: 50px !important; flex-basis: 72px !important; justify-content: flex-start !important; overflow: hidden !important; }
+#demo .v3-pro-dock-visual > img[data-v3-pro-dock-device] { width: 124px !important; height: 76px !important; max-width: 124px !important; flex: 0 0 124px !important; transform: translate(-27px, 1px) !important; filter: drop-shadow(0 8px 7px rgba(67, 0, 19, .22)); }
+
 /* Figma 1660:16756: Night Light, including L0-L3 and the automatic-light thumb. */
 #demo .v3-pro-night-light {
   position: relative;
@@ -295,7 +299,7 @@ html body #demo .r49-boost-card .r49-boost__program::after {
   z-index: 1;
   top: 6px;
   left: 0;
-  width: 33.14%;
+  width: calc(var(--night-light-level) * 100% / 3);
   height: 12px;
   border-radius: 56px;
   background: linear-gradient(90deg, pink, #770523);
@@ -323,7 +327,7 @@ html body #demo .r49-boost-card .r49-boost__program::after {
   position: absolute;
   z-index: 3;
   top: 0;
-  left: 32.84%;
+  left: calc(var(--night-light-level) * 100% / 3);
   display: flex;
   height: 24px;
   align-items: center;

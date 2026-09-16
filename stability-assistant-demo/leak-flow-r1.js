@@ -8,6 +8,12 @@
     './assets/stability-assistant/fit-check.png'
   ];
   var GUIDE_LABELS = ['Tubing connection', 'Cup assembly', 'Nipple positioning'];
+  var GUIDE_TITLES = ['Check the tubing', 'Check cup assembly', 'Check your fit'];
+  var GUIDE_COPY = [
+    'Reinsert both tubing connectors firmly into the V3 Pro console.',
+    'Snap the cup rim shut and make sure the duckbill valve is seated securely.',
+    'Center the nipple in the tunnel and keep the flange sealed against the breast.'
+  ];
   var root = document.getElementById('demo');
   var baseView;
   var baseFit;
@@ -98,10 +104,16 @@
     var f = flow();
     var index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(f.guideIndex) || 0));
     return '<div class="sa-layer sa-guide-layer" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
-      '<img class="sa-guide-image" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '">' +
-      '<button class="sa-guide-hit sa-guide-close" type="button" data-sa-action="close-guide" aria-label="Close guidance"></button>' +
-      '<button class="sa-guide-hit sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '></button>' +
-      '<button class="sa-guide-hit sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === GUIDE_ASSETS.length - 1 ? 'Finish guidance' : 'Next guidance page') + '"></button>' +
+      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
+        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + GUIDE_TITLES[index] + '</h2></div>' +
+          '<button class="sa-guide-close" type="button" data-sa-action="close-guide" aria-label="Close guidance">×</button></header>' +
+        '<div class="sa-guide-status"><i>!</i><b>Suction seal needs attention</b><span>Step ' + (index + 1) + ' of 3</span></div>' +
+        '<div class="sa-guide-media"><img class="sa-guide-image sa-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></div>' +
+        '<p class="sa-guide-copy">' + GUIDE_COPY[index] + '</p>' +
+        '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
+          '<span class="sa-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
+          '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === GUIDE_ASSETS.length - 1 ? 'Finish guidance' : 'Next guidance page') + '">' + (index === GUIDE_ASSETS.length - 1 ? '✓' : '›') + '</button></footer>' +
+      '</section>' +
       '<span class="sa-sr-only" aria-live="polite">Page ' + (index + 1) + ' of 3: ' + GUIDE_LABELS[index] + '</span>' +
     '</div>';
   }

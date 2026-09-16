@@ -1,6 +1,6 @@
 /* V3 Pro model-specific capability guards. */
 (function () {
-  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 3) return;
+  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 4) return;
 
   var root = document.getElementById('demo');
 
@@ -17,7 +17,7 @@
       current.v3ProCapabilities.nightLightLevel = 1;
     }
     if (!Number.isInteger(current.v3ProCapabilities.lastNightLightLevel) || current.v3ProCapabilities.lastNightLightLevel < 1) {
-      current.v3ProCapabilities.lastNightLightLevel = 1;
+      current.v3ProCapabilities.lastNightLightLevel = 2;
     }
 
     /* Program sequencing remains available. Outside a selected program, the
@@ -68,8 +68,8 @@
       '<em class="r49-boost__timer">' + timer + '</em></div>' +
       '<button class="r49-boost__arrow" data-v4="list" aria-label="Open list"><img src="./assets/v3-pro-chevron.svg" alt=""></button>' +
       '<div class="v3-pro-boost-flow"><div class="r49-boost__program" aria-label="Milk Boost program sequence">' +
-        '<span class="v3-pro-boost-short"></span><span class="v3-pro-boost-long"></span>' +
-        '<span class="v3-pro-boost-short"></span><span class="v3-pro-boost-long"></span>' +
+        '<span class="v3-pro-boost-short" aria-label="Stimulation 2 minutes"></span><span class="v3-pro-boost-long" aria-label="Expression 8 minutes"></span>' +
+        '<span class="v3-pro-boost-short" aria-label="Stimulation 2 minutes"></span><span class="v3-pro-boost-long" aria-label="Expression 8 minutes"></span>' +
       '</div><span class="v3-pro-boost-duration">20min</span></div>' +
     '</section>';
   }
@@ -105,12 +105,13 @@
     if (speed) speed.insertAdjacentHTML('afterend', nightLightCard());
   }
 
-  function updateNightLight(level) {
+  function updateNightLight(level, restoreDefaultAfterOff) {
     var current = currentState();
     if (!current) return;
     enforce();
     var capability = current.v3ProCapabilities;
     level = Math.max(0, Math.min(3, Math.round(Number(level) || 0)));
+    if (level === 0 && restoreDefaultAfterOff) capability.lastNightLightLevel = 2;
     if (level > 0) capability.lastNightLightLevel = level;
     capability.nightLightLevel = level;
     if (typeof window.v4View === 'function') window.v4View();
@@ -132,11 +133,11 @@
       enforce();
       var capability = current.v3ProCapabilities;
       if (toggle) {
-        updateNightLight(capability.nightLightLevel > 0 ? 0 : capability.lastNightLightLevel);
+        updateNightLight(capability.nightLightLevel > 0 ? 0 : capability.lastNightLightLevel, false);
         return;
       }
       var rect = track.getBoundingClientRect();
-      updateNightLight(Math.round(((event.clientX - rect.left) / rect.width) * 3));
+      updateNightLight(Math.round(((event.clientX - rect.left) / rect.width) * 3), true);
     }, true);
 
     document.addEventListener('keydown', function (event) {
@@ -145,7 +146,7 @@
       event.preventDefault();
       var current = currentState();
       if (!current) return;
-      updateNightLight(current.v3ProCapabilities.nightLightLevel + (event.key === 'ArrowRight' ? 1 : -1));
+      updateNightLight(current.v3ProCapabilities.nightLightLevel + (event.key === 'ArrowRight' ? 1 : -1), true);
     }, true);
   }
 
@@ -178,7 +179,7 @@
     }, 200);
   }
 
-  window.V3ProCapabilities = { version: 3, enforce: refresh };
+  window.V3ProCapabilities = { version: 4, enforce: refresh };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());
