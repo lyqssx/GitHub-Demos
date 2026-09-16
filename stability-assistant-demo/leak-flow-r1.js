@@ -19,6 +19,7 @@
   var baseFit;
   var baseLogged;
   var swipe = null;
+  var resolvedTimer = null;
 
   function now() { return Date.now(); }
 
@@ -161,8 +162,7 @@
   function statusMarkup(resolved) {
     if (resolved) {
       return '<section class="sa-status sa-status-resolved" role="status"><span class="sa-status-icon">✓</span>' +
-        '<span><b>Air seal restored</b><small>The serious leak remains in this session record.</small></span>' +
-        '<button type="button" data-sa-action="dismiss-resolved" aria-label="Dismiss restored status">×</button></section>';
+        '<span><b>Suction restored</b><small>You can continue pumping.</small></span></section>';
     }
     return '<section class="sa-status sa-status-active" role="status"><span class="sa-status-icon">!</span>' +
       '<span><b>Serious air leak not resolved</b><small>Pumping continues by your choice.</small></span>' +
@@ -236,7 +236,7 @@
     }
     var eventId = 'leak-' + now();
     f.status = 'major_active';
-    f.stage = 'alert';
+    f.stage = 'guide';
     f.source = source;
     f.guideIndex = 0;
     f.wasRunning = source === 'pumping' ? !!state.running : false;
@@ -283,8 +283,8 @@
     var f = flow();
     var event = activeEvent();
     var previousStage = f.stage;
-    if (f.stage !== 'rechecking' && f.stage !== 'ignored') {
-      setMessage('Trigger a result only while rechecking or after continuing.');
+    if (f.status !== 'major_active' && f.status !== 'major_ignored') {
+      setMessage('Trigger a normal result while a serious leak is active.');
       return false;
     }
     f.status = 'resolved';
@@ -298,6 +298,14 @@
     state.paused = false;
     state.air2LastPhysicsAt = now();
     repaint();
+    clearTimeout(resolvedTimer);
+    var resolvedEventId = f.activeEventId;
+    resolvedTimer = setTimeout(function () {
+      var current = flow();
+      if (current.stage !== 'resolved' || current.activeEventId !== resolvedEventId) return;
+      current.stage = 'idle';
+      repaint();
+    }, 3000);
     return true;
   }
 
@@ -320,6 +328,8 @@
 
   function resetLeak() {
     var f = flow();
+    clearTimeout(resolvedTimer);
+    resolvedTimer = null;
     f.status = 'none';
     f.stage = 'idle';
     f.source = null;
@@ -345,7 +355,7 @@
     var f = flow();
     if (id === 'suction-normal') {
       if (state.modal === 'fit') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a normal result.');
-      if (f.stage === 'rechecking' || f.stage === 'ignored') return resolveLeak();
+      if (f.status === 'major_active' || f.status === 'major_ignored') return resolveLeak();
       setMessage('Suction is already normal.');
       return true;
     }
@@ -400,8 +410,6 @@
       if (event) event.userAction = 'retry';
     } else if (id === 'ignore-continue') {
       ignoreAndContinue(); return;
-    } else if (id === 'dismiss-resolved') {
-      f.stage = 'idle';
     }
     repaint();
   }

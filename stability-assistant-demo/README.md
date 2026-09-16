@@ -8,9 +8,9 @@ Open `index.html` directly as a static page. The demo is implemented with DOM, C
 2. V3 Pro does not expose sensor-led Auto Switch. Manual mode and Milk Boost remain available.
 3. Fit Check contains one item only: `Suction`. It waits for a manual trigger result and does not complete automatically.
 4. A slight in-session leak is compensated in the background and is recorded for the session summary.
-5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance: tubing connection, cup assembly, and nipple/channel positioning.
+5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance immediately: tubing connection, cup assembly, and nipple/channel positioning.
 6. V3 Pro cannot locate the leak side or exact leak source, so the guidance always asks the user to review all three causes.
-7. The user may continue pumping with an unresolved serious leak. The active status remains visible and the resulting record is marked abnormal.
+7. Suction continues to be monitored while guidance is open. A normal result closes the panel, resumes pumping, and shows a confirmation that disappears automatically; the resulting record remains marked abnormal.
 
 ## Event triggers
 

@@ -255,6 +255,7 @@
 
 #demo .sa-status-resolved .sa-status-icon,
 #demo .sa-status-resolved button { background: #206c58; }
+#demo .sa-status-resolved { grid-template-columns: 34px minmax(0, 1fr); }
 
 #demo .sa-major-summary {
   margin: -28px 22px 14px;
