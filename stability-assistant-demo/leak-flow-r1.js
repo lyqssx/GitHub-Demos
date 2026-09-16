@@ -179,13 +179,13 @@
 
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
-      '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet sa-rechecking">' +
-        '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button>' +
-        '<span class="sa-spinner" aria-hidden="true"></span>' +
-        '<p class="sa-eyebrow">Stability Assistant</p>' +
-        '<h2 id="sa-recheck-title">Checking air seal</h2>' +
-        '<p class="sa-copy">Pumping remains paused while V3 Pro checks whether the suction seal has recovered.</p>' +
-        '<button class="sa-secondary" type="button" data-sa-action="review-again">Review the 3 checks again</button>' +
+      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-rechecking">' +
+        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2 id="sa-recheck-title">Checking air seal</h2></div>' +
+          '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
+        '<div class="sa-guide-status sa-recheck-status"><i aria-hidden="true">•</i><b>Monitoring suction seal</b><span>Live</span></div>' +
+        '<div class="sa-recheck-body"><span class="sa-spinner" aria-hidden="true"></span>' +
+          '<strong>Checking for a stable seal</strong><p>Pumping remains paused while V3 Pro checks whether the suction seal has recovered.</p></div>' +
+        '<button class="sa-secondary sa-recheck-review" type="button" data-sa-action="review-again">Review the 3 checks again</button>' +
       '</section></div>';
   }
 
