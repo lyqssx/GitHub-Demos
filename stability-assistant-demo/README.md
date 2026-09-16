@@ -10,7 +10,8 @@ Open `index.html` directly as a static page. The demo is implemented with DOM, C
 4. A slight in-session leak is compensated in the background and is recorded for the session summary.
 5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance immediately: tubing connection, cup assembly, and nipple/channel positioning.
 6. V3 Pro cannot locate the leak side or exact leak source, so the guidance always asks the user to review all three causes.
-7. Suction continues to be monitored while guidance is open. A normal result closes the panel, resumes pumping, and shows a confirmation that disappears automatically; the resulting record remains marked abnormal.
+7. Confirming the third guidance page starts `Checking air seal` immediately. A normal result closes the panel, resumes pumping, and shows a confirmation that disappears automatically; the resulting record remains marked abnormal.
+8. A failed recheck offers `Review guidance` and `Ignore for now`. Ignore returns to Pump Control while keeping pumping paused and a persistent serious-leak status visible. Pumping resumes only after the user presses the existing resume control.
 
 ## Event triggers
 
@@ -21,4 +22,4 @@ All detection events are reviewer-triggered. There are no timed leak, let-down, 
 - `Slight leak` — triggers background compensation during pumping.
 - `Serious leak` — pauses pumping and starts the serious-leak flow.
 
-The serious-leak guidance supports the on-screen previous/next controls, horizontal swipe, and keyboard arrow keys.
+The serious-leak guidance supports previous/next controls beside the guidance image, horizontal swipe, and keyboard arrow keys. Page dots remain at the bottom of the panel.

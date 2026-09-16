@@ -3,7 +3,7 @@
   if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 1) return;
 
   var GUIDE_ASSETS = [
-    './assets/stability-assistant/tubing-check.png',
+    './assets/stability-assistant/tubing-guide-black.png',
     './assets/stability-assistant/cup-check.png',
     './assets/stability-assistant/fit-check.png'
   ];
@@ -60,8 +60,8 @@
   }
 
   function lockedStage(stage) {
-    return stage === 'alert' || stage === 'guide' || stage === 'decision' ||
-      stage === 'rechecking' || stage === 'recheck_failed';
+    return stage === 'alert' || stage === 'guide' || stage === 'rechecking' ||
+      stage === 'recheck_failed';
   }
 
   function enforceState() {
@@ -96,7 +96,7 @@
         '<p class="sa-copy">' + sourceCopy() + '</p>' +
         '<div class="sa-actions">' +
           '<button class="sa-primary" type="button" data-sa-action="start-guide">Check now</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="ignore-continue">Continue pumping</button>' +
+          '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Ignore for now</button>' +
         '</div>' +
       '</section></div>';
   }
@@ -119,21 +119,6 @@
     '</div>';
   }
 
-  function decisionMarkup() {
-    return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-decision-title">' +
-      '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet">' +
-        '<button class="sa-back" type="button" data-sa-action="decision-back" aria-label="Back to guidance">‹</button>' +
-        '<span class="sa-check-icon" aria-hidden="true">✓</span>' +
-        '<p class="sa-eyebrow">All 3 checks reviewed</p>' +
-        '<h2 id="sa-decision-title">Ready to check the seal again?</h2>' +
-        '<p class="sa-copy">The App cannot identify the exact leak location. Make sure the tubing, cup assembly, and fit have all been checked.</p>' +
-        '<div class="sa-actions">' +
-          '<button class="sa-primary" type="button" data-sa-action="request-recheck">Recheck air seal</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="ignore-continue">Continue pumping</button>' +
-        '</div>' +
-      '</section></div>';
-  }
-
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
       '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet sa-rechecking">' +
@@ -151,10 +136,10 @@
         '<span class="sa-alert-icon" aria-hidden="true">!</span>' +
         '<p class="sa-eyebrow">Recheck complete</p>' +
         '<h2 id="sa-failed-title">Air leak is still detected</h2>' +
-        '<p class="sa-copy">Review all three possible causes again, or continue pumping with the unresolved issue clearly shown.</p>' +
+        '<p class="sa-copy">Review all three possible causes again, or ignore this warning and decide when to resume pumping.</p>' +
         '<div class="sa-actions">' +
-          '<button class="sa-primary" type="button" data-sa-action="review-again">Review checks</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="ignore-continue">Continue pumping</button>' +
+          '<button class="sa-primary" type="button" data-sa-action="review-again">Review guidance</button>' +
+          '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Ignore for now</button>' +
         '</div>' +
       '</section></div>';
   }
@@ -164,8 +149,9 @@
       return '<section class="sa-status sa-status-resolved" role="status"><span class="sa-status-icon">✓</span>' +
         '<span><b>Suction restored</b><small>You can continue pumping.</small></span></section>';
     }
+    var paused = !!state.paused;
     return '<section class="sa-status sa-status-active" role="status"><span class="sa-status-icon">!</span>' +
-      '<span><b>Serious air leak not resolved</b><small>Pumping continues by your choice.</small></span>' +
+      '<span><b>Serious air leak detected</b><small>' + (paused ? 'Pumping is paused. Resume when you are ready.' : 'Pumping continues by your choice.') + '</small></span>' +
       '<button type="button" data-sa-action="start-guide">Check</button></section>';
   }
 
@@ -179,10 +165,9 @@
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
     if (f.stage === 'alert') root.insertAdjacentHTML('beforeend', alertMarkup());
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
-    if (f.stage === 'decision') root.insertAdjacentHTML('beforeend', decisionMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
     if (f.stage === 'recheck_failed') root.insertAdjacentHTML('beforeend', failedMarkup());
-    if (screen && (f.stage === 'ignored' || f.stage === 'resolved')) {
+    if (screen && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
       screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved'));
     }
@@ -262,21 +247,32 @@
     return true;
   }
 
-  function ignoreAndContinue() {
+  function ignoreForNow() {
     var f = flow();
     var event = activeEvent();
     f.status = 'major_ignored';
-    f.stage = 'ignored';
+    f.stage = 'ignored_paused';
     if (event) {
-      event.userAction = 'ignore_continue';
-      event.pumpAction = 'resumed';
+      event.userAction = 'ignore_for_now';
+      event.pumpAction = 'paused';
       event.resolutionStatus = 'ignored';
     }
     state.modal = null;
     state.running = true;
-    state.paused = false;
-    state.air2LastPhysicsAt = now();
+    state.paused = true;
     repaint();
+  }
+
+  function markExplicitResume() {
+    var f = flow();
+    var event = activeEvent();
+    if (f.stage !== 'ignored_paused' || !state.paused) return;
+    f.stage = 'ignored';
+    if (event) {
+      event.userAction = 'ignore_continue';
+      event.pumpAction = 'resumed';
+    }
+    state.air2LastPhysicsAt = now();
   }
 
   function resolveLeak() {
@@ -380,7 +376,10 @@
     var next = f.guideIndex + delta;
     if (next < 0) return;
     if (next >= GUIDE_ASSETS.length) {
-      f.stage = 'decision';
+      f.status = 'major_active';
+      f.stage = 'rechecking';
+      var event = activeEvent();
+      if (event) event.userAction = 'retry';
     } else {
       f.guideIndex = next;
     }
@@ -401,15 +400,8 @@
       guideDelta(-1); return;
     } else if (id === 'guide-next') {
       guideDelta(1); return;
-    } else if (id === 'decision-back') {
-      f.stage = 'guide';
-      f.guideIndex = GUIDE_ASSETS.length - 1;
-    } else if (id === 'request-recheck') {
-      f.status = 'major_active';
-      f.stage = 'rechecking';
-      if (event) event.userAction = 'retry';
-    } else if (id === 'ignore-continue') {
-      ignoreAndContinue(); return;
+    } else if (id === 'ignore-for-now') {
+      ignoreForNow(); return;
     }
     repaint();
   }
@@ -424,7 +416,9 @@
     record.maxLeakSeverity = 'major';
     record.leakSides = ['unknown'];
     record.leakEventCount = state.v3LeakEvents.length;
-    record.majorLeakIgnored = state.v3LeakEvents.some(function (item) { return item.userAction === 'ignore_continue'; });
+    record.majorLeakIgnored = state.v3LeakEvents.some(function (item) {
+      return item.userAction === 'ignore_for_now' || item.userAction === 'ignore_continue';
+    });
     record.leakEvents = state.v3LeakEvents.slice();
   }
 
@@ -458,6 +452,8 @@
   function onClick(event) {
     var triggerButton = event.target.closest && event.target.closest('[data-sa-trigger]');
     var actionButton = event.target.closest && event.target.closest('#demo [data-sa-action]');
+    var resumeButton = event.target.closest && event.target.closest('#demo [data-v4="pause"]');
+    if (resumeButton) markExplicitResume();
     if (triggerButton) {
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -501,9 +497,9 @@
 
   function maintainAddon() {
     var f = flow();
-    var needsLayer = f.stage === 'alert' || f.stage === 'guide' || f.stage === 'decision' ||
+    var needsLayer = f.stage === 'alert' || f.stage === 'guide' ||
       f.stage === 'rechecking' || f.stage === 'recheck_failed';
-    var needsStatus = f.stage === 'ignored' || f.stage === 'resolved';
+    var needsStatus = f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved';
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();
   }
