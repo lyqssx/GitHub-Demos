@@ -10,7 +10,7 @@ Open `index.html` directly as a static page. The demo is implemented with DOM, C
 4. A slight in-session leak is compensated in the background and is recorded for the session summary.
 5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance immediately: tubing connection, cup assembly, and nipple/channel positioning.
 6. V3 Pro cannot locate the leak side or exact leak source, so the guidance always asks the user to review all three causes.
-7. Confirming the third guidance page starts `Checking air seal` immediately. A normal result closes the panel, resumes pumping, and shows a confirmation that disappears automatically; the resulting record remains marked abnormal.
+7. Confirming the third guidance page starts `Checking air seal` immediately. A normal result closes the panel, resumes pumping, and shows a confirmation that disappears automatically; `Skip` returns to Pump Control while keeping pumping paused and the serious-leak status visible. The resulting record remains marked abnormal.
 8. A failed recheck offers `Review guidance` and `Ignore for now`. Ignore returns to Pump Control while keeping pumping paused and a persistent serious-leak status visible. Pumping resumes only after the user presses the existing resume control.
 9. The Logged sheet reuses the same three-step wear guide and images. Users can review tubing connection, cup assembly, and nipple positioning without leaving the session result.
 

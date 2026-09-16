@@ -3,9 +3,9 @@
   if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 1) return;
 
   var GUIDE_ASSETS = [
-    './assets/stability-assistant/tubing-guide-black.png',
-    './assets/stability-assistant/cup-check.png',
-    './assets/stability-assistant/fit-check.png'
+    './assets/stability-assistant/guide-black-tubing-v2.png',
+    './assets/stability-assistant/guide-black-cup-v2.png',
+    './assets/stability-assistant/guide-black-fit-v2.png'
   ];
   var GUIDE_LABELS = ['Tubing connection', 'Cup assembly', 'Nipple positioning'];
   var GUIDE_TITLES = ['Check the tubing', 'Check cup assembly', 'Check your fit'];
@@ -19,6 +19,7 @@
   var baseFit;
   var baseLogged;
   var swipe = null;
+  var loggedSwipe = null;
   var resolvedTimer = null;
 
   function now() { return Date.now(); }
@@ -134,15 +135,17 @@
 
   function loggedSummaryMarkup() {
     var kind = state.air2SessionSummaryKind;
+    var guideIndex = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(state.v3LoggedGuideIndex) || 0));
+    var guideOpen = !!state.v3LoggedGuideOpen;
     var copy = kind === 'major-leak'
       ? 'A serious air leak was detected. Review all three checks before your next session.'
       : kind === 'minor-leak'
         ? 'A slight air leak was detected and compensated automatically. Review the fit before your next session.'
         : 'Review the three fit checks before your next pumping session.';
-    return '<div class="air2-logged-summary sa-major-summary"><div class="air2-logged-summary-main">' +
+    return '<div class="air2-logged-summary sa-major-summary' + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
       '<b>Session issue recorded</b><p>' + copy + '</p>' +
       '<button type="button" data-air2-wear-guide>Review the 3-step guide</button></div>' +
-      '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(0) + '</div></div>' +
+      '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>' +
       '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
   }
 
@@ -156,10 +159,11 @@
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
       '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet sa-rechecking">' +
+        '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button>' +
         '<span class="sa-spinner" aria-hidden="true"></span>' +
         '<p class="sa-eyebrow">Stability Assistant</p>' +
         '<h2 id="sa-recheck-title">Checking air seal</h2>' +
-        '<p class="sa-copy">Use the Event Triggers panel to return the recheck result. This screen will not resolve automatically.</p>' +
+        '<p class="sa-copy">Pumping remains paused while V3 Pro checks whether the suction seal has recovered.</p>' +
         '<button class="sa-secondary" type="button" data-sa-action="review-again">Review the 3 checks again</button>' +
       '</section></div>';
   }
@@ -495,6 +499,7 @@
     if (loggedGuideBack) {
       event.preventDefault();
       event.stopImmediatePropagation();
+      state.v3LoggedGuideOpen = false;
       var backCard = loggedGuideBack.closest('.air2-logged-summary');
       if (backCard) backCard.classList.remove('is-guide-open');
       return;
@@ -505,7 +510,9 @@
       var card = loggedGuideButton.closest('.air2-logged-summary');
       var currentStep = card && card.querySelector('[data-sa-log-guide-step]');
       var index = Number(currentStep && currentStep.getAttribute('data-sa-log-guide-step')) || 0;
-      renderLoggedGuideStep(card, index + (loggedGuideButton.getAttribute('data-sa-log-guide') === 'next' ? 1 : -1));
+      state.v3LoggedGuideOpen = true;
+      state.v3LoggedGuideIndex = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, index + (loggedGuideButton.getAttribute('data-sa-log-guide') === 'next' ? 1 : -1)));
+      renderLoggedGuideStep(card, state.v3LoggedGuideIndex);
       return;
     }
     if (triggerButton) {
@@ -530,11 +537,23 @@
   function onPointerDown(event) {
     var guide = event.target.closest && event.target.closest('#demo .sa-guide-layer');
     if (guide) swipe = { id: event.pointerId, x: event.clientX };
+    var loggedOpen = event.target.closest && event.target.closest('#demo [data-air2-wear-guide]');
+    if (loggedOpen) {
+      state.v3LoggedGuideOpen = true;
+      state.v3LoggedGuideIndex = 0;
+    }
+    var loggedCard = event.target.closest && event.target.closest('#demo .air2-logged-summary');
+    if (loggedCard) loggedSwipe = { id: event.pointerId, x: event.clientX };
     var finish = event.target.closest && event.target.closest('#demo [data-v4="finish"],#demo [data-action="finish"]');
     if (finish && state.v3LeakEvents && state.v3LeakEvents.length) state.air2SessionSummaryKind = 'major-leak';
   }
 
   function onPointerUp(event) {
+    if (loggedSwipe && loggedSwipe.id === event.pointerId) {
+      var loggedDx = event.clientX - loggedSwipe.x;
+      loggedSwipe = null;
+      if (Math.abs(loggedDx) >= 28) state.v3LoggedGuideOpen = loggedDx < 0;
+    }
     if (!swipe || swipe.id !== event.pointerId) return;
     var dx = event.clientX - swipe.x;
     swipe = null;
@@ -567,7 +586,7 @@
     document.addEventListener('click', onClick, true);
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointercancel', function () { swipe = null; }, true);
+    document.addEventListener('pointercancel', function () { swipe = null; loggedSwipe = null; }, true);
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('click', function (event) {
       if (event.target.closest && event.target.closest('#demo [data-v4="save"]')) {
