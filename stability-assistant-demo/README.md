@@ -6,7 +6,7 @@ Open `index.html` directly as a static page. The demo is implemented with DOM, C
 
 1. The product visuals use one centered V3 Pro console, including the Pump Control hero and the Breast Pump home dock.
 2. V3 Pro does not expose sensor-led Auto Switch. Manual mode and Milk Boost remain available.
-3. Fit Check contains one item only: `Suction`. It waits for a manual trigger result and does not complete automatically.
+3. Fit Check contains the two V3 Pro checks: `Suction` and `Battery`. Battery status is available immediately; Suction waits for a manual trigger result and does not complete automatically.
 4. A slight in-session leak is compensated in the background and is recorded for the session summary.
 5. A serious leak during Fit Check or pumping pauses the flow and opens the same three-step guidance immediately: tubing connection, cup assembly, and nipple/channel positioning.
 6. V3 Pro cannot locate the leak side or exact leak source, so the guidance always asks the user to review all three causes.
