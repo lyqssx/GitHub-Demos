@@ -63,10 +63,12 @@
         wasRunning: false,
         activeEventId: null,
         guideNotice: '',
+        statusDismissed: false,
         message: ''
       };
     }
     if (typeof state.v3LeakFlow.guideNotice !== 'string') state.v3LeakFlow.guideNotice = '';
+    if (typeof state.v3LeakFlow.statusDismissed !== 'boolean') state.v3LeakFlow.statusDismissed = false;
     if (!Array.isArray(state.v3LeakEvents)) state.v3LeakEvents = [];
     return state.v3LeakFlow;
   }
@@ -101,6 +103,7 @@
     f.wasRunning = false;
     f.activeEventId = null;
     f.guideNotice = '';
+    f.statusDismissed = false;
     f.message = '';
     state.v3LeakEvents = [];
     state.air2SessionSummaryKind = null;
@@ -223,14 +226,15 @@
   }
 
   function statusMarkup(resolved) {
+    var closeButton = '<button class="sa-status-close" type="button" data-sa-action="dismiss-status" aria-label="Dismiss notification"><img src="./assets/figma-r72/notice-close-v3.svg" alt=""></button>';
     if (resolved) {
-      return '<section class="sa-status sa-status-resolved" role="status"><span class="sa-status-icon">✓</span>' +
-        '<span><b>Suction restored</b><small>You can continue pumping.</small></span></section>';
+      return '<section class="sa-status sa-status-resolved" role="status"><div class="sa-status-content">' +
+        '<span class="sa-status-head"><i class="sa-status-icon">✓</i><b>Suction restored</b></span>' +
+        '<small>You can continue pumping.</small></div>' + closeButton + '</section>';
     }
-    var paused = !!state.paused;
-    return '<section class="sa-status sa-status-active" role="status"><span class="sa-status-icon">!</span>' +
-      '<span><b>Serious air leak detected</b><small>' + (paused ? 'Pumping is paused. Resume when you are ready.' : 'Pumping continues by your choice.') + '</small></span>' +
-      '<button type="button" data-sa-action="start-guide">Check</button></section>';
+    return '<section class="sa-status sa-status-active" role="status"><button class="sa-status-content" type="button" data-sa-action="start-guide" aria-label="Open air leak adjustment guide">' +
+      '<span class="sa-status-head"><i class="sa-status-icon">!</i><b>Air leak detected</b><img class="sa-status-chevron" src="./assets/figma-r72/notice-chevron-up.svg" alt=""></span>' +
+      '<small>Follow the on-screen guide to adjust it</small></button>' + closeButton + '</section>';
   }
 
   function renderAddon() {
@@ -243,7 +247,7 @@
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
-    if (screen && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
+    if (screen && !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
       screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved'));
     }
@@ -308,6 +312,7 @@
     f.wasRunning = source === 'pumping' ? !!state.running : false;
     f.activeEventId = eventId;
     f.guideNotice = '';
+    f.statusDismissed = false;
     f.message = '';
     state.v3LeakEvents.push({
       eventId: eventId,
@@ -335,6 +340,7 @@
     clearRecheckTimer();
     f.status = 'major_ignored';
     f.stage = 'ignored_paused';
+    f.statusDismissed = false;
     if (event) {
       event.userAction = 'ignore_for_now';
       event.pumpAction = 'paused';
@@ -369,6 +375,7 @@
     }
     f.status = 'resolved';
     f.stage = 'resolved';
+    f.statusDismissed = false;
     if (event) {
       event.resolutionStatus = 'resolved';
       event.resolvedAt = now();
@@ -437,6 +444,7 @@
     f.guideIndex = 0;
     f.activeEventId = null;
     f.guideNotice = '';
+    f.statusDismissed = false;
     f.message = '';
     state.paused = false;
     state.controlNotice = null;
@@ -509,6 +517,9 @@
       guideDelta(1); return;
     } else if (id === 'ignore-for-now') {
       ignoreForNow(); return;
+    } else if (id === 'dismiss-status') {
+      f.statusDismissed = true;
+      repaint(); return;
     }
     repaint();
   }
@@ -648,7 +659,7 @@
     var f = flow();
     var needsLayer = f.stage === 'guide' ||
       f.stage === 'rechecking';
-    var needsStatus = f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved';
+    var needsStatus = !f.statusDismissed && (f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();
   }
