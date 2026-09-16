@@ -334,7 +334,7 @@
 #demo .sa-status-resolved .sa-status-icon { background: #17213c; }
 #demo .v4-control:has(.sa-status) .v4-top > h1 { visibility: hidden; opacity: 0; }
 
-#demo .v4-logged.air2-abnormal-logged { height: 510px; padding: 0 24px !important; }
+#demo .v4-logged.air2-abnormal-logged { height: 510px; padding: 0 24px !important; transition: height .28s ease; }
 #demo .v4-logged.air2-abnormal-logged > img { top: 40px !important; left: 24px !important; width: 68px !important; height: 68px !important; }
 #demo .v4-logged.air2-abnormal-logged > h1 { margin: 50px 0 8px 84px !important; font-size: 32px !important; }
 #demo .v4-logged.air2-abnormal-logged > p { max-width: 238px !important; margin: 0 0 0 84px !important; font-size: 12px !important; line-height: 17px !important; }

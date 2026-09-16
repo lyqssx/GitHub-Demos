@@ -234,6 +234,18 @@
     guide.innerHTML = loggedGuideStepMarkup(index);
   }
 
+  function setLoggedGuideOpen(open, card) {
+    var sheet = card && card.closest('.v4-logged.air2-abnormal-logged');
+    state.v3LoggedGuideOpen = !!open;
+    if (!card || !sheet) {
+      repaint();
+      return;
+    }
+    card.classList.toggle('is-guide-open', !!open);
+    sheet.classList.toggle('sa-guide-open', !!open);
+    if (open) renderLoggedGuideStep(card, state.v3LoggedGuideIndex);
+  }
+
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-rechecking">' +
@@ -700,16 +712,14 @@
     if (loggedOpen) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      state.v3LoggedGuideOpen = true;
       state.v3LoggedGuideIndex = 0;
-      repaint();
+      setLoggedGuideOpen(true, loggedOpen.closest('.air2-logged-summary'));
       return;
     }
     if (loggedGuideBack) {
       event.preventDefault();
       event.stopImmediatePropagation();
-      state.v3LoggedGuideOpen = false;
-      repaint();
+      setLoggedGuideOpen(false, loggedGuideBack.closest('.air2-logged-summary'));
       return;
     }
     if (loggedGuideButton) {
