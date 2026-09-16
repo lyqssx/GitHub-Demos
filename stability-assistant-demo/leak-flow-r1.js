@@ -342,6 +342,19 @@
   }
 
   function trigger(id) {
+    var f = flow();
+    if (id === 'suction-normal') {
+      if (state.modal === 'fit') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a normal result.');
+      if (f.stage === 'rechecking' || f.stage === 'ignored') return resolveLeak();
+      setMessage('Suction is already normal.');
+      return true;
+    }
+    if (id === 'suction-failed') {
+      if (state.modal === 'fit') return beginSevere('self_check');
+      if (f.stage === 'rechecking') return recheckFailed();
+      setMessage('Start Fit Check or Recheck before returning a failed result.');
+      return false;
+    }
     if (id === 'fit-check-passed') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a passed result.');
     if (id === 'minor-leak') return runLegacyTrigger('minor-leak', 'Start pumping before triggering a minor leak.');
     if (id === 'self-check-severe') return beginSevere('self_check');
@@ -408,15 +421,12 @@
   }
 
   function triggerGroupMarkup() {
-    return '<section class="demo-trigger-group sa-trigger-group"><h3>V3 Pro suction and air seal</h3>' +
+    return '<section class="demo-trigger-group sa-trigger-group"><h3>Stability Assistant</h3>' +
       '<div class="demo-trigger-grid">' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="fit-check-passed"><b>Fit check passed</b></button>' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="self-check-severe"><b>Fit check severe leak</b></button>' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="pumping-severe"><b>Pumping severe leak</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Pumping slight leak</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="recheck-passed"><b>Recheck passed</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="recheck-failed"><b>Recheck failed</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="reset-leak"><b>Reset leak demo</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-normal"><b>Suction normal</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-failed"><b>Suction check failed</b></button>' +
+        '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Slight leak</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="pumping-severe"><b>Serious leak</b></button>' +
       '</div><p class="sa-trigger-status" data-sa-trigger-status></p></section>';
   }
 

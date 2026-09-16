@@ -16,12 +16,9 @@ Open `index.html` directly as a static page. The demo is implemented with DOM, C
 
 All detection events are reviewer-triggered. There are no timed leak, let-down, posture, alignment, or battery event sequences.
 
-- `Fit check passed`
-- `Fit check severe leak`
-- `Pumping severe leak`
-- `Pumping slight leak`
-- `Recheck passed`
-- `Recheck failed`
-- `Reset leak demo`
+- `Suction normal` — passes Fit Check or resolves a recheck, depending on the active stage.
+- `Suction check failed` — fails Fit Check or returns a failed recheck result.
+- `Slight leak` — triggers background compensation during pumping.
+- `Serious leak` — pauses pumping and starts the serious-leak flow.
 
 The serious-leak guidance supports the on-screen previous/next controls, horizontal swipe, and keyboard arrow keys.
