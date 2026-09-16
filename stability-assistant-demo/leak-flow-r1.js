@@ -3,16 +3,16 @@
   if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 1) return;
 
   var GUIDE_ASSETS = [
-    './assets/stability-assistant/guide-black-tubing-v2.png',
-    './assets/stability-assistant/guide-black-cup-v2.png',
-    './assets/stability-assistant/guide-black-fit-v2.png'
+    './assets/stability-assistant/figma-guide-tubing.png',
+    './assets/stability-assistant/figma-guide-cup.png',
+    './assets/stability-assistant/figma-guide-fit.png'
   ];
-  var GUIDE_LABELS = ['Tubing connection', 'Cup assembly', 'Nipple positioning'];
-  var GUIDE_TITLES = ['Check the tubing', 'Check cup assembly', 'Check your fit'];
+  var GUIDE_LABELS = ['Air-seal tubing connection', 'Cup assembly', 'Nipple and flange fit'];
+  var GUIDE_TITLES = ['Check Air Seal', 'Check Cup', 'Check Fit'];
   var GUIDE_COPY = [
-    'Reinsert both tubing connectors firmly into the V3 Pro console.',
-    'Snap the cup rim shut and make sure the duckbill valve is seated securely.',
-    'Center the nipple in the tunnel and keep the flange sealed against the breast.'
+    'Reinsert both tubing connectors firmly.',
+    'Snap the rim shut and seat the duckbill valve securely.',
+    'Center the nipple and seal the flange firmly.'
   ];
   var root = document.getElementById('demo');
   var baseView;
@@ -82,7 +82,7 @@
   }
 
   function lockedStage(stage) {
-    return stage === 'alert' || stage === 'guide' || stage === 'rechecking' ||
+    return stage === 'guide' || stage === 'rechecking' ||
       stage === 'recheck_failed';
   }
 
@@ -103,34 +103,14 @@
     renderAddon();
   }
 
-  function sourceCopy() {
-    return flow().source === 'self_check'
-      ? 'The fit check detected a serious air leak, but V3 Pro cannot identify the exact source. Check all three possible causes before starting.'
-      : 'Pumping is paused. V3 Pro cannot identify the exact leak source, so check all three possible causes.';
-  }
-
-  function alertMarkup() {
-    return '<div class="sa-layer sa-alert-layer" role="dialog" aria-modal="true" aria-labelledby="sa-alert-title">' +
-      '<div class="sa-scrim"></div><section class="sa-sheet sa-alert-sheet">' +
-        '<span class="sa-alert-icon" aria-hidden="true">!</span>' +
-        '<p class="sa-eyebrow">Stability Assistant</p>' +
-        '<h2 id="sa-alert-title">Serious air leak detected</h2>' +
-        '<p class="sa-copy">' + sourceCopy() + '</p>' +
-        '<div class="sa-actions">' +
-          '<button class="sa-primary" type="button" data-sa-action="start-guide">Check now</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Ignore for now</button>' +
-        '</div>' +
-      '</section></div>';
-  }
-
   function guideMarkup() {
     var f = flow();
     var index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(f.guideIndex) || 0));
     return '<div class="sa-layer sa-guide-layer" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
         '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + GUIDE_TITLES[index] + '</h2></div>' +
-          '<button class="sa-guide-close" type="button" data-sa-action="close-guide" aria-label="Close guidance">×</button></header>' +
-        '<div class="sa-guide-status"><i>!</i><b>Suction seal needs attention</b><span>Step ' + (index + 1) + ' of 3</span></div>' +
+          '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
+        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of 3</span></div>' +
         '<div class="sa-guide-media"><img class="sa-guide-image sa-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></div>' +
         '<p class="sa-guide-copy">' + GUIDE_COPY[index] + '</p>' +
         '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
@@ -145,12 +125,12 @@
     index = Math.max(0, Math.min(GUIDE_ASSETS.length - 1, Number(index) || 0));
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
       '<div class="sa-log-guide-head"><button type="button" data-sa-log-guide-back aria-label="Back to session summary"><span aria-hidden="true">←</span> Summary</button>' +
-        '<span><b>Wear guide</b><small>Step ' + (index + 1) + ' of 3</small></span></div>' +
+        '<span><b>Air seal guide</b><small>Step ' + (index + 1) + ' of 3</small></span></div>' +
       '<div class="sa-log-guide-body"><span class="sa-log-guide-media"><img class="sa-log-guide-image sa-log-guide-image-' + index + '" src="' + GUIDE_ASSETS[index] + '" alt="' + GUIDE_LABELS[index] + '"></span>' +
         '<span class="sa-log-guide-copy"><strong>' + GUIDE_TITLES[index] + '</strong><small>' + GUIDE_COPY[index] + '</small></span></div>' +
-      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous wear guide step" ' + (index === 0 ? 'disabled' : '') + '><span aria-hidden="true">←</span> Previous</button>' +
+      '<div class="sa-log-guide-footer"><button type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '><span aria-hidden="true">←</span> Previous</button>' +
         '<span class="sa-log-guide-dots" aria-hidden="true"><i class="' + (index === 0 ? 'is-active' : '') + '"></i><i class="' + (index === 1 ? 'is-active' : '') + '"></i><i class="' + (index === 2 ? 'is-active' : '') + '"></i></span>' +
-        '<button type="button" data-sa-log-guide="next" aria-label="Next wear guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
+        '<button type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === GUIDE_ASSETS.length - 1 ? 'disabled' : '') + '>Next <span aria-hidden="true">→</span></button></div>' +
     '</div>';
   }
 
@@ -180,23 +160,23 @@
   function recheckingMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-recheck-title">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-rechecking">' +
-        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2 id="sa-recheck-title">Checking air seal</h2></div>' +
+        '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2 id="sa-recheck-title">Checking seal...</h2></div>' +
           '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
         '<div class="sa-guide-status sa-recheck-status"><i aria-hidden="true">•</i><b>Monitoring suction seal</b><span>Live</span></div>' +
-        '<div class="sa-recheck-body"><span class="sa-spinner" aria-hidden="true"></span>' +
-          '<strong>Checking for a stable seal</strong><p>Pumping remains paused while V3 Pro checks whether the suction seal has recovered.</p></div>' +
-        '<button class="sa-secondary sa-recheck-review" type="button" data-sa-action="review-again">Review the 3 checks again</button>' +
+        '<div class="sa-recheck-body"><span class="sa-seal-spinner" aria-hidden="true"><i></i></span>' +
+          '<strong>Checking for a stable seal</strong><p>Pumping stays paused while V3 Pro checks suction and the air seal.</p></div>' +
       '</section></div>';
   }
 
   function failedMarkup() {
     return '<div class="sa-layer sa-decision-layer" role="dialog" aria-modal="true" aria-labelledby="sa-failed-title">' +
-      '<div class="sa-scrim"></div><section class="sa-sheet sa-decision-sheet">' +
-        '<span class="sa-alert-icon" aria-hidden="true">!</span>' +
-        '<p class="sa-eyebrow">Recheck complete</p>' +
-        '<h2 id="sa-failed-title">Air leak is still detected</h2>' +
-        '<p class="sa-copy">Review all three possible causes again, or ignore this warning and decide when to resume pumping.</p>' +
-        '<div class="sa-actions">' +
+      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-recheck-failed">' +
+        '<header class="sa-guide-header"><div><span>Recheck complete</span><h2 id="sa-failed-title">Air leak still detected</h2></div>' +
+          '<button class="sa-recheck-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
+        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Not cleared</span></div>' +
+        '<div class="sa-failed-body"><span class="sa-failed-icon" aria-hidden="true">×</span>' +
+          '<strong>Check all three causes again</strong><p>Review the guide, or ignore this warning and decide when to resume pumping.</p></div>' +
+        '<div class="sa-actions sa-failed-actions">' +
           '<button class="sa-primary" type="button" data-sa-action="review-again">Review guidance</button>' +
           '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Ignore for now</button>' +
         '</div>' +
@@ -222,7 +202,6 @@
     if (!root) return;
     existing = root.querySelectorAll('.sa-layer, .sa-status');
     for (i = 0; i < existing.length; i += 1) existing[i].remove();
-    if (f.stage === 'alert') root.insertAdjacentHTML('beforeend', alertMarkup());
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking') root.insertAdjacentHTML('beforeend', recheckingMarkup());
     if (f.stage === 'recheck_failed') root.insertAdjacentHTML('beforeend', failedMarkup());
@@ -457,8 +436,6 @@
       f.guideIndex = 0;
       state.paused = true;
       if (event) event.userAction = 'troubleshoot';
-    } else if (id === 'close-guide') {
-      f.stage = 'alert';
     } else if (id === 'guide-prev') {
       guideDelta(-1); return;
     } else if (id === 'guide-next') {
@@ -590,12 +567,12 @@
     if (flow().stage !== 'guide') return;
     if (event.key === 'ArrowRight') guideDelta(1);
     if (event.key === 'ArrowLeft') guideDelta(-1);
-    if (event.key === 'Escape') action('close-guide');
+    if (event.key === 'Escape') action('ignore-for-now');
   }
 
   function maintainAddon() {
     var f = flow();
-    var needsLayer = f.stage === 'alert' || f.stage === 'guide' ||
+    var needsLayer = f.stage === 'guide' ||
       f.stage === 'rechecking' || f.stage === 'recheck_failed';
     var needsStatus = f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved';
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
