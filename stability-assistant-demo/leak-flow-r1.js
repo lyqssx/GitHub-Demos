@@ -60,6 +60,27 @@
     syncTriggerStatus();
   }
 
+  function resetSessionLeakTracking() {
+    var f = flow();
+    clearTimeout(resolvedTimer);
+    resolvedTimer = null;
+    f.status = 'none';
+    f.stage = 'idle';
+    f.source = null;
+    f.guideIndex = 0;
+    f.wasRunning = false;
+    f.activeEventId = null;
+    f.message = '';
+    state.v3LeakEvents = [];
+    state.air2SessionSummaryKind = null;
+    state.air2ShowSessionSummary = false;
+    state.air2ShowLoggedSummary = false;
+    state.microLeakDuringSession = false;
+    state.v3LoggedGuideOpen = false;
+    state.v3LoggedGuideIndex = 0;
+    state.air2ActiveSessionId = null;
+  }
+
   function lockedStage(stage) {
     return stage === 'alert' || stage === 'guide' || stage === 'rechecking' ||
       stage === 'recheck_failed';
@@ -226,6 +247,7 @@
     if (typeof window.v4RunFit === 'function') {
       baseFit = window.v4RunFit;
       window.v4RunFit = v4RunFit = function () {
+        resetSessionLeakTracking();
         var result = baseFit.apply(this, arguments);
         if (window.air2DemoRun) window.air2DemoRun.leakTriggered = true;
         return result;
@@ -235,13 +257,14 @@
     if (typeof window.v4Logged === 'function') {
       baseLogged = window.v4Logged;
       window.v4Logged = v4Logged = function () {
-        var needsSummary = !!state.air2ShowLoggedSummary || state.air2SessionSummaryKind === 'major-leak';
+        var summaryKind = state.air2SessionSummaryKind;
+        var needsSummary = summaryKind === 'minor-leak' || summaryKind === 'major-leak';
         var previousSummaryState = state.air2ShowLoggedSummary;
         var html;
-        if (!needsSummary) return baseLogged.apply(this, arguments);
         state.air2ShowLoggedSummary = false;
         html = baseLogged.apply(this, arguments);
         state.air2ShowLoggedSummary = previousSummaryState;
+        if (!needsSummary) return html;
         return html.replace('v4-logged', 'v4-logged air2-abnormal-logged')
           .replace('<i class="v4-home-indicator"></i>', loggedSummaryMarkup() + '<i class="v4-home-indicator"></i>');
       };
@@ -490,11 +513,13 @@
   }
 
   function onClick(event) {
+    var sessionStartButton = event.target.closest && event.target.closest('#demo [data-v4="start"]');
     var triggerButton = event.target.closest && event.target.closest('[data-sa-trigger]');
     var actionButton = event.target.closest && event.target.closest('#demo [data-sa-action]');
     var resumeButton = event.target.closest && event.target.closest('#demo [data-v4="pause"]');
     var loggedGuideButton = event.target.closest && event.target.closest('#demo [data-sa-log-guide]');
     var loggedGuideBack = event.target.closest && event.target.closest('#demo [data-sa-log-guide-back]');
+    if (sessionStartButton) resetSessionLeakTracking();
     if (resumeButton) markExplicitResume();
     if (loggedGuideBack) {
       event.preventDefault();
@@ -600,7 +625,7 @@
     setInterval(maintainAddon, 250);
   }
 
-  window.V3ProLeakFlow = { version: 1, trigger: trigger, state: flow };
+  window.V3ProLeakFlow = { version: 1, trigger: trigger, state: flow, resetSession: resetSessionLeakTracking };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());

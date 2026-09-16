@@ -614,6 +614,6 @@
    defines an older standalone Start overlay. */
 (function () {
   var script = document.createElement('script');
-  script.src = './fit-dock-r50.js?v=fit-dock-r52';
+  script.src = './fit-dock-r50.js?v=fit-dock-r53';
   document.body.appendChild(script);
 }());
