@@ -226,18 +226,16 @@
 #demo .sa-guide-header span { display: block; color: rgba(255,255,255,.68); font-size: 11px; font-weight: 600; line-height: 14px; }
 #demo .sa-guide-header h2 { margin: 3px 0 0; color: #fff; font-size: 19px; font-weight: 600; line-height: 24px; letter-spacing: 0; }
 #demo .sa-guide-skip { height: 30px; flex: 0 0 auto; padding: 0 13px; border: 1px solid rgba(255,255,255,.25); border-radius: 15px; color: #fff; background: rgba(255,255,255,.12); font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer; }
-#demo .sa-guide-status { display: grid; height: 30px; grid-template-columns: 16px minmax(0,1fr) auto; align-items: center; gap: 7px; margin-top: 6px; padding: 0 11px; border: 1px solid rgba(255,255,255,.17); border-radius: 16px; background: rgba(255,255,255,.1); }
+#demo .sa-guide-status { display: grid; min-height: 30px; grid-template-columns: 16px minmax(0,1fr) auto; align-items: center; gap: 7px; box-sizing: border-box; margin-top: 6px; padding: 0 11px; border: 1px solid rgba(255,255,255,.17); border-radius: 16px; background: rgba(255,255,255,.1); }
 #demo .sa-guide-status i { display: grid; width: 15px; height: 15px; place-items: center; border-radius: 50%; color: #8e1238; background: #fff; font-size: 10px; font-style: normal; font-weight: 800; }
-#demo .sa-guide-status b { overflow: hidden; color: rgba(255,255,255,.94); font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-#demo .sa-guide-status span { color: rgba(255,255,255,.62); font-size: 10px; white-space: nowrap; }
-#demo .sa-guide-notice { display: grid; min-height: 43px; grid-template-columns: 24px minmax(0,1fr); align-items: center; gap: 9px; box-sizing: border-box; margin-top: 8px; padding: 7px 12px; border: 1px solid rgba(255,226,232,.25); border-radius: 12px; background: rgba(60,0,18,.2); }
-#demo .sa-guide-notice > i { display: grid; width: 22px; height: 22px; place-items: center; border-radius: 50%; color: #8e1238; background: #fff; font-size: 12px; font-style: normal; font-weight: 800; }
-#demo .sa-guide-notice b,
-#demo .sa-guide-notice small { display: block; }
-#demo .sa-guide-notice b { color: #fff; font-size: 11px; line-height: 14px; }
-#demo .sa-guide-notice small { margin-top: 1px; color: rgba(255,255,255,.68); font-size: 10px; line-height: 13px; }
+#demo .sa-guide-status-copy b,
+#demo .sa-guide-status-copy small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#demo .sa-guide-status-copy b { color: rgba(255,255,255,.94); font-size: 11px; font-weight: 600; }
+#demo .sa-guide-status-copy small { margin-top: 1px; color: rgba(255,255,255,.68); font-size: 10px; line-height: 13px; }
+#demo .sa-guide-step { color: rgba(255,255,255,.62); font-size: 10px; white-space: nowrap; }
+#demo .sa-guide-status.is-retry { min-height: 43px; grid-template-columns: 24px minmax(0,1fr) auto; gap: 9px; padding: 7px 12px; border-color: rgba(255,226,232,.25); border-radius: 12px; background: rgba(60,0,18,.2); }
+#demo .sa-guide-status.is-retry i { width: 22px; height: 22px; font-size: 12px; }
 #demo .sa-guide-media { position: relative; width: 220px; height: 208px; flex: 0 0 208px; align-self: center; margin-top: 2px; overflow: hidden; border-radius: 24px; background: #000; isolation: isolate; }
-#demo .sa-fit-guide-panel.has-notice .sa-guide-media { width: 174px; height: 164px; flex-basis: 164px; }
 #demo .sa-guide-art { position: absolute; inset: 0; display: block; isolation: isolate; pointer-events: none; user-select: none; }
 #demo .sa-guide-art img { display: block; max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 #demo .sa-guide-art-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: none; }

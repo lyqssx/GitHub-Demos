@@ -153,15 +153,15 @@
     var f = flow();
     var index = Math.max(0, Math.min(GUIDE_STEPS.length - 1, Number(f.guideIndex) || 0));
     var step = GUIDE_STEPS[index];
-    var notice = f.guideNotice
-      ? '<div class="sa-guide-notice" role="status"><i>!</i><span><b>Air leak is still detected</b><small>Continue troubleshooting each step.</small></span></div>'
-      : '';
+    var retryStatus = !!f.guideNotice;
+    var statusCopy = retryStatus
+      ? '<span class="sa-guide-status-copy"><b>Air leak is still detected</b><small>Continue troubleshooting each step.</small></span>'
+      : '<span class="sa-guide-status-copy"><b>Air seal needs attention</b></span>';
     return '<div class="sa-layer sa-guide-layer" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
-      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel' + (f.guideNotice ? ' has-notice' : '') + '">' +
+      '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
         '<header class="sa-guide-header"><div><span>Air Seal Check</span><h2>' + step.title + '</h2></div>' +
           '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
-        '<div class="sa-guide-status"><i>!</i><b>Air seal needs attention</b><span>Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
-        notice +
+        '<div class="sa-guide-status' + (retryStatus ? ' is-retry' : '') + '"' + (retryStatus ? ' role="status"' : '') + '><i>!</i>' + statusCopy + '<span class="sa-guide-step">Step ' + (index + 1) + ' of ' + GUIDE_STEPS.length + '</span></div>' +
         '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
         '<p class="sa-guide-copy">' + step.copy + '</p>' +
         '<footer class="sa-guide-footer"><button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>‹</button>' +
