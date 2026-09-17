@@ -112,6 +112,12 @@ function logOverlay() {
   return `<div class="overlay"><section class="log-sheet"><button class="circle-btn sheet-close" data-action="control">×</button><h1>Log Pumping Amount</h1><p class="log-date">Apr 1, 9:41 AM</p><div class="amounts"><div class="vessel-wrap"><div class="vessel"><i class="milk-fill"></i><button class="updown" data-action="milk" data-side="l">⌃<br>⌄</button></div><p class="amount-number">${l.toFixed(1)}<small>oz</small></p></div><div class="measure"><b>10 oz</b>${'<i></i>'.repeat(10)}<b>0</b></div><div class="vessel-wrap"><div class="vessel"><i class="milk-fill"></i><button class="updown" data-action="milk" data-side="r">⌃<br>⌄</button></div><p class="amount-number">${r.toFixed(1)}<small>oz</small></p></div></div><button class="duration-row" data-action="duration"><span>Duration</span><b>20 min　⌄</b></button><button class="primary save" data-action="save">Save</button></section></div>`;
 }
 function loggedOverlay() { return `<div class="overlay"><section class="logged-sheet"><img class="bunny-img" src="./assets/figma-v2/bunny-a.png" alt=""><h1>Logged</h1><p>Today's data has been updated.<br>Every little change means the baby is quietly growing.</p><i class="home-indicator"></i></section></div>`; }
+function hasLoggedAbnormality() {
+  return state.air2SessionSummaryKind === 'minor-leak' ||
+    state.air2SessionSummaryKind === 'major-leak' ||
+    state.microLeakDuringSession === true ||
+    (Array.isArray(state.v3LeakEvents) && state.v3LeakEvents.length > 0);
+}
 function view() {
   const page = state.page === 'device' ? deviceScreen() : state.page === 'home' ? homeScreen() : state.page === 'list' ? listScreen() : controlScreen();
   root.innerHTML = page + (state.modal === 'fit' ? fitOverlay() : state.modal === 'confirm' ? confirmOverlay() : state.modal === 'log' ? logOverlay() : state.modal === 'logged' ? loggedOverlay() : '');
@@ -144,7 +150,16 @@ root.addEventListener('click', event => {
   if (action === 'confirm') { applyProgram(); return; }
   if (action === 'cancel') state.modal = null;
   if (action === 'milk') { const key = b.dataset.side === 'l' ? 'milkL' : 'milkR'; state[key] = +(Math.max(7.1, state[key]) + .1).toFixed(1); }
-  if (action === 'save') { state.modal = 'logged'; setTimeout(() => { if (state.modal === 'logged') { state.modal = null; state.page = 'home'; view(); } }, 3300); }
+  if (action === 'save') {
+    state.modal = 'logged';
+    setTimeout(() => {
+      if (state.modal === 'logged' && !hasLoggedAbnormality()) {
+        state.modal = null;
+        state.page = 'home';
+        view();
+      }
+    }, 3300);
+  }
   view();
 });
 setInterval(() => { if (!state.running || state.paused) return; state.timer += 1; view(); }, 1000);
