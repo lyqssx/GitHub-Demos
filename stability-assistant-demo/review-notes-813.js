@@ -423,7 +423,7 @@
     var expressionSelected = state.mode === 'expression' && !state.running;
     var programs = ['Cozy Flow|21:30', 'Milk Boost|20:00', 'Power Pumping|45:00'].map(function (item) {
       var parts = item.split('|'), name = parts[0], duration = parts[1];
-      if (name === 'Milk Boost' && expanded) return '<section class="r2-program-expanded" data-v4="toggle-program"><div><b>' + name + ' <em>' + duration + '</em></b><button data-v4="choose-program"><img src="' + r2Asset('list-play.svg') + '" alt="Play"></button></div><small>Most suitable for daily use after successful lactation</small><i class="r2-program-timeline"><b></b></i><footer><span>● Stimulate</span><span>● Expression</span></footer></section>';
+      if (name === 'Milk Boost' && expanded) return '<section class="r2-program-expanded" data-v4="toggle-program"><div><b>' + name + ' <em>' + duration + '</em></b><button data-v4="choose-program"><img src="' + r2Asset('list-play.svg') + '" alt="Play"></button></div><small>Most suitable for daily use after successful lactation</small><i class="r2-program-timeline v3-pro-program-timeline" aria-label="Milk Boost program sequence"><span class="v3-pro-boost-short" aria-label="Stimulation 2 minutes"></span><span class="v3-pro-boost-long" aria-label="Expression 8 minutes"></span><span class="v3-pro-boost-short" aria-label="Stimulation 2 minutes"></span><span class="v3-pro-boost-long" aria-label="Expression 8 minutes"></span></i><footer><span>● Stimulate</span><span>● Expression</span></footer></section>';
       return '<button class="r2-program-row" ' + (name === 'Milk Boost' ? 'data-v4="toggle-program"' : '') + '><b>' + name + ' <em>' + duration + '</em></b><img src="' + r2Asset('list-play.svg') + '" alt="Play"></button>';
     }).join('');
     return '<section class="v4 v4-list r2-list">' + v4Status() + '<header class="v4-top">' + v4Back('control') + '</header><h1>List</h1><div class="v4-list-auto">Auto Switch ' + v4Switch() + '</div><main class="r2-list-content"><p>Manual</p>' +
@@ -614,6 +614,6 @@
    defines an older standalone Start overlay. */
 (function () {
   var script = document.createElement('script');
-  script.src = './fit-dock-r50.js?v=fit-dock-r54';
+  script.src = './fit-dock-r50.js?v=fit-dock-r56';
   document.body.appendChild(script);
 }());

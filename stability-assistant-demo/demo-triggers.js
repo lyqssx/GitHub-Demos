@@ -52,7 +52,7 @@
     if(s.milkL>=CAP||s.milkR>=CAP){ s.milkL=CAP; s.milkR=CAP; settle(s,'Milk level is high. Pumping stopped automatically to prevent overflow.'); }
   }
   function install(){
-    window.v4RunFit = v4RunFit = function(){ var s=st(); if(!s) return; clearFit(); s.page='control'; s.modal='fit'; s.running=false; s.paused=false; s.fitStage=0; s.fitAdjust=true; paint(); fitTimers.push(setTimeout(function(){s.fitStage=1;paint();},360)); fitTimers.push(setTimeout(function(){s.fitStage=2;s.fitAdjust=true;paint();},980)); };
+    window.v4RunFit = v4RunFit = function(){ var s=st(); if(!s) return; clearFit(); if(window.V3ProLeakFlow&&typeof window.V3ProLeakFlow.resetSession==='function')window.V3ProLeakFlow.resetSession(); beginSession(s); s.fitStage=0; s.fitAdjust=false; s.air2ActiveSessionId='session-'+Date.now(); paint(); };
     window.air2FlowAt=function(){ return flowNow(st()); };
     window.air2PaintRun=physics;
   }
