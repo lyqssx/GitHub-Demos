@@ -108,6 +108,24 @@ html body #demo .r49-boost-card .r49-boost__program {
   flex: 8 1 0 !important;
   background: #f89368 !important;
 }
+#demo .r2-program-expanded .v3-pro-program-timeline {
+  display: flex;
+  gap: 1px;
+  background: transparent;
+}
+#demo .r2-program-expanded .v3-pro-program-timeline > span {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+#demo .r2-program-expanded .v3-pro-program-timeline > .v3-pro-boost-short {
+  flex: 2 1 0;
+  background: #bd5a62;
+}
+#demo .r2-program-expanded .v3-pro-program-timeline > .v3-pro-boost-long {
+  flex: 8 1 0;
+  background: #f89368;
+}
 html body #demo .r49-boost-card .r49-boost__program::after {
   display: none !important;
   content: none !important;
@@ -283,6 +301,9 @@ html body #demo .r49-boost-card .r49-boost__program::after {
   border: 0;
   background: transparent;
   cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 #demo .v3-pro-night-light__track::before {
   position: absolute;
@@ -299,10 +320,12 @@ html body #demo .r49-boost-card .r49-boost__program::after {
   z-index: 1;
   top: 6px;
   left: 0;
-  width: calc(var(--night-light-level) * 100% / 3);
+  width: 100%;
   height: 12px;
   border-radius: 56px;
   background: linear-gradient(90deg, pink, #770523);
+  clip-path: inset(0 66.6667% 0 0);
+  transition: clip-path 110ms cubic-bezier(.2, .8, .2, 1);
 }
 #demo .v3-pro-night-light__marks {
   position: absolute;
@@ -342,10 +365,18 @@ html body #demo .r49-boost-card .r49-boost__program::after {
   line-height: 18px;
   transform: translateX(-50%);
   white-space: nowrap;
+  will-change: left;
+  transition: left 110ms cubic-bezier(.2, .8, .2, 1);
 }
-#demo .v3-pro-night-light[data-level="2"] .v3-pro-night-light__fill { width: 66.86%; }
+#demo .v3-pro-night-light__track.is-dragging .v3-pro-night-light__thumb {
+  cursor: grabbing;
+  transition-duration: 80ms;
+}
+#demo .v3-pro-night-light__track.is-dragging .v3-pro-night-light__fill { transition-duration: 80ms; }
+#demo .v3-pro-night-light[data-level="1"] .v3-pro-night-light__fill { clip-path: inset(0 66.6667% 0 0); }
+#demo .v3-pro-night-light[data-level="2"] .v3-pro-night-light__fill { clip-path: inset(0 33.14% 0 0); }
 #demo .v3-pro-night-light[data-level="2"] .v3-pro-night-light__thumb { left: 66.86%; }
-#demo .v3-pro-night-light[data-level="3"] .v3-pro-night-light__fill { width: 100%; }
+#demo .v3-pro-night-light[data-level="3"] .v3-pro-night-light__fill { clip-path: inset(0); }
 #demo .v3-pro-night-light[data-level="3"] .v3-pro-night-light__thumb { left: 96.15%; }
 
 /* V3 Pro has no Auto Switch UI, so its animated linking contour is disabled. */

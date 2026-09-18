@@ -1,8 +1,10 @@
 /* V3 Pro model-specific capability guards. */
 (function () {
-  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 4) return;
+  if (window.V3ProCapabilities && window.V3ProCapabilities.version === 7) return;
 
   var root = document.getElementById('demo');
+  var nightLightDrag = null;
+  var suppressNightLightClickTarget = null;
 
   function currentState() {
     return typeof state !== 'undefined' ? state : (window.state || null);
@@ -40,6 +42,18 @@
     if (dockPumps && !dockPumps.querySelector('[data-v3-pro-dock-device]')) {
       dockPumps.classList.add('v3-pro-dock-visual');
       dockPumps.innerHTML = '<img data-v3-pro-dock-device src="./assets/v3-pro-main.png" alt="V3 Pro pump">';
+    }
+
+    var dockBatteryRow = root.querySelector('.v4-home-dock .h7-dock-copy > small');
+    if (dockBatteryRow) {
+      var dockBatteries = dockBatteryRow.querySelectorAll('.h7-battery');
+      if (dockBatteries.length) {
+        var primaryBattery = dockBatteries[0];
+        var sideLabel = primaryBattery.querySelector(':scope > b');
+        if (sideLabel) sideLabel.remove();
+        primaryBattery.setAttribute('aria-label', 'Battery 80 percent');
+        for (var batteryIndex = 1; batteryIndex < dockBatteries.length; batteryIndex += 1) dockBatteries[batteryIndex].remove();
+      }
     }
 
     var deviceArt = root.querySelector('.v4-device-card .art');
@@ -118,6 +132,30 @@
     refresh();
   }
 
+  function nightLightLevelAt(track, clientX, snapToStep) {
+    var rect = track.getBoundingClientRect();
+    var ratio = rect.width ? (clientX - rect.left) / rect.width : 0;
+    var level = Math.max(0, Math.min(3, ratio * 3));
+    return snapToStep ? Math.round(level) : level;
+  }
+
+  function previewNightLight(track, level) {
+    var percent = Math.max(0, Math.min(100, (level / 3) * 100));
+    var fill = track.querySelector('.v3-pro-night-light__fill');
+    var thumb = track.querySelector('.v3-pro-night-light__thumb');
+    if (fill) fill.style.clipPath = 'inset(0 ' + (100 - percent) + '% 0 0)';
+    if (thumb) thumb.style.left = Math.min(percent, 96.15) + '%';
+    track.setAttribute('aria-valuenow', String(Math.round(level)));
+  }
+
+  function clearNightLightPreview(track) {
+    var fill = track && track.querySelector('.v3-pro-night-light__fill');
+    var thumb = track && track.querySelector('.v3-pro-night-light__thumb');
+    if (fill) fill.style.removeProperty('clip-path');
+    if (thumb) thumb.style.removeProperty('left');
+    if (track) track.classList.remove('is-dragging');
+  }
+
   function installNightLightEvents() {
     if (window.__v3ProNightLightEvents) return;
     window.__v3ProNightLightEvents = true;
@@ -128,6 +166,11 @@
       if (!toggle && !track) return;
       event.preventDefault();
       event.stopImmediatePropagation();
+      if (track && track === suppressNightLightClickTarget) {
+        suppressNightLightClickTarget = null;
+        return;
+      }
+      suppressNightLightClickTarget = null;
       var current = currentState();
       if (!current) return;
       enforce();
@@ -136,8 +179,52 @@
         updateNightLight(capability.nightLightLevel > 0 ? 0 : capability.lastNightLightLevel, false);
         return;
       }
-      var rect = track.getBoundingClientRect();
-      updateNightLight(Math.round(((event.clientX - rect.left) / rect.width) * 3), true);
+      updateNightLight(nightLightLevelAt(track, event.clientX, true), true);
+    }, true);
+
+    document.addEventListener('pointerdown', function (event) {
+      var track = event.target.closest && event.target.closest('[data-v3-light-track]');
+      if (!track || (event.pointerType === 'mouse' && event.button !== 0)) return;
+      nightLightDrag = {
+        track: track,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        level: nightLightLevelAt(track, event.clientX, true),
+        moved: false
+      };
+      track.classList.add('is-dragging');
+      if (track.setPointerCapture) track.setPointerCapture(event.pointerId);
+    }, true);
+
+    document.addEventListener('pointermove', function (event) {
+      if (!nightLightDrag || event.pointerId !== nightLightDrag.pointerId) return;
+      if (Math.abs(event.clientX - nightLightDrag.startX) > 3) nightLightDrag.moved = true;
+      if (!nightLightDrag.moved) return;
+      event.preventDefault();
+      nightLightDrag.level = nightLightLevelAt(nightLightDrag.track, event.clientX, true);
+      previewNightLight(nightLightDrag.track, nightLightDrag.level);
+    }, { capture: true, passive: false });
+
+    document.addEventListener('pointerup', function (event) {
+      if (!nightLightDrag || event.pointerId !== nightLightDrag.pointerId) return;
+      var drag = nightLightDrag;
+      nightLightDrag = null;
+      if (!drag.moved) {
+        clearNightLightPreview(drag.track);
+        return;
+      }
+      event.preventDefault();
+      suppressNightLightClickTarget = drag.track;
+      updateNightLight(drag.level, true);
+    }, { capture: true, passive: false });
+
+    document.addEventListener('pointercancel', function (event) {
+      if (!nightLightDrag || event.pointerId !== nightLightDrag.pointerId) return;
+      var drag = nightLightDrag;
+      nightLightDrag = null;
+      clearNightLightPreview(drag.track);
+      var current = currentState();
+      if (current) drag.track.setAttribute('aria-valuenow', String(current.v3ProCapabilities.nightLightLevel));
     }, true);
 
     document.addEventListener('keydown', function (event) {
@@ -179,7 +266,7 @@
     }, 200);
   }
 
-  window.V3ProCapabilities = { version: 4, enforce: refresh };
+  window.V3ProCapabilities = { version: 7, enforce: refresh };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());
