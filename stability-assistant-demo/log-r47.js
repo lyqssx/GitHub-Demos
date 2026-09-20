@@ -42,7 +42,7 @@
     var left = Number(state.milkL || 0);
     var right = Number(state.milkR || 0);
     return '<div class="v4-overlay"><section class="v4-log r2-log r47-log">' +
-      '<button class="v4-circle close" data-v4="control"><img src="' + asset('log-close.svg') + '" alt="Close"></button>' +
+      '<button class="v4-circle close" data-v4="control"><img src="./assets/stability-assistant/figma-r2/close-glyph.svg" alt="Close"></button>' +
       '<h1>Log Pumping Amount</h1><p class="v4-log-date">Apr 1, 9:41 AM</p>' +
       '<div class="r47-log-amounts">' + vessel('l', left) + measure() + vessel('r', right) + '</div>' +
       '<button class="v4-duration"><span>Duration</span><b>20 min <img src="' + asset('log-chevron.svg') + '" alt=""></b></button>' +

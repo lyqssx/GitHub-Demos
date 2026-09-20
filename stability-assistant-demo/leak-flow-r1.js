@@ -1,6 +1,6 @@
 /* V3 Pro stability assistant: reviewer-triggered severe leak flow. */
 (function () {
-  if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 3) return;
+  if (window.V3ProLeakFlow && window.V3ProLeakFlow.version === 5) return;
 
   var TUBING_STEPS = {
     left: {
@@ -16,6 +16,13 @@
       label: 'Right tubing air seal',
       copy: 'Reinsert tubing firmly',
       assets: ['./assets/stability-assistant/figma-tubing-right.svg']
+    },
+    both: {
+      kind: 'tube-both',
+      title: 'Check Tubing',
+      label: 'Left and right tubing air seal',
+      copy: 'Reinsert both tubes firmly',
+      assets: ['./assets/stability-assistant/figma-tubing-both.svg']
     }
   };
   var LOG_TUBING_STEP = {
@@ -79,7 +86,9 @@
         backgroundMonitoring: false,
         confirmOrigin: null,
         message: '',
-        guideShownInSession: false
+        guideShownInSession: false,
+        guideMode: 'leak',
+        guideStatusKind: 'detected'
       };
     }
     if (typeof state.v3LeakFlow.guideNotice !== 'string') state.v3LeakFlow.guideNotice = '';
@@ -87,7 +96,9 @@
     if (typeof state.v3LeakFlow.backgroundMonitoring !== 'boolean') state.v3LeakFlow.backgroundMonitoring = false;
     if (typeof state.v3LeakFlow.confirmOrigin !== 'string') state.v3LeakFlow.confirmOrigin = '';
     if (typeof state.v3LeakFlow.guideShownInSession !== 'boolean') state.v3LeakFlow.guideShownInSession = false;
-    if (!/^(left|right)$/.test(state.v3LeakFlow.side || '')) state.v3LeakFlow.side = 'right';
+    if (typeof state.v3LeakFlow.guideMode !== 'string') state.v3LeakFlow.guideMode = 'leak';
+    if (!/^(detected|leak)$/.test(state.v3LeakFlow.guideStatusKind || '')) state.v3LeakFlow.guideStatusKind = 'detected';
+    if (!/^(left|right|both)$/.test(state.v3LeakFlow.side || '')) state.v3LeakFlow.side = 'right';
     if (!Array.isArray(state.v3LeakEvents)) state.v3LeakEvents = [];
     return state.v3LeakFlow;
   }
@@ -124,7 +135,7 @@
     recheckTimer = setTimeout(function () {
       var current = flow();
       recheckTimer = null;
-      if (current.activeEventId !== eventId || current.stage !== 'checking_running' || current.result === 'passed') return;
+      if (current.activeEventId !== eventId || !/^(checking_running|failed)$/.test(current.stage) || current.result === 'passed') return;
       openUnresolvedConfirm('timeout_after_start');
     }, RECHECK_TIMEOUT_MS);
   }
@@ -159,6 +170,8 @@
     f.confirmOrigin = '';
     f.message = '';
     f.guideShownInSession = false;
+    f.guideMode = 'leak';
+    f.guideStatusKind = 'detected';
     state.v3LeakEvents = [];
     state.air2SessionSummaryKind = null;
     state.air2ShowSessionSummary = false;
@@ -221,22 +234,20 @@
     var steps = guideSteps();
     var index = Math.max(0, Math.min(steps.length - 1, Number(f.guideIndex) || 0));
     var step = steps[index];
-    var retryStatus = !!f.guideNotice;
-    var retryMarkup = retryStatus
-      ? '<div class="sa-guide-status is-retry" role="status"><i>!</i><span class="sa-guide-status-copy"><b>Seal check failed</b></span></div>'
-      : '';
-    return '<div class="sa-layer sa-guide-layer" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
+    var fitNotDetected = f.guideMode === 'fit-not-detected';
+    var guideTitle = fitNotDetected ? 'Fit Not Detected' : 'Checking seal...';
+    var guideCopy = fitNotDetected ? 'Check cup placement<br>Press to resume' : step.copy;
+    return '<div class="sa-layer sa-guide-layer' + (fitNotDetected ? ' is-fit-not-detected' : '') + '" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
-        '<header class="sa-guide-header"><div class="sa-guide-title"><h2>Checking seal...</h2><span>Step ' + (index + 1) + ' of ' + steps.length + '</span></div>' +
-          '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button></header>' +
-        retryMarkup +
-        '<div class="sa-guide-stage"><button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>' +
+        '<header class="sa-guide-header"><div class="sa-guide-title"><h2>' + guideTitle + '</h2>' + (fitNotDetected ? '' : '<span>' + (index + 1) + '/' + steps.length + '</span>') + '</div>' +
+          (fitNotDetected ? '' : '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button>') + '</header>' +
+        '<p class="sa-guide-copy">' + guideCopy + '</p>' +
+        '<div class="sa-guide-stage">' + (fitNotDetected ? '' : '<button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>') +
           '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
-          '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === steps.length - 1 ? 'Finish guidance and check the seal' : 'Next guidance page') + '">' + (index === steps.length - 1 ? '<span class="sa-guide-confirm">✓</span>' : guideArrow('right')) + '</button></div>' +
-        '<p class="sa-guide-copy">' + step.copy + '</p>' +
-        '<footer class="sa-guide-footer">' + dotsMarkup(index, 'sa-guide-dots') + '</footer>' +
+          (fitNotDetected ? '' : '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === steps.length - 1 ? 'Finish guidance and check the seal' : 'Next guidance page') + '">' + (index === steps.length - 1 ? '<span class="sa-guide-confirm">✓</span>' : guideArrow('right')) + '</button>') + '</div>' +
+        (fitNotDetected ? '<button class="sa-fit-resume" type="button" data-sa-action="resume-fit-not-detected">Start Pumping</button>' : '<footer class="sa-guide-footer">' + dotsMarkup(index, 'sa-guide-dots') + '</footer>') +
       '</section>' +
-      '<span class="sa-sr-only" aria-live="polite">Page ' + (index + 1) + ' of ' + steps.length + ': ' + step.label + '</span>' +
+      '<span class="sa-sr-only" aria-live="polite">' + (fitNotDetected ? step.label : 'Page ' + (index + 1) + ' of ' + steps.length + ': ' + step.label) + '</span>' +
     '</div>';
   }
 
@@ -245,14 +256,14 @@
     index = Math.max(0, Math.min(steps.length - 1, Number(index) || 0));
     var step = steps[index];
     return '<div class="sa-log-guide-step" data-sa-log-guide-step="' + index + '">' +
-      '<header class="sa-log-guide-header"><div><span>Fit Guide</span><h2>' + step.title + '</h2></div>' +
-        '<button class="sa-log-guide-close" type="button" data-sa-log-guide-back aria-label="Close fit guide"><span aria-hidden="true">×</span></button></header>' +
-      '<div class="sa-log-guide-progress"><span>Step ' + (index + 1) + ' of ' + steps.length + '</span></div>' +
-      '<div class="sa-guide-stage"><button class="sa-guide-prev" type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>' +
-        '<div class="sa-guide-media">' + guideArtMarkup(index, steps) + '</div>' +
-        '<button class="sa-guide-next" type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === steps.length - 1 ? 'disabled' : '') + '>' + guideArrow('right') + '</button></div>' +
-      '<p class="sa-guide-copy">' + step.copy + '</p>' +
-      '<footer class="sa-guide-footer">' + dotsMarkup(index, 'sa-guide-dots', steps) + '</footer>' +
+      '<header class="sa-log-guide-header"><div class="sa-log-guide-heading"><span>Fit Guide</span><h2>' + step.title + '</h2></div>' +
+        '<button class="sa-log-guide-close" type="button" data-sa-log-guide-back aria-label="Close fit guide"><img src="./assets/stability-assistant/figma-r4/close.svg" alt=""></button></header>' +
+      '<div class="sa-log-guide-progress" aria-label="Page ' + (index + 1) + ' of ' + steps.length + '">' + (index + 1) + '/' + steps.length + '</div>' +
+      '<p class="sa-log-guide-copy">' + step.copy + '</p>' +
+      '<div class="sa-log-guide-stage"><button class="sa-log-guide-nav sa-log-guide-prev" type="button" data-sa-log-guide="prev" aria-label="Previous air seal guide step" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>' +
+        '<div class="sa-log-guide-media">' + guideArtMarkup(index, steps) + '</div>' +
+        '<button class="sa-log-guide-nav sa-log-guide-next" type="button" data-sa-log-guide="next" aria-label="Next air seal guide step" ' + (index === steps.length - 1 ? 'disabled' : '') + '>' + guideArrow('right') + '</button></div>' +
+      '<footer class="sa-log-guide-footer">' + dotsMarkup(index, 'sa-log-guide-dots', steps) + '</footer>' +
     '</div>';
   }
 
@@ -286,11 +297,17 @@
     } else {
       copy = 'Check your setup before your next pumping session.';
     }
-    return '<div class="air2-logged-summary sa-major-summary' + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
-      '<p>' + copy + '</p>' +
-      '<button type="button" data-air2-wear-guide>Learn to Fit Better</button></div>' +
-      '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>' +
-      '<button class="air2-logged-done" type="button" data-air2-logged-done>Got it</button>';
+    if (kind === 'minor-leak') {
+      copy = 'A minor air leak was detected. Suction was just compensated to your target level.<br>For worry-free pumping, check for air leaks.';
+    }
+    return '<img class="sa-logged-bg" src="./assets/stability-assistant/figma-r4/logged-bg.svg" alt="">' +
+      '<button class="sa-logged-close" type="button" data-air2-logged-done aria-label="Close and return home"><img src="./assets/stability-assistant/figma-r4/close.svg" alt=""></button>' +
+      '<div class="air2-logged-summary sa-major-summary' + (kind === 'minor-leak' ? ' is-minor-leak' : '') + (guideOpen ? ' is-guide-open' : '') + '"><div class="air2-logged-summary-main">' +
+        '<span class="sa-logged-ip" aria-hidden="true"><img class="sa-logged-ip-main" src="./assets/stability-assistant/figma-r4/logged-ip-main.png" alt=""><img class="sa-logged-ip-overlay-a" src="./assets/stability-assistant/figma-r4/logged-ip-overlay-a.png" alt=""><img class="sa-logged-ip-overlay-b" src="./assets/stability-assistant/figma-r4/logged-ip-overlay-b.png" alt=""><img class="sa-logged-ip-highlight sa-logged-ip-highlight-left" src="./assets/stability-assistant/figma-r4/logged-ip-highlight.svg" alt=""><img class="sa-logged-ip-highlight sa-logged-ip-highlight-right" src="./assets/stability-assistant/figma-r4/logged-ip-highlight.svg" alt=""></span>' +
+        '<div class="sa-logged-logo"><h1>Logged</h1><img src="./assets/stability-assistant/figma-r4/logged-underline.svg" alt=""></div>' +
+        '<div class="sa-logged-actions"><p>' + copy + '</p>' +
+        '<button type="button" data-air2-wear-guide>Learn to fit it better</button></div></div>' +
+        '<div class="air2-logged-guide sa-log-guide">' + loggedGuideStepMarkup(guideIndex) + '</div></div>';
   }
 
   function renderLoggedGuideStep(card, index) {
@@ -315,7 +332,6 @@
   function checkCompleteMarkup() {
     return '<div class="sa-layer sa-result-layer" role="dialog" aria-modal="true" aria-labelledby="sa-result-title">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-check-result">' +
-        '<p class="sa-result-eyebrow">Air Seal Check</p>' +
         '<h2 id="sa-result-title">Self-Check Complete</h2>' +
         '<div class="sa-result-actions"><button class="sa-primary" type="button" data-sa-action="resume-after-check">Start Pumping</button>' +
           '<button class="sa-secondary" type="button" data-sa-action="end-after-check">End Session</button></div>' +
@@ -326,11 +342,10 @@
     return '<div class="sa-layer sa-unresolved-layer" role="dialog" aria-modal="true" aria-labelledby="sa-unresolved-title">' +
       '<div class="sa-scrim"></div><section class="sa-sheet sa-start-confirm">' +
         '<span class="sa-alert-icon" aria-hidden="true">!</span>' +
-        '<p class="sa-eyebrow">Air seal not confirmed</p>' +
         '<h2 id="sa-unresolved-title">Start pumping anyway?</h2>' +
-        '<p class="sa-copy">A serious air leak is still detected. Continuing may reduce pumping performance. You can return to the guide and try again later.</p>' +
+        '<p class="sa-copy">A serious air leak is still detected. Continuing may reduce pumping performance.</p>' +
         '<div class="sa-actions"><button class="sa-primary" type="button" data-sa-action="continue-unresolved">Continue Pumping</button>' +
-          '<button class="sa-secondary" type="button" data-sa-action="cancel-unresolved">Cancel</button></div>' +
+          '<button class="sa-secondary" type="button" data-sa-action="cancel-unresolved">Learn to fit better</button></div>' +
       '</section></div>';
   }
 
@@ -341,14 +356,14 @@
         '<span class="sa-status-head"><i class="sa-status-icon">✓</i><b>Air seal restored</b></span>' +
         '<small>You can continue pumping.</small></div></section>';
     }
-    if (kind === 'checking') {
-      return '<section class="sa-status sa-status-checking" role="status"><div class="sa-status-content">' +
-        '<span class="sa-status-head"><i class="sa-status-icon sa-status-spinner" aria-hidden="true"></i><b>Checking air seal...</b></span>' +
-        '<small>Pumping continues during the check.</small></div>' + closeButton + '</section>';
+    if (kind === 'detected') {
+      return '<section class="sa-status sa-status-active sa-status-detected" role="status"><button class="sa-status-content" type="button" data-sa-action="start-guide" aria-label="Open air leak adjustment guide">' +
+        '<span class="sa-status-alert" aria-hidden="true"><i class="sa-status-icon">!</i></span>' +
+        '<span class="sa-status-copy"><b>Air leak detected</b><small>Follow the on-screen guide to solve it</small></span></button></section>';
     }
     return '<section class="sa-status sa-status-active" role="status"><button class="sa-status-content" type="button" data-sa-action="start-guide" aria-label="Open air leak adjustment guide">' +
-      '<span class="sa-status-head"><i class="sa-status-icon">!</i><b>Seal check failed</b><img class="sa-status-chevron" src="./assets/figma-r72/notice-chevron-up.svg" alt=""></span>' +
-      '<small>Review the guide to restore the seal.</small></button>' + closeButton + '</section>';
+      '<span class="sa-status-progress" aria-hidden="true"><img class="sa-status-progress-ring" src="./assets/stability-assistant/figma-r4/leak-spinner-ring.png" alt=""><img class="sa-status-progress-center" src="./assets/stability-assistant/figma-r4/leak-spinner-center.svg" alt=""></span>' +
+      '<span class="sa-status-copy"><b>Air leak</b><small>Suction adjusting...</small></span></button>' + closeButton + '</section>';
   }
 
   function renderAddon() {
@@ -362,9 +377,9 @@
     if (f.stage === 'guide') root.insertAdjacentHTML('beforeend', guideMarkup());
     if (f.stage === 'rechecking' || f.stage === 'complete') root.insertAdjacentHTML('beforeend', checkCompleteMarkup());
     if (f.stage === 'unresolved_confirm') root.insertAdjacentHTML('beforeend', unresolvedConfirmMarkup());
-    if (screen && state.running && !f.statusDismissed && (f.stage === 'checking_running' || f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
+    if (screen && state.running && !f.statusDismissed && ((f.stage === 'guide' && f.guideMode === 'leak') || f.stage === 'checking_running' || f.stage === 'failed' || f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved')) {
       screen.classList.add('sa-leak-running');
-      screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved' ? 'resolved' : (f.stage === 'checking_running' ? 'checking' : 'failed')));
+      screen.insertAdjacentHTML('beforeend', statusMarkup(f.stage === 'resolved' ? 'resolved' : (f.stage === 'guide' ? f.guideStatusKind : 'leak')));
     }
     syncTriggerStatus();
   }
@@ -401,8 +416,8 @@
         html = baseLogged.apply(this, arguments);
         state.air2ShowLoggedSummary = previousSummaryState;
         if (!needsSummary) return html;
-        return html.replace('v4-logged', 'v4-logged air2-abnormal-logged' + (state.v3LoggedGuideOpen ? ' sa-guide-open' : ''))
-          .replace('<i class="v4-home-indicator"></i>', loggedSummaryMarkup() + '<i class="v4-home-indicator"></i>');
+        return '<div class="v4-overlay"><section class="v4-logged air2-abnormal-logged' + (state.v3LoggedGuideOpen ? ' sa-guide-open' : '') + '">' +
+          loggedSummaryMarkup() + '<i class="v4-home-indicator"></i></section></div>';
       };
     }
     window.__v3LeakFlowWrapped = true;
@@ -424,7 +439,7 @@
     f.status = 'major_active';
     f.stage = 'guide';
     f.source = source;
-    f.side = /^(left|right)$/.test(side || '') ? side : 'right';
+    f.side = /^(left|right|both)$/.test(side || '') ? side : 'right';
     f.result = null;
     f.backgroundMonitoring = false;
     f.guideIndex = 0;
@@ -434,6 +449,8 @@
     f.statusDismissed = false;
     f.message = '';
     f.guideShownInSession = true;
+    f.guideMode = 'leak';
+    f.guideStatusKind = 'detected';
     state.v3LeakEvents.push({
       eventId: eventId,
       severity: 'major',
@@ -463,13 +480,14 @@
     f.status = 'major_active';
     f.stage = 'ignored';
     f.source = 'pumping';
-    f.side = /^(left|right)$/.test(side || '') ? side : 'right';
+    f.side = /^(left|right|both)$/.test(side || '') ? side : 'right';
     f.result = 'failed';
     f.backgroundMonitoring = true;
     f.guideIndex = 0;
     f.wasRunning = true;
     f.activeEventId = eventId;
     f.guideNotice = '';
+    f.guideMode = 'leak';
     f.statusDismissed = false;
     f.message = 'Repeated serious leak: compact reminder shown; pumping continues.';
     state.v3LeakEvents.push({
@@ -555,6 +573,7 @@
     f.statusDismissed = true;
     f.guideIndex = 0;
     f.guideNotice = '';
+    f.guideMode = 'leak';
     if (event) event.userAction = 'return_to_guide';
     state.modal = null;
     state.paused = true;
@@ -725,6 +744,7 @@
     var event = activeEvent();
     if (f.stage === 'checking_running') {
       f.status = 'major_active';
+      f.stage = 'failed';
       f.result = 'failed';
       f.backgroundMonitoring = true;
       f.statusDismissed = false;
@@ -768,6 +788,40 @@
     f.guideNotice = '';
     var event = activeEvent();
     if (event) event.userAction = 'self_check_complete';
+    repaint();
+  }
+
+  function beginFitNotDetectedGuide() {
+    var f = flow();
+    if (!state.running || state.paused || state.modal) {
+      setMessage('Start pumping before triggering Fit not detected.');
+      return false;
+    }
+    clearRecheckTimer();
+    f.status = 'none';
+    f.stage = 'guide';
+    f.source = 'pumping';
+    f.guideMode = 'fit-not-detected';
+    f.guideIndex = 2;
+    f.result = null;
+    f.backgroundMonitoring = false;
+    f.statusDismissed = true;
+    f.message = '';
+    state.controlNotice = null;
+    state.modal = null;
+    state.paused = true;
+    repaint();
+    return true;
+  }
+
+  function finishFitNotDetectedGuide() {
+    var f = flow();
+    f.stage = 'idle';
+    f.guideMode = 'leak';
+    f.statusDismissed = true;
+    state.running = true;
+    state.paused = false;
+    state.air2LastPhysicsAt = now();
     repaint();
   }
 
@@ -837,6 +891,7 @@
     }
     if (id === 'fit-check-passed') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a passed result.');
     if (id === 'minor-leak') return runLegacyTrigger('minor-leak', 'Start pumping before triggering a minor leak.');
+    if (id === 'fit-not-detected-20s') return beginFitNotDetectedGuide();
     if (id.indexOf('serious-leak-') === 0) {
       var side = id.replace('serious-leak-', '');
       if (state.modal === 'fit') return beginSevere('self_check', side);
@@ -851,6 +906,10 @@
   function guideDelta(delta) {
     var f = flow();
     var next = f.guideIndex + delta;
+    if (f.guideMode === 'fit-not-detected') {
+      if (delta > 0) finishFitNotDetectedGuide();
+      return;
+    }
     if (next < 0) return;
     if (next >= guideSteps().length) {
       startRecheck();
@@ -866,9 +925,11 @@
     var event = activeEvent();
     if (id === 'start-guide' || id === 'review-again') {
       clearRecheckTimer();
+      f.guideStatusKind = f.stage === 'guide' ? f.guideStatusKind : 'leak';
       f.stage = 'guide';
       f.guideIndex = 0;
       f.guideNotice = '';
+      f.guideMode = 'leak';
       state.paused = true;
       if (event) event.userAction = 'troubleshoot';
     } else if (id === 'guide-prev') {
@@ -876,6 +937,7 @@
     } else if (id === 'guide-next') {
       guideDelta(1); return;
     } else if (id === 'ignore-for-now') {
+      if (f.guideMode === 'fit-not-detected') { finishFitNotDetectedGuide(); return; }
       ignoreForNow(); return;
     } else if (id === 'resume-after-check') {
       resumeAfterCheck(); return;
@@ -885,6 +947,8 @@
       continueWithUnresolvedLeak(); return;
     } else if (id === 'cancel-unresolved') {
       cancelUnresolvedLeak(); return;
+    } else if (id === 'resume-fit-not-detected') {
+      finishFitNotDetectedGuide(); return;
     } else if (id === 'dismiss-status') {
       f.statusDismissed = true;
       repaint(); return;
@@ -912,10 +976,12 @@
     return '<section class="demo-trigger-group sa-trigger-group"><h3>Stability Assistant</h3>' +
       '<div class="demo-trigger-grid">' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-normal"><b>Seal check passed</b></button>' +
-        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-failed"><b>Seal check failed</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-failed"><b>Air leak remains</b></button>' +
         '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Slight leak</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-left"><b>Serious leak · Left</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-right"><b>Serious leak · Right</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-both"><b>Serious leak · Both</b></button>' +
+        '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="fit-not-detected-20s"><b>Fit not detected · 20s</b></button>' +
       '</div><p class="sa-trigger-status" data-sa-trigger-status></p></section>';
   }
 
@@ -1035,7 +1101,7 @@
       f.stage === 'rechecking' ||
       f.stage === 'complete' ||
       f.stage === 'unresolved_confirm';
-    var needsStatus = state.running && !f.statusDismissed && (f.stage === 'checking_running' || f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
+    var needsStatus = state.running && !f.statusDismissed && (f.stage === 'checking_running' || f.stage === 'failed' || f.stage === 'ignored_paused' || f.stage === 'ignored' || f.stage === 'resolved');
     if ((needsLayer && !root.querySelector('.sa-layer')) ||
         (needsStatus && !root.querySelector('.sa-status'))) renderAddon();
   }
@@ -1063,7 +1129,7 @@
     setInterval(maintainAddon, 250);
   }
 
-  window.V3ProLeakFlow = { version: 3, trigger: trigger, state: flow, resetSession: resetSessionLeakTracking };
+  window.V3ProLeakFlow = { version: 5, trigger: trigger, state: flow, resetSession: resetSessionLeakTracking };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
 }());
