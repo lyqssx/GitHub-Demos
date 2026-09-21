@@ -1,0 +1,250 @@
+/* Additive changes to the original 402 × 874 demo canvas and design tokens.
+   Do not replace native pump/level/speed/action components here. */
+#demo .pdcp-legacy-control .pdcp-plan{font-family:var(--font);color:#3e0010;background:#fff1f3;border:1px solid #ffc5cf;border-radius:24px;padding:16px 20px;margin:0 0 16px;box-shadow:none}
+#demo .pdcp-legacy-control .pdcp-plan h2{font:500 14px/20px var(--font);margin:0;color:#3e0010}
+#demo .pdcp-legacy-control .pdcp-plan h2 small{font-size:12px}
+#demo .pdcp-legacy-control .pdcp-plan .pdcp-text-button{display:grid;place-items:center;width:20px;height:22px;padding:0!important;border:0;background:none}
+#demo .pdcp-legacy-control .pdcp-plan .pdcp-text-button img{width:6.25px;height:11.25px}
+#demo .pdcp-legacy-control .pdcp-mode-line{padding:10px 0;font:400 12px/18px var(--font);border-color:#f0d8df;color:#643541}
+#demo .pdcp-legacy-control .pdcp-mode-line>[data-live=timer]{border:1px solid #e7cbd2;border-radius:8px;padding:0 8px;color:#6c3541}
+#demo .pdcp-legacy-control .pdcp-side-metrics{margin-top:12px}
+#demo .pdcp-legacy-control .pdcp-side-metrics>section{gap:8px 4px}
+#demo .pdcp-legacy-control .pdcp-side-metrics h3{font:500 12px/18px var(--font);margin:0;color:#3e0010}
+#demo .pdcp-legacy-control .pdcp-stat>span{font-size:10px;color:rgba(36,15,27,.48)}
+#demo .pdcp-legacy-control .pdcp-stat>strong{font:500 20px/24px var(--font);letter-spacing:0;color:#3e0010}
+#demo .pdcp-legacy-control .pdcp-stat>small{font:400 10px/14px var(--font);color:rgba(36,15,27,.48)}
+#demo .pdcp-legacy-control .pdcp-stat:nth-of-type(3){display:block}
+#demo .pdcp-legacy-control .pdcp-stat:nth-of-type(3)>span{display:block}
+#demo .pdcp-legacy-control .pdcp-stat:nth-of-type(3)>strong{font-size:14px;display:inline}
+#demo .pdcp-legacy-control .pdcp-stat:nth-of-type(3)>small{margin-left:4px}
+#demo .pdcp-legacy-control .pdcp-dot{background:#97002d}
+#demo .pdcp-legacy-control .pdcp-dot.r{background:#ee9bb0}
+#demo .pdcp-legacy-control .pdcp-native-stop{position:absolute;top:125px;left:0;width:100%;font:400 11px/16px var(--font);text-align:center;color:#97002d}
+#demo .pdcp-legacy-control .pdcp-native-fit{position:absolute;z-index:90;left:16px;right:16px;bottom:24px;background:#f9f7f5;border-radius:24px}
+#demo .pdcp-legacy-control .pdcp-fit{margin:0;border-radius:24px;background:#fff1f3;border-color:#ffc5cf;font-family:var(--font)}
+#demo .pdcp-legacy-control .pdcp-fit h2{font:500 18px/24px var(--font);color:#3e0010}
+#demo .pdcp-legacy-control .pdcp-sheet-backdrop{z-index:150}
+#demo .pdcp-legacy-control .pdcp-sheet{font-family:var(--font);color:#240f1b;background:linear-gradient(160deg,#fff,#fff9fa 77%,#ffe9ee)}
+#demo .pdcp-legacy-control .pdcp-sheet button,#demo .pdcp-legacy-control .pdcp-fit button{border:0;font-family:var(--font);cursor:pointer}
+#demo .pdcp-legacy-control .pdcp-sheet h2{font:500 24px/30px Georgia,'Songti SC',serif;color:#97002d;margin:0}
+#demo .pdcp-legacy-control .pdcp-primary{background:linear-gradient(#780020,#a13449)!important}
+#demo .pdcp-legacy-control .pdcp-sheet .selected{background:#fff1f3;color:#90002e;border-color:#ffc5cf!important}
+#demo .pdcp-legacy-control [data-pdcp=finish].holding{box-shadow:inset 0 0 0 2px #90002e}
+/* The report is a full-height continuation of the original log sheet. */
+#demo .pdcp-report.pdcp-screen{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;--ink:#240f1b;--rose:#97002d;--muted:rgba(36,15,27,.48);font-family:var(--font);background:linear-gradient(160deg,#fff 3%,#fff9fa 77%,#ffe9ee);color:#240f1b}
+#demo .pdcp-report .pdcp-header{top:63px;left:16px;right:16px;bottom:auto;height:44px;padding:0;background:none}
+#demo .pdcp-report .pdcp-header .pdcp-icon{width:44px;height:44px;background:rgba(255,255,255,.58)!important;box-shadow:0 4px 18px rgba(30,10,22,.04);color:#240f1b;font-size:24px!important}
+#demo .pdcp-report .pdcp-header .pdcp-icon img{width:24px;height:24px}
+#demo .pdcp-report .pdcp-saved{font:400 12px/18px var(--font);color:#998b92}
+#demo .pdcp-report .pdcp-scroll{top:118px;bottom:0;padding:0 16px 30px}
+#demo .pdcp-report .pdcp-report-heading{padding:8px 0 24px;text-align:center}
+#demo .pdcp-report .pdcp-report-heading h1{font:500 27px/34px Georgia,'Songti SC',serif;color:#97002d;letter-spacing:0}
+#demo .pdcp-report .pdcp-report-heading p{font:400 14px/20px var(--font);margin-top:6px;color:#a29499}
+#demo .pdcp-report .pdcp-total-card{background:#fff;border:0;border-radius:24px;padding:20px;box-shadow:0 4px 24px rgba(36,15,27,.035)}
+#demo .pdcp-report .pdcp-total-top{font-size:14px;color:#998b92}
+#demo .pdcp-report .pdcp-total{font:500 46px/1.25 Georgia,'Songti SC',serif;color:#97002d;letter-spacing:0;margin:10px 0}
+#demo .pdcp-report .pdcp-total>small{font:400 16px/22px var(--font);color:#998b92}
+#demo .pdcp-report .pdcp-report-duration{font-size:12px;color:#998b92}
+#demo .pdcp-report .pdcp-report-duration strong{color:#97002d}
+#demo .pdcp-report .pdcp-split-bar{background:#f2a9bb}
+#demo .pdcp-report .pdcp-split-bar i{background:#97002d;border-right-color:white}
+#demo .pdcp-report .pdcp-dot{background:#97002d}
+#demo .pdcp-report .pdcp-dot.r{background:#f2a9bb}
+#demo .pdcp-report .pdcp-volume-sides span{font-size:12px;color:#998b92}
+#demo .pdcp-report .pdcp-volume-sides strong{font:500 27px/34px Georgia,'Songti SC',serif;color:#240f1b}
+#demo .pdcp-report .pdcp-volume-sides strong small{font:400 12px/18px var(--font);color:#998b92}
+#demo .pdcp-report .pdcp-units button[aria-pressed=true]{background:#97002d}
+#demo .pdcp-report .pdcp-text-button{color:#97002d!important}
+#demo .pdcp-report .pdcp-section-heading h2{font:500 16px/22px var(--font);letter-spacing:0;color:#240f1b}
+#demo .pdcp-report .pdcp-section-heading>span{font-size:10px;color:#998b92}
+#demo .pdcp-report .pdcp-report-sides>section{background:white;border:0;border-radius:24px;padding:18px 16px;box-shadow:0 4px 24px rgba(36,15,27,.035)}
+#demo .pdcp-report .pdcp-report-sides h3{font:500 12px/18px var(--font);color:#998b92}
+#demo .pdcp-report .pdcp-letdown-count{font:500 30px/36px Georgia,'Songti SC',serif;color:#240f1b}
+#demo .pdcp-report .pdcp-letdown-count small,#demo .pdcp-report .pdcp-report-sides dt{font:400 11px/16px var(--font);color:#998b92}
+#demo .pdcp-report .pdcp-report-sides dd{font:500 14px/20px var(--font);color:#240f1b}
+#demo .pdcp-report .pdcp-report-section>svg{background:white;border-radius:24px;padding:12px 4px}
+#demo .pdcp-report .pdcp-caption,#demo .pdcp-report .pdcp-report-foot{color:#998b92}
+#demo .pdcp-report .pdcp-timeline .stimulation,#demo .pdcp-report .pdcp-stage-dot.stimulation{background:#f2a9bb}
+#demo .pdcp-report .pdcp-timeline .expression,#demo .pdcp-report .pdcp-stage-dot.expression{background:#97002d}
+#demo .pdcp-report .pdcp-timeline .mixed,#demo .pdcp-report .pdcp-stage-dot.mixed{background:#b780b8}
+#demo .pdcp-report .pdcp-stage-row b{font-size:12px;color:#240f1b}
+#demo .pdcp-report .pdcp-primary{background:linear-gradient(#780020,#a13449)!important;color:white!important}
+#demo .pdcp-report .pdcp-secondary{background:#fff1f3!important;border-color:#ffc5cf!important;color:#97002d!important}
+#demo .pdcp-report .pdcp-sheet{background:linear-gradient(160deg,#fff,#fff9fa 77%,#ffe9ee);font-family:var(--font);color:#240f1b}
+
+/* Original List canvas and cards; allow the single added Auto Switch card. */
+.pdcp-native-list .r2-list-content { bottom: 32px; overflow-y: auto; scrollbar-width: none; }
+
+/* Dedicated Auto Switch feature area, separate from standard list rows. */
+#demo .pdcp-auto-exclusive {display:block;width:100%;height:86px;padding:17px 20px;margin:0 0 24px;border:1px solid #e5e0e2;border-radius:20px;background:#fff;text-align:left;color:#240f1b;cursor:pointer;font-family:var(--font);box-shadow:0 3px 12px rgba(36,15,27,.025);}
+#demo .pdcp-auto-top{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+#demo .pdcp-auto-name{font:500 17px/24px var(--font);letter-spacing:.1px;}
+#demo .pdcp-auto-state{font:400 10px/18px var(--font);color:#91888d;}
+#demo .pdcp-auto-exclusive[aria-pressed="true"]{border-color:#b29da5;}
+#demo .pdcp-auto-exclusive[aria-pressed="true"] .pdcp-auto-state{color:#770523;}
+#demo .pdcp-auto-exclusive[aria-pressed="true"] .pdcp-auto-state::before{content:"";display:inline-block;width:4px;height:4px;margin:0 5px 2px 0;border-radius:50%;background:currentColor;}
+#demo .pdcp-auto-description{display:block;margin-top:6px;font:400 12px/18px var(--font);color:#91888d;}
+#demo .pdcp-auto-exclusive:focus-visible{outline:2px solid #770523;outline-offset:3px;}
+
+
+/* Current mode is primary information within the existing plan card. */
+#demo .pdcp-legacy-control .pdcp-mode-line{gap:12px;padding:14px 0;}
+#demo .pdcp-current-mode-icon{width:30px;height:30px;object-fit:contain;flex:none;}
+#demo .pdcp-current-mode-copy{display:flex;flex-direction:column;gap:3px;}
+#demo .pdcp-current-mode-copy>small{font:400 10px/14px var(--font);color:#98737f;}
+#demo .pdcp-current-mode-copy>b{font:600 23px/28px var(--font);color:#97002d;}
+
+/* Figma 157:3467: 370 × 114 plan area, white card / neutral mode selector. */
+#demo .pdcp-legacy-control .pdcp-plan{height:114px;padding:16px 20px;border:0;background:#fff;color:#240f1b;margin-bottom:12px;}
+#demo .pdcp-plan-head{height:18px;gap:10px;margin-bottom:16px;}
+#demo .pdcp-plan-head h2{flex:1;white-space:nowrap;}
+#demo .pdcp-metrics-link{border:0;background:none;padding:0;color:#9f969b;font:400 10px/18px var(--font);white-space:nowrap;cursor:pointer;}
+#demo .pdcp-mode-selector{display:flex;align-items:center;height:48px;padding:4px;border-radius:99px;background:rgba(36,15,27,.04);}
+#demo .pdcp-mode-selector button{display:flex;flex:1;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 6px;border:0;border-radius:31px;background:transparent;color:#9f969b;font:400 16px/22px var(--font);opacity:1;white-space:nowrap;}
+#demo .pdcp-mode-selector button.active{background:#fff;color:#240f1b;font-weight:500;box-shadow:0 4px 8px rgba(36,15,27,.08);}
+#demo .pdcp-mode-selector img{width:16px;height:16px;object-fit:contain;}
+#demo .pdcp-mode-selector button:not(.active) img{filter:grayscale(1);opacity:.65;}
+#demo .pdcp-flow-details{background:#fff;}
+#demo .pdcp-flow-details .pdcp-side-metrics{margin:20px 0;}
+
+/* Visible session fields and a read-only current mode, never a tab selector. */
+#demo .pdcp-legacy-control .pdcp-plan{height:182px;padding:14px 20px;}
+#demo .pdcp-plan-head{margin-bottom:8px;}
+#demo .pdcp-plan-time{font:400 12px/18px var(--font);color:#9f969b;font-variant-numeric:tabular-nums;}
+#demo .pdcp-mode-status{display:flex;align-items:center;gap:8px;height:30px;}
+#demo .pdcp-mode-status img{width:16px;height:16px;object-fit:contain;}
+#demo .pdcp-mode-status b{font:500 16px/22px var(--font);color:#240f1b;}
+#demo .pdcp-mode-status>span{margin-left:auto;font:400 10px/16px var(--font);color:#9f969b;}
+#demo .pdcp-metric-table{margin-top:8px;border-top:1px solid #f1eff0;padding-top:7px;}
+#demo .pdcp-metric-row{display:grid;grid-template-columns:40px 1fr 1fr 1fr;align-items:center;min-height:25px;font:400 11px/16px var(--font);color:#8b8086;text-align:center;}
+#demo .pdcp-metric-row>span:first-child{text-align:left;}
+#demo .pdcp-metric-row strong{font:500 14px/20px var(--font);color:#240f1b;font-variant-numeric:tabular-nums;}
+#demo .pdcp-metric-labels{font-size:10px;min-height:20px;}
+#demo .pdcp-metric-labels small{font-size:8px;}
+
+/* Align with native list play controls; animate only an active session. */
+#demo .pdcp-auto-exclusive{position:relative;padding-right:60px;}
+#demo .pdcp-auto-indicator{position:absolute;right:16px;top:50%;transform:translateY(-50%);width:32px;height:32px;display:grid;place-items:center;}
+#demo .pdcp-auto-indicator img{display:block;width:32px;height:32px;object-fit:contain;}
+#demo .pdcp-auto-indicator.is-running img{width:22px;height:16px;animation:pdcp-running-wave 1.15s ease-in-out infinite;transform-origin:center;}
+@keyframes pdcp-running-wave{0%,100%{transform:scaleY(.65);opacity:.7}50%{transform:scaleY(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-auto-indicator.is-running img{animation:none;}}
+
+#demo .pdcp-speed-three{padding:16px 20px;height:138px;box-sizing:border-box;}
+#demo .pdcp-speed-three h2{display:flex;align-items:center;gap:8px;margin:0 0 16px;font:500 14px/20px var(--font);}
+#demo .pdcp-speed-three h2 img{width:20px;height:20px;object-fit:contain;}
+#demo .pdcp-speed-track{display:flex;align-items:center;height:44px;padding:4px;box-sizing:border-box;border-radius:99px;background:rgba(36,15,27,.04);}
+#demo .pdcp-speed-track button{display:grid;place-items:center;flex:1;height:36px;padding:0;border:0;border-radius:31px;background:transparent;cursor:pointer;}
+#demo .pdcp-speed-track button[aria-pressed="true"]{background:#fff;box-shadow:0 4px 8px rgba(36,15,27,.08);}
+#demo .pdcp-speed-track img{width:20px;height:18px;object-fit:contain;filter:brightness(0);opacity:.42;}
+#demo .pdcp-speed-track button[aria-pressed="true"] img{filter:brightness(.25);opacity:1;}
+#demo .pdcp-speed-labels{display:flex;margin-top:8px;}
+#demo .pdcp-speed-labels button{flex:1;padding:0;border:0;background:none;color:#948b91;font:400 12px/18px var(--font);cursor:pointer;}
+#demo .pdcp-speed-labels button.active{color:#240f1b;font-size:14px;font-weight:500;}
+
+/* Align each amount with its offset vessel, not the 180px pump slot. */
+.v4-control .c32-pump .amount{left:57.355px;right:auto;width:91.2895px;white-space:nowrap;text-align:center}
+.v4-control .c32-pump.right .amount{left:36.355px}
+
+/* Keep 14px below the milk readout without pushing the level controls down. */
+#demo .v4-control.pdcp-legacy-control > .v4-pump-row{top:154px!important}
+
+/* Mode icon and label exchange horizontally inside the existing row. */
+#demo .pdcp-mode-window{position:relative;flex:1;min-width:0;height:30px;overflow:hidden;}
+#demo .pdcp-mode-item{position:absolute;inset:0;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+#demo .pdcp-mode-item.is-entering{animation:pdcp-mode-in 360ms cubic-bezier(.22,.7,.3,1) both;}
+#demo .pdcp-mode-item.is-leaving{animation:pdcp-mode-out 220ms ease-in both;pointer-events:none;}
+@keyframes pdcp-mode-in{from{opacity:0;transform:translateX(36px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pdcp-mode-out{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(-36px)}}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-mode-item{animation:none!important}}
+
+/* Keep the two-line warm copy clear of the fixed vessel row. */
+#demo .v4-control.pdcp-legacy-control.has-c36-notice.air2-warm-notice .c36-notice:not(.r72-leak-notice){top:102px!important;min-height:40px!important}
+
+/* Figma close glyph in the original 44px glass button footprint. */
+#demo .pdcp-report .pdcp-header [data-pdcp="close-report"]{position:relative;background:linear-gradient(160deg,#ededed,#fff)!important;box-shadow:inset 0 1px 1px #fff,0 0 0 .5px #e8e8e8,1.25px 0 0 -.75px #d0d0d0,-1.25px 0 0 -.75px #d0d0d0,0 8px 15px rgba(0,0,0,.06);padding:0;border:0}
+#demo .pdcp-report .pdcp-header [data-pdcp="close-report"] img{width:24px;height:24px}
+
+/* Method heading stays quieter than the current mode. */
+#demo .pdcp-legacy-control .pdcp-plan .pdcp-plan-head h2{color:rgba(36,15,27,.32)}
+
+/* Idle side labels share the running milk readout coordinates. */
+#demo .v4-control .pdcp-idle-pump .amount{display:block!important;visibility:visible!important;opacity:1!important;position:absolute;top:101px!important;left:57.355px!important;right:auto!important;width:91.2895px;text-align:center;color:#3e0010;font:600 14px/18px var(--font)}
+#demo .v4-control .pdcp-idle-pump.right .amount{left:36.355px!important}
+
+/* Figma 164:6300: bottom sheet, 62px top reveal in the 874px canvas. */
+#demo .pdcp-report-overlay{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+#demo .pdcp-report-underlay{position:absolute;inset:0;pointer-events:none}
+#demo .pdcp-report-dim{position:absolute;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(12px)}
+#demo .pdcp-report-overlay .pdcp-report.pdcp-screen{position:absolute!important;inset:62px 0 0!important;height:calc(100% - 62px)!important;border-radius:38px 38px 0 0;overflow:hidden;background:#f9f7f5;animation:pdcp-report-rise 320ms cubic-bezier(.22,.7,.3,1) both}
+#demo .pdcp-report-overlay .pdcp-report .pdcp-header{top:16px;left:16px;right:16px;height:44px}
+#demo .pdcp-report-overlay .pdcp-report .pdcp-scroll{top:60px;padding:0 16px 32px}
+#demo .pdcp-report-overlay .pdcp-report-heading{padding:0 0 24px}
+#demo .pdcp-report-overlay .pdcp-report-heading h1{font:400 24px/29px Georgia,'Songti SC',serif;letter-spacing:-.48px;color:#240f1b}
+@keyframes pdcp-report-rise{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-report-overlay .pdcp-report.pdcp-screen{animation:none}}
+
+#demo .pdcp-report-underlay{z-index:0;isolation:isolate}
+#demo .pdcp-report-dim{z-index:1}
+#demo .pdcp-report-overlay .pdcp-report.pdcp-screen{z-index:2}
+
+/* Figma 164:6431 Manual options; retain the surrounding native list. */
+#demo .pdcp-native-list .pdcp-manual-option{display:flex;align-items:center;gap:16px;width:100%;min-height:74px;margin:0 0 12px;padding:16px;border:1.5px solid transparent;border-radius:24px;background:#fff;text-align:left;color:#240f1b;box-sizing:border-box;cursor:pointer}
+#demo .pdcp-native-list .pdcp-manual-option.selected{border-color:#770523;box-shadow:0 10px 12px rgba(36,15,27,.04)}
+#demo .pdcp-manual-icon{width:20px;height:20px;object-fit:contain;flex:none}
+#demo .pdcp-manual-copy{flex:1;min-width:0;display:flex;flex-direction:column}
+#demo .pdcp-manual-copy b{font:500 16px/22px var(--font);letter-spacing:.32px}
+#demo .pdcp-manual-copy small{font:400 14px/20px var(--font);color:rgba(36,15,27,.44);letter-spacing:.28px}
+#demo .pdcp-manual-indicator{display:grid;place-items:center;width:32px;height:32px;flex:none}
+#demo .pdcp-manual-indicator img{width:32px;height:32px}
+#demo .pdcp-manual-indicator.is-running img{width:24px;height:24px;animation:pdcp-manual-wave 1.15s ease-in-out infinite}
+@keyframes pdcp-manual-wave{0%,100%{transform:scaleY(.65)}50%{transform:scaleY(1)}}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-manual-indicator.is-running img{animation:none}}
+
+/* Refine the existing Auto card without changing its geometry. */
+#demo .pdcp-auto-exclusive{background:linear-gradient(115deg,#fff,#fcfbfa);border-color:#e3dcdf;box-shadow:0 5px 16px rgba(36,15,27,.045),inset 0 1px 0 #fff}
+#demo .pdcp-auto-exclusive[aria-pressed="true"]{border-color:#ad929c;box-shadow:0 5px 18px rgba(65,26,39,.065),inset 0 1px 0 #fff}
+#demo .pdcp-legacy-control [data-pdcp="finish"],#demo .pdcp-legacy-control [data-pdcp="finish"].holding{border:0!important;box-shadow:none!important;outline:none!important}
+
+/* Figma 159:5865: Manual has its own three-mode selector. */
+#demo .pdcp-legacy-control .pdcp-plan.pdcp-manual-plan{height:148px;padding:16px;border-radius:24px}
+#demo .pdcp-manual-head{display:flex;align-items:center;gap:8px;height:20px;margin-bottom:16px}
+#demo .pdcp-manual-head>img{width:20px;height:20px}
+#demo .pdcp-manual-head h2{flex:1;color:#240f1b;font:500 14px/18px var(--font);letter-spacing:.28px}
+#demo .pdcp-manual-head button{display:grid;place-items:center;width:20px;height:20px;padding:0;border:0;background:none}
+#demo .pdcp-manual-head button img{width:6.25px;height:11.25px;opacity:.5}
+#demo .pdcp-manual-tabs{display:flex;height:80px;padding:4px;border-radius:24px;background:rgba(36,15,27,.04)}
+#demo .pdcp-manual-tabs button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:0;border-radius:20px;background:none;padding:0;color:#9f969b;font:400 14px/18px var(--font);cursor:pointer}
+#demo .pdcp-manual-tabs button[aria-pressed="true"]{background:#fff;color:#240f1b;font-weight:500;box-shadow:0 4px 8px rgba(36,15,27,.08)}
+#demo .pdcp-manual-tabs img{width:24px;height:24px;object-fit:contain}
+
+/* Figma 115:6804: native rhythm card, scoped to the preset slot. */
+#demo .pdcp-legacy-control .pdcp-preset-card {box-sizing:border-box;position:relative;height:129px;padding:15.7px 19.7px;border:.3px solid rgba(161,64,82,.15);border-radius:24px;overflow:hidden;background:radial-gradient(ellipse at left bottom,rgba(255,121,54,.16),transparent 75%),#fff0f1;box-shadow:0 4px 12px rgba(0,0,0,.02);}
+#demo .pdcp-preset-head {display:flex;align-items:center;gap:10px;height:22px;}
+#demo .pdcp-preset-head h2 {margin:0;font-size:14px;line-height:18px;font-weight:500;letter-spacing:.28px;color:#3e0010;}
+#demo .pdcp-preset-head > span {box-sizing:border-box;height:22px;padding:1px 8px;border:1px solid rgba(62,0,16,.12);border-radius:8px;font-size:12px;line-height:18px;font-weight:500;letter-spacing:.24px;color:rgba(62,0,16,.8);font-variant-numeric:tabular-nums;}
+#demo .pdcp-preset-more {margin-left:auto;border:0;background:transparent;padding:0;width:18px;height:18px;}
+#demo .pdcp-preset-more img {width:18px;height:18px;display:block;}
+#demo .pdcp-preset-stages {display:block;width:100%;height:20px;margin-top:21px;}
+#demo .pdcp-preset-footer {display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:8px;height:24px;font-size:14px;line-height:20px;color:#770523;}
+#demo .pdcp-preset-toggle {position:relative;width:42px;height:24px;border:0;padding:0;border-radius:20px;background:rgba(62,0,16,.2);}
+#demo .pdcp-preset-toggle i {position:absolute;left:2px;top:2px;width:20px;height:20px;border-radius:14px;background:white;}
+
+/* Figma 170:6680 — keep existing 0–15 rails and drag targets. */
+#demo .pdcp-legacy-control .pdcp-level-card {position:relative!important;display:grid!important;grid-template-columns:70px 84px 70px!important;column-gap:32px!important;box-sizing:border-box!important;height:273px!important;padding:52px 20px 16px!important;border-radius:24px!important;background:#fff!important;align-items:start!important;}
+#demo .pdcp-level-card .pdcp-level-title {position:absolute;left:20px;top:16px;margin:0;display:flex;align-items:center;gap:8px;height:20px;font-size:14px;line-height:18px;font-weight:500;letter-spacing:.28px;color:#240f1b;}
+#demo .pdcp-level-title img {width:20px;height:20px;}
+#demo .pdcp-level-title span {margin-left:-5px;font-weight:400;color:#9f969b;}
+#demo .pdcp-level-card .v4-level > label,#demo .pdcp-level-card .v4-both > label {display:flex!important;align-items:center;justify-content:center;height:18px!important;line-height:18px!important;margin:0 0 12px!important;font-size:12px!important;font-weight:400!important;color:rgba(36,15,27,.55)!important;}
+#demo .pdcp-level-card .v4-both > label img {width:14px!important;height:14px!important;transform:none!important;}
+#demo .pdcp-level-card .v4-track {height:170px!important;width:70px!important;}
+#demo .pdcp-level-card .v4-track .ticks {top:0!important;left:19px!important;height:170px!important;width:32px!important;}
+#demo .pdcp-level-card .v4-track .ticks i {width:32px!important;height:1.5px!important;border-radius:17px!important;background:#240f1b!important;opacity:.1!important;}
+#demo .pdcp-level-card .v4-track .ticks i:nth-child(even) {opacity:.3!important;}
+#demo .pdcp-level-card .v4-level-value {width:70px!important;height:36px!important;border-radius:1000px!important;background:linear-gradient(#770422,#b8545e)!important;border:1px solid rgba(255,255,255,.35)!important;box-shadow:0 10px 16px rgba(36,15,27,.1)!important;font-size:16px!important;line-height:34px!important;font-weight:500!important;}
+#demo .pdcp-level-card .v4-both-box {width:84px!important;height:170px!important;border-radius:19px!important;background:linear-gradient(rgba(36,15,27,.04),rgba(36,15,27,.06))!important;}
+#demo .pdcp-level-card .v4-both-knob {width:70px!important;height:36px!important;left:7px!important;background:white!important;border-radius:31px!important;box-shadow:0 10px 16px rgba(36,15,27,.1)!important;}
+#demo .pdcp-level-card .v4-both-knob img {width:18px!important;height:18px!important;}
+
+#demo .pdcp-level-card .v4-track .ticks i.pdcp-tick-active {background:#90253f!important;opacity:.2!important;}
+#demo .pdcp-level-card .v4-track .ticks i.pdcp-tick-active:nth-child(even) {background:#240f1b!important;opacity:1!important;}

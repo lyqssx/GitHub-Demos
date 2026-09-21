@@ -1,0 +1,14 @@
+{
+  "name": "Air2 PDCP Demo V2.0",
+  "short_name": "Air2 PDCP",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "fullscreen"
+  ],
+  "background_color": "#f9f7f5",
+  "theme_color": "#f9f7f5",
+  "orientation": "portrait"
+}
