@@ -236,7 +236,7 @@
     var step = steps[index];
     var fitNotDetected = f.guideMode === 'fit-not-detected';
     var guideTitle = fitNotDetected ? 'Fit Not Detected' : 'Checking seal...';
-    var guideCopy = fitNotDetected ? 'Check cup placement<br>Press to resume' : step.copy;
+    var guideCopy = fitNotDetected ? 'Check cup placement<br>Start pumping when ready.' : step.copy;
     return '<div class="sa-layer sa-guide-layer' + (fitNotDetected ? ' is-fit-not-detected' : '') + '" role="dialog" aria-modal="true" aria-label="Air seal guidance">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel">' +
         '<header class="sa-guide-header"><div class="sa-guide-title"><h2>' + guideTitle + '</h2>' + (fitNotDetected ? '' : '<span>' + (index + 1) + '/' + steps.length + '</span>') + '</div>' +
