@@ -12,6 +12,7 @@
   let session = null, report = null, method = 'auto', manualMode = 'stimulation', preset = 'Milk Boost';
   let sheet = null, fit = null, fitTimer = null, notice = '', timerAt = performance.now(), holding = null, signature = '';
   const unit = 'oz';
+  let triggerDrag = null, suppressTriggerClickUntil = 0;
   let triggersOpen = false, exportBusy = false, simulationRemainder = 0;
   const overrides = { l: null, r: null };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -369,6 +370,7 @@ function panel(place){var raw=fit==='angle'?1:fit==='battery'?4:fit==='ready'?5:
     if (a === 'edit') sheet = 'edit';
     if (a === 'close-report') { report = null; sheet = null; state.page = 'home'; method = 'auto'; manualMode = 'stimulation'; session = null; state.milkL = 0; state.milkR = 0; }
     if (a === 'share') { exportReport(); return; }
+    if (a === 'toggle-triggers' && performance.now() < suppressTriggerClickUntil) return;
     if (a === 'toggle-triggers') { triggersOpen = !triggersOpen; mountTriggers(); return; }
     if (a === 'trigger') { trigger(value); triggersOpen = false; mountTriggers(); return; }
     render();
@@ -410,9 +412,52 @@ function panel(place){var raw=fit==='angle'?1:fit==='battery'?4:fit==='ready'?5:
     }
     render();
   }
+  function placeTriggers(host, x, y) {
+    const button = host.querySelector('.pdcp-trigger-toggle');
+    const w = button.offsetWidth, h = button.offsetHeight;
+    host.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
+    host.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+    host.style.right = 'auto'; host.style.bottom = 'auto';
+    const panel = host.querySelector('.pdcp-trigger-panel');
+    if (panel) {
+      const r = button.getBoundingClientRect();
+      panel.style.left = Math.max(8-r.left, Math.min(0, innerWidth-r.left-panel.offsetWidth-8)) + 'px';
+      panel.style.bottom = r.top > innerHeight/2 ? (h+10)+'px' : 'auto';
+      panel.style.top = r.top > innerHeight/2 ? 'auto' : (h+10)+'px';
+      panel.style.maxHeight = Math.max(80,(r.top > innerHeight/2 ? r.top : innerHeight-r.bottom)-18)+'px';
+    }
+  }
+  window.addEventListener('pointerdown', e => {
+    const button = e.target.closest('.pdcp-trigger-toggle');
+    if (!button || e.button !== 0) return;
+    const host = button.parentElement, r = button.getBoundingClientRect();
+    triggerDrag = { host, id:e.pointerId, x:e.clientX, y:e.clientY, left:r.left, top:r.top, moved:false };
+    button.setPointerCapture(e.pointerId);
+  }, true);
+  window.addEventListener('pointermove', e => {
+    const d = triggerDrag; if (!d || d.id !== e.pointerId) return;
+    const dx=e.clientX-d.x, dy=e.clientY-d.y;
+    if (!d.moved && Math.hypot(dx,dy)<5) return;
+    d.moved=true; e.preventDefault();
+    d.host.classList.add('is-dragging');
+    placeTriggers(d.host,d.left+dx,d.top+dy);
+  }, {capture:true,passive:false});
+  function endTriggerDrag() {
+    if (!triggerDrag) return;
+    if (triggerDrag.moved) suppressTriggerClickUntil=performance.now()+500;
+    triggerDrag.host.classList.remove('is-dragging'); triggerDrag=null;
+  }
+  window.addEventListener('pointerup',endTriggerDrag,true);
+  window.addEventListener('pointercancel',endTriggerDrag,true);
+  window.addEventListener('resize',()=>{
+    const host=document.querySelector('.pdcp-triggers');
+    if(host){const r=host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();placeTriggers(host,r.left,r.top);}
+  });
   function mountTriggers() {
     let host = document.querySelector('.pdcp-triggers'); if (!host) { host = document.createElement('aside'); host.className = 'pdcp-triggers'; document.body.appendChild(host); }
     host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>Event triggers</h2><p>Demo only · ${CONFIG.demo.secondsPerRealSecond}× playback</p><h3>Wearing angle</h3>${btn('trigger', 'Wearing angle incorrect', '', 'data-value="angle-error"')}${btn('trigger', 'Wearing OK', '', 'data-value="fit-ok"')}<h3>Let-down</h3>${btn('trigger', 'Let-down starts', '', 'data-value="letdown-start"')}${btn('trigger', 'Let-down ends', '', 'data-value="letdown-end"')}<h3>Battery</h3>${btn('trigger', 'Low battery', '', 'data-value="low-battery"')}${btn('trigger', 'Critical low battery', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? 'Close triggers' : 'Triggers', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
+    const r = host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();
+    placeTriggers(host, r.left, r.top);
   }
   async function exportReport() {
     if (!report || exportBusy) return;

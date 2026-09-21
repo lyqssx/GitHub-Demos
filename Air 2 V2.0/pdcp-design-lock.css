@@ -248,3 +248,7 @@
 
 #demo .pdcp-level-card .v4-track .ticks i.pdcp-tick-active {background:#90253f!important;opacity:.2!important;}
 #demo .pdcp-level-card .v4-track .ticks i.pdcp-tick-active:nth-child(even) {background:#240f1b!important;opacity:1!important;}
+
+/* Home session timer is upright, including its semantic em wrapper. */
+#demo .v4-home-dock em {font-style:normal!important;font-variant-numeric:tabular-nums;}
+#demo .v4-dock-mode em,#demo .h7-dock-mode em {font-style:normal!important;font-variant-numeric:tabular-nums;}

@@ -8,3 +8,10 @@
 .pdcp-speed-options{display:flex;align-items:center;gap:7px;margin:20px 0}.pdcp-speed-options h3{font-size:12px;margin-right:auto}.pdcp-speed-options button{height:32px;width:32px;background:#f5e8ed;border-radius:50%;font-size:12px}.pdcp-speed-options button.selected{background:#96516a;color:white}
 /* Event controls have no role after settlement and must not cover the report. */
 body:has(#demo .pdcp-report) .pdcp-triggers{display:none}
+
+/* Movable translucent event trigger, anchored independently of its menu. */
+.pdcp-triggers {width:max-content;}
+.pdcp-triggers .pdcp-trigger-toggle {touch-action:none;user-select:none;cursor:grab;opacity:.65;background:linear-gradient(120deg,rgba(227,147,174,.7),rgba(183,118,179,.7));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:opacity .18s;}
+.pdcp-triggers .pdcp-trigger-toggle:hover,.pdcp-triggers:focus-within .pdcp-trigger-toggle {opacity:.9;}
+.pdcp-triggers.is-dragging .pdcp-trigger-toggle {cursor:grabbing;opacity:.75;}
+.pdcp-triggers .pdcp-trigger-panel {position:absolute;box-sizing:border-box;margin:0;}
