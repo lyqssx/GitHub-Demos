@@ -67,7 +67,7 @@ test('last sample clips time at the actual later-side full event',()=>{
 test('sketch-based traces contain finite event envelopes, not endlessly repeating peaks', () => {
   const { demoSensor } = require('../pdcp-session.js');
   for (const groups of [1, 2]) {
-    const s = new Session();
+    const s = new Session({capacity:1000});
     for (let t = 0; t < 1500; t++) {
       const flows = {};
       for (const k of ['l', 'r']) {
@@ -81,7 +81,7 @@ test('sketch-based traces contain finite event envelopes, not endlessly repeatin
     assert.equal(s.segments.length, groups * 2 + 1);
     assert.equal(demoSensor('l', 3100, groups).flow, 0);
     assert.equal(s.finished, false);
-    assert.ok(s.total > 0 && s.total < 180);
+    assert.ok(s.total > 0 && s.total < 400);
   }
 });
 
@@ -111,4 +111,47 @@ test('Auto initial mode never inherits a manual selection', () => {
     switched.letdown('l', true);
     assert.equal(switched.mode, 'expression');
   }
+});
+
+test('Deep expression is Auto-only, first-event-only and releases at half peak', () => {
+ const s=new Session();s.letdown('l',true);assert.equal(s.deep,true);s.advance(1,{l:2,r:0});assert.equal(s.deep,true);s.advance(1,{l:14,r:0});assert.equal(s.deep,true);s.advance(1,{l:30,r:0});assert.equal(s.deep,true);assert.equal(s.mode,'expression');
+ s.advance(1,{l:16,r:0});assert.equal(s.deep,true);
+ s.advance(1,{l:15,r:0});assert.equal(s.deep,false);assert.equal(s.mode,'expression');
+ s.advance(1,{l:30,r:0});assert.equal(s.deep,false);
+ s.letdown('l',false);assert.equal(s.mode,'mixed');s.letdown('l',true);s.advance(1,{l:30,r:0});assert.equal(s.deep,false);
+ const manual=new Session({method:'manual',mode:'expression'});manual.letdown('l',true);manual.advance(1,{l:30,r:0});assert.equal(manual.deep,false);
+});
+test('Each let-down stores its own main peak, not only the global maximum', () => {
+ const s=new Session();s.letdown('l',true);s.advance(5,{l:30,r:0});s.advance(5,{l:15,r:0});s.letdown('l',false);
+ s.letdown('l',true);s.advance(5,{l:12,r:0});
+ assert.equal(s.sides.l.events.length,2);assert.equal(s.sides.l.events[0].peak,30);assert.equal(s.sides.l.events[1].peak,12);
+});
+
+test('default left and right traces reach full within one minute of each other', () => {
+  const { demoSensor } = require('../pdcp-session.js');
+  const volumes = {l:0,r:0}, fullAt = {};
+  for(let t=0;t<1400;t++) for(const k of ['l','r']) {
+    volumes[k] += demoSensor(k,t).flow/60;
+    if(volumes[k]>=180 && fullAt[k]===undefined) fullAt[k]=t;
+  }
+  assert.ok(Number.isFinite(fullAt.l) && Number.isFinite(fullAt.r));
+  assert.ok(Math.abs(fullAt.l-fullAt.r)<=60);
+});
+
+test('duration corrections update the record without retiming sensor evidence', () => {
+  const s = new Session();
+  s.advance(120,{l:10,r:10}); s.finish();
+  const samples=JSON.stringify(s.samples), stages=JSON.stringify(s.segments);
+  assert.equal(s.editDuration(90),true);
+  assert.equal(s.snapshot().reportedDuration,90);
+  assert.equal(s.elapsed,120);
+  assert.equal(JSON.stringify(s.samples),samples);
+  assert.equal(JSON.stringify(s.segments),stages);
+  s.editVolumes(s.sides.l.volume,s.sides.r.volume);
+  assert.equal(s.edited,true);
+  assert.equal(s.editDuration(0),false);
+  assert.equal(s.editDuration(1.5),false);
+  assert.equal(s.reportedDuration,90);
+  assert.equal(s.editDuration(120),true);
+  assert.equal(s.edited,false);
 });

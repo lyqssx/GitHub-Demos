@@ -252,3 +252,143 @@
 /* Home session timer is upright, including its semantic em wrapper. */
 #demo .v4-home-dock em {font-style:normal!important;font-variant-numeric:tabular-nums;}
 #demo .v4-dock-mode em,#demo .h7-dock-mode em {font-style:normal!important;font-variant-numeric:tabular-nums;}
+/* Review 2026-09-22: global data disclosure, independent of method. */
+#demo .pdcp-data-disclosure {margin:-5px 0 8px;}
+#demo .pdcp-data-toggle {display:block;margin:auto;border:0;background:transparent;color:#96868e;font:400 11px/20px var(--font);padding:3px 12px;}
+#demo .pdcp-live-grid {display:grid;grid-template-columns:70px 1fr 1fr;align-items:center;row-gap:12px;padding:12px 16px 18px;color:#827780;font-size:11px;}
+#demo .pdcp-live-grid > :not(:nth-child(3n+1)) {text-align:center;}
+#demo .pdcp-live-grid strong {font-size:14px;font-weight:500;color:#240f1b;font-variant-numeric:tabular-nums;}
+#demo .pdcp-live-grid small,#demo .pdcp-summary-grid small {display:block;font-size:9px;color:#a2949b;margin-top:2px;}
+#demo .pdcp-plan:not(.pdcp-manual-plan) {min-height:0!important;height:auto!important;padding-bottom:16px!important;}
+#demo .pdcp-plan .pdcp-mode-status {border-bottom:0!important;padding-bottom:0!important;}
+#demo .pdcp-mode-window.pdcp-deep .pdcp-mode-item:not(.is-leaving) img {animation:pdcp-deep-breathe 2.8s ease-in-out infinite;transform-origin:center;}
+@keyframes pdcp-deep-breathe {0%,100%{transform:scale(.85);opacity:.72}50%{transform:scale(1.3);opacity:1}}
+#demo .pdcp-angle-guide {background:#fff;border-radius:24px;padding:16px 20px;margin-bottom:14px;color:#240f1b;}
+#demo .pdcp-angle-guide header {display:flex;justify-content:space-between;align-items:center;font-size:14px;}
+#demo .pdcp-angle-guide header span {font-size:22px;font-variant-numeric:tabular-nums;}
+#demo .pdcp-angle-guide p {font-size:12px;color:#8d8187;margin:6px 0;}
+#demo .pdcp-angle-guide small {display:block;text-align:center;font-size:11px;color:#8d8187;}
+#demo .pdcp-angle-level {height:84px;position:relative;margin:8px 0;color:#a05b6c;}
+#demo .pdcp-angle-level i {position:absolute;top:50%;left:calc(50% - 65px);width:130px;height:2px;border-radius:2px;}
+#demo .pdcp-angle-target {background:transparent;border-top:1px dashed #aaa0a4;}
+#demo .pdcp-angle-current {background:currentColor;}
+#demo .pdcp-angle-center {position:absolute;left:calc(50% - 5px);top:calc(50% - 5px);width:10px;height:10px;border-radius:50%;border:2px solid currentColor;background:white;}
+#demo .pdcp-angle-level.aligned {color:#709582;}
+#demo .pdcp-legacy-control:has(.pdcp-angle-guide) .r50-angle-guide {display:none!important;}
+#demo .pdcp-report-date {font-size:13px;color:#96838a;text-align:center;}
+#demo .pdcp-report-body {padding-top:14px!important;}
+#demo .pdcp-report-edit {margin-left:auto;background:none;border:0;width:32px;height:32px;display:grid;place-items:center;}
+#demo .pdcp-report-edit img {width:18px;height:18px;object-fit:contain;}
+#demo .pdcp-summary-grid {display:grid;grid-template-columns:1.4fr 1fr 1fr;align-items:center;gap:18px 8px;background:white;border-radius:24px;padding:20px;font-size:12px;color:#8c7a82;}
+#demo .pdcp-summary-grid b,#demo .pdcp-summary-grid strong {text-align:center;color:#240f1b;font-weight:500;}
+#demo .pdcp-summary-grid strong {font-size:17px;font-variant-numeric:tabular-nums;}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-mode-window.pdcp-deep img{animation:none!important;opacity:1;}}
+#demo .pdcp-live-grid {grid-template-columns:16% 26% 58%;padding:12px 0 18px;}
+#demo .pdcp-live-grid > :nth-child(3n+1) {padding-left:8px;white-space:nowrap;font-size:10px;}
+#demo .pdcp-legacy-control:has(.pdcp-angle-guide) .r97-leak-guide {display:none!important;}
+#demo .pdcp-legacy-control:has(.pdcp-angle-guide) .r97-leak-adjusting {animation:none!important;rotate:none!important;}
+#demo .pdcp-live-grid {grid-template-columns:14% 30% 56%;}
+
+/* Milk and optional measurements belong to one compact disclosure card. */
+#demo .v4-control.pdcp-legacy-control .c32-pump .amount {display:none!important;}
+#demo .pdcp-data-disclosure {position:relative;margin:-24px 0 14px;background:linear-gradient(135deg,rgba(255,255,255,.56),rgba(255,255,255,.18) 52%,rgba(255,255,255,.34));border-radius:22px;padding:0 14px;-webkit-backdrop-filter:blur(22px) saturate(145%);backdrop-filter:blur(22px) saturate(145%);box-shadow:inset 0 1px 0 rgba(255,255,255,.92),inset 1px 0 0 rgba(255,255,255,.48),inset -1px -1px 0 rgba(255,255,255,.4),0 4px 16px rgba(52,42,47,.045),0 1px 3px rgba(52,42,47,.025);}
+#demo .pdcp-milk-row,#demo .pdcp-live-grid {display:grid;grid-template-columns:14% 30% 56%;align-items:center;}
+#demo .pdcp-milk-row {min-height:52px;}
+#demo .pdcp-milk-value {display:flex;justify-content:center;align-items:baseline;gap:4px;color:#3e0010;font-variant-numeric:tabular-nums;}
+#demo .pdcp-milk-value strong {font:600 17px/24px var(--font);}
+#demo .pdcp-milk-value small {font:400 11px/16px var(--font);color:#827780;}
+#demo .pdcp-data-toggle {position:absolute;right:3px;top:12px;width:28px;height:28px;padding:7px;margin:0;display:grid;place-items:center;border-radius:50%;color:#a59aa0;cursor:pointer;}
+#demo .pdcp-data-toggle:hover {background:rgba(36,15,27,.04);color:#66565e;}
+#demo .pdcp-data-toggle svg {width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s;}
+#demo .is-expanded .pdcp-data-toggle svg {transform:rotate(180deg);}
+#demo .pdcp-live-grid {padding:12px 0 16px;border-top:1px solid rgba(36,15,27,.055);row-gap:13px;font-size:10px;}
+#demo .pdcp-live-grid .pdcp-metric-label {display:flex;align-items:baseline;gap:4px;white-space:nowrap;font-size:10px;color:#8b8086;}
+#demo .pdcp-live-grid small {display:inline;margin:0;font-size:8px;color:#aaa0a5;}
+#demo .pdcp-live-grid strong {font:500 14px/20px var(--font);font-variant-numeric:tabular-nums;color:#45353e;}
+#demo .v4-control.pdcp-legacy-control [data-pdcp-pump] .amount {display:none!important;}
+#demo .pdcp-data-disclosure {margin-top:0;}
+#demo .v4-control.pdcp-legacy-control > .v4-controls {top:263px!important;}
+#demo .pdcp-live-grid .pdcp-metric-label {font-size:9px;gap:3px;}
+#demo .pdcp-live-grid small {font-size:7.5px;}
+
+/* Inline labels and values, with units attached to each reading. */
+#demo .pdcp-live-grid {row-gap:14px;padding:14px 0 17px;}
+#demo .pdcp-live-grid .pdcp-metric-label {grid-column:auto;padding-left:6px;font-size:11px;line-height:21px;color:#746870;}
+#demo .pdcp-metric-value {position:relative;text-align:center;white-space:nowrap;line-height:21px;}
+#demo .pdcp-metric-value strong {font-size:15px;line-height:21px;}
+#demo .pdcp-metric-value small {position:absolute;left:calc(50% + 19px);bottom:1px;font-size:9px;line-height:17px;color:#91868d;margin:0;}
+
+#demo .pdcp-edit-duration {margin-top:18px;}
+#demo .pdcp-edit-duration > span {display:block;margin-bottom:10px;font-size:13px;color:#746870;}
+#demo .pdcp-sheet:has(#pdcp-edit-form) {max-height:85%;overflow-y:auto;}
+
+/* Real-time reference-axis guide replaces the legacy wobble in both entry points. */
+#demo .pdcp-angle-diagram {display:block;width:100%;height:200px;color:#946478;overflow:visible;}
+#demo .pdcp-angle-diagram.aligned {color:#668d77;}
+#demo .r50-fit-panel:has(.pdcp-angle-guide) {max-height:85%;overflow-y:auto;}
+#demo .r50-fit-panel .pdcp-angle-guide {margin:8px 0 0;padding:10px 16px;background:rgba(255,255,255,.55);}
+#demo .pdcp-legacy-control:has(.pdcp-angle-guide) [data-pdcp-pump],
+#demo .pdcp-legacy-control:has(.pdcp-angle-guide) [data-pdcp-pump] * {animation:none!important;rotate:none!important;}
+
+#demo .r50-fit-panel.pdcp-axis-fit {height:auto!important;max-height:80%;padding:12px!important;background:#faf8f7!important;overflow:hidden;box-sizing:border-box;}
+#demo .pdcp-axis-fit .pdcp-angle-guide {background:#fff;padding:16px;margin:0;}
+#demo .pdcp-axis-fit .r50-skip {position:absolute;right:18px;top:13px;z-index:2;color:#786571;background:#eee8ea;}
+#demo .pdcp-axis-fit .pdcp-angle-guide header {padding-right:46px;}
+#demo .pdcp-axis-fit .pdcp-angle-guide small {color:#75666e;}
+
+/* Fit check expands from the bottom action area above the unchanged control layout. */
+#demo .pdcp-fit-overlay {position:absolute;z-index:110;left:16px;right:16px;bottom:20px;margin:0;max-height:calc(100% - 100px);overflow-y:auto;border-radius:32px;transform-origin:50% 100%;}
+#demo .pdcp-fit-overlay:has(.pdcp-angle-guide) {animation:pdcp-fit-expand .32s cubic-bezier(.2,.8,.2,1) both;}
+@keyframes pdcp-fit-expand {from {opacity:0;transform:translateY(12px) scaleY(.2);}to {opacity:1;transform:translateY(0) scaleY(1);}}
+@media(prefers-reduced-motion:reduce){#demo .pdcp-fit-overlay {animation:none!important;}}
+#demo .pdcp-fit-overlay .r50-fit-panel.is-starting {min-height:160px!important;}
+#demo .pdcp-fit-overlay .r50-fit-panel {position:relative!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;margin:0!important;box-sizing:border-box;padding:16px!important;transform:none!important;overflow:hidden!important;}
+#demo .pdcp-fit-overlay .r50-fit-checks {margin:10px 0!important;}
+#demo .pdcp-fit-overlay .pdcp-angle-guide {background:rgba(255,255,255,.95);margin:8px 0!important;padding:10px 14px!important;border-radius:16px;}
+#demo .pdcp-fit-overlay .pdcp-angle-guide header {font-size:12px;}
+#demo .pdcp-fit-overlay .pdcp-angle-guide header span {font-size:18px;}
+#demo .pdcp-fit-overlay .pdcp-angle-diagram {height:136px;}
+#demo .pdcp-fit-overlay .pdcp-angle-guide p {margin:3px 0;font-size:11px;}
+#demo .pdcp-fit-overlay .r50-progress {position:relative!important;inset:auto!important;margin-top:12px!important;}
+#demo .pdcp-fit-overlay .r50-fit-head {position:relative!important;inset:auto!important;}
+
+#demo .pdcp-angle-pair {display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+#demo .pdcp-angle-side {color:#96566e;min-width:0;}
+#demo .pdcp-angle-side.is-aligned {color:#60856e;}
+#demo .pdcp-angle-side svg {display:block;width:100%;height:146px;}
+#demo .pdcp-angle-side header {display:flex;align-items:center;justify-content:space-between;}
+#demo .pdcp-angle-side p {text-align:center;color:inherit;font-size:11px;margin:0 0 7px;}
+#demo .r50-fit-panel:has(.pdcp-angle-pair) .pdcp-angle-guide {height:auto!important;}
+
+/* One JS clock owns both the two-second fill and completion. */
+#demo .pdcp-legacy-control [data-pdcp="finish"] {position:relative;overflow:hidden;isolation:isolate;touch-action:none;user-select:none;transition:transform .12s,filter .12s;}
+#demo .pdcp-legacy-control [data-pdcp="finish"]::after {content:'';position:absolute;inset:0;background:rgba(151,0,45,.2);transform:scaleX(var(--hold-progress,0));transform-origin:left;pointer-events:none;z-index:-1;}
+#demo .pdcp-legacy-control [data-pdcp="finish"].holding {transform:scale(.975);filter:brightness(.96);}
+#demo .pdcp-legacy-control [data-pdcp="finish"].holding::after {animation:none!important;transform:scaleX(var(--hold-progress,0));}
+@keyframes pdcp-hold-fill {to {transform:scaleX(1);}}
+#demo .r50-fit-panel.is-starting {min-height:172px!important;}
+#demo .r50-start-ceremony {inset:12px 0 20px!important;}
+#demo .r50-start-ceremony strong {font-size:32px!important;line-height:40px!important;}
+#demo .r50-start-ceremony > i {width:76px!important;height:76px!important;box-shadow:0 0 0 10px rgba(255,255,255,.06),0 0 0 20px rgba(255,255,255,.025)!important;}
+#demo .r50-start-ceremony span {font-size:11px!important;margin-top:4px!important;}
+#demo .pdcp-fit-overlay .is-starting .r50-progress {position:absolute!important;left:16px!important;right:16px!important;bottom:12px!important;}
+
+/* iOS-style duration wheels: native touch scrolling with centered snapping. */
+#demo .pdcp-duration-wheels {position:relative;display:grid;grid-template-columns:1fr 1fr;height:144px;isolation:isolate;}
+#demo .pdcp-duration-wheels::before {content:'';position:absolute;left:0;right:0;top:54px;height:36px;border-radius:10px;background:rgba(118,105,112,.075);pointer-events:none;z-index:-1;}
+#demo .pdcp-wheel-column {position:relative;min-width:0;}
+#demo .pdcp-time-wheel {height:144px;box-sizing:border-box;overflow-y:auto;padding:54px 0;scroll-snap-type:y mandatory;overscroll-behavior:contain;touch-action:pan-y;scrollbar-width:none;mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);-webkit-mask-image:linear-gradient(transparent,#000 32%,#000 68%,transparent);}
+#demo .pdcp-time-wheel::-webkit-scrollbar {display:none;}
+#demo .pdcp-wheel-option {height:36px;line-height:36px;scroll-snap-align:center;text-align:center;padding-right:25px;font-size:23px;font-weight:400;font-variant-numeric:tabular-nums;color:#aaa0a6;cursor:pointer;}
+#demo .pdcp-wheel-option.selected {color:#34212c;font-weight:500;}
+#demo .pdcp-wheel-unit {position:absolute;left:calc(50% + 16px);top:54px;line-height:36px;font-size:13px;color:#746870;pointer-events:none;}
+/* Keep native wheel focus and touch highlights within the Air 2 palette. */
+#demo .pdcp-time-wheel {outline:none;accent-color:#97002d;-webkit-tap-highlight-color:transparent;user-select:none;caret-color:transparent;border-radius:12px;}
+#demo .pdcp-time-wheel:focus {outline:none;}
+#demo .pdcp-time-wheel:focus-visible {outline:1px solid rgba(151,0,45,.3);outline-offset:-2px;}
+#demo .pdcp-time-wheel::selection,#demo .pdcp-time-wheel *::selection {background:rgba(151,0,45,.1);color:#34212c;}
+
+#demo #pdcp-edit-form .pdcp-milk-editor {--milk-fill:0%;background:linear-gradient(to right,rgba(151,0,45,.16) 0%,rgba(151,0,45,.16) var(--milk-fill),rgba(255,255,255,.7) var(--milk-fill),rgba(255,255,255,.7) 100%);touch-action:pan-y;cursor:ew-resize;accent-color:#97002d;caret-color:#97002d;}
+#demo #pdcp-edit-form .pdcp-milk-editor:focus {cursor:text;outline:1px solid rgba(151,0,45,.35);outline-offset:0;}
+#demo .pdcp-milk-editor::-webkit-inner-spin-button,#demo .pdcp-milk-editor::-webkit-outer-spin-button {-webkit-appearance:none;margin:0;}
+#demo .pdcp-milk-editor::selection {background:rgba(151,0,45,.18);color:#3e0010;}

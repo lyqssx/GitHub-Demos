@@ -1,6 +1,6 @@
 # Air 2 V2.0
 
-Local mirror of `air2-h5-demo-mirror-20260814-copy-V4-mirror-20260825`, updated against the reviewed 2026-09-21 scope. All changes are local to this mirror.
+Local mirror of `air2-h5-demo-mirror-20260814-copy-V4-mirror-20260825`, updated against the reviewed 2026-09-22 scope. All changes are local to this mirror.
 
 Run from this directory:
 
@@ -25,7 +25,7 @@ Sensor traces and preset timings are illustrative; the simulation runs at 10×. 
 
 A valid record has detected milk greater than zero OR active duration strictly greater than five minutes. A zero-volume session of five minutes or less is not counted as a pumping record.
 
-Report data remains in memory until reload. No new persistence/history feature or cloud storage is included. Corrected milk totals do not rewrite the original sensor curve or mode-stage data. Average flow is intentionally omitted pending review.
+Report data remains in memory until reload. No new persistence/history feature or cloud storage is included. Corrected milk totals do not rewrite the original sensor curve or mode-stage data. Average flow uses the original measured volume divided by each side’s active pumping time, excluding pauses.
 
 ## Locked design
 
