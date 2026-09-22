@@ -323,6 +323,7 @@
 #demo .sa-result-icon { display: grid; width: 64px; height: 64px; place-items: center; border-radius: 50%; color: #8e1238; background: #fff; font-size: 30px; font-weight: 750; box-shadow: 0 12px 28px rgba(50,0,16,.2); }
 #demo .sa-check-result.is-failed .sa-result-icon { color: #fff; background: #ed8b29; }
 #demo .sa-check-result h2 { margin: 10px 0 0; color: #fff; font-size: 23px; font-weight: 650; line-height: 29px; letter-spacing: 0; }
+#demo .sa-result-description { max-width: 300px; margin: 12px 0 0; color: rgba(255,255,255,.76); font-size: 12px; font-weight: 450; line-height: 18px; letter-spacing: 0; }
 #demo .sa-result-visual { display: flex; min-height: 120px; flex: 1; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
 #demo .sa-result-state { margin-top: 12px; color: rgba(255,255,255,.78); font-size: 14px; font-weight: 500; line-height: 20px; }
 #demo .sa-result-visual .sa-recheck-progress { margin-top: 16px; }
@@ -469,7 +470,123 @@
   background: transparent;
   animation: sa-spin .8s linear infinite;
 }
+#demo .sa-status-checking .sa-status-head { padding-right: 0; }
 #demo .v4-control:has(.sa-status) .v4-top > h1 { visibility: hidden; opacity: 0; }
+
+/* Expanded post-session Fit Guide on the device sub-home. */
+#demo .h7-home .sa-home-leak-notice {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 432px;
+  grid-template-rows: 46px 42px 64px minmax(0,1fr) 18px;
+  row-gap: 6px;
+  box-sizing: border-box;
+  margin-top: 16px;
+  padding: 16px 16px 14px;
+  overflow: hidden;
+  border: .3px solid rgba(161,64,82,.15);
+  border-radius: 24px;
+  color: #3e0010;
+  background:
+    radial-gradient(ellipse 210px 150px at 10% 108%, rgba(255,121,54,.14), rgba(255,198,54,0) 72%),
+    #fff0f1;
+  box-shadow: 0 8px 24px rgba(65,20,35,.04);
+}
+#demo .h7-home .sa-home-guide-header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+}
+#demo .h7-home .sa-home-guide-header h2 {
+  margin: 0;
+  color: #97002d;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 22px;
+  letter-spacing: 0;
+}
+#demo .h7-home .sa-home-leak-notice-close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.54);
+  cursor: pointer;
+}
+#demo .h7-home .sa-home-leak-notice-close img { display: block; width: 18px; height: 18px; object-fit: contain; }
+#demo .h7-home .sa-home-guide-intro {
+  display: flex;
+  max-width: 320px;
+  align-items: center;
+  margin: 0;
+  color: rgba(62,0,16,.68);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17px;
+  letter-spacing: 0;
+  text-align: left;
+}
+#demo .h7-home .sa-home-guide-step { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+#demo .h7-home .sa-home-guide-step h3 { margin: 0; color: #770523; font-size: 15px; font-weight: 700; line-height: 19px; letter-spacing: 0; }
+#demo .h7-home .sa-home-guide-step p { display: flex; min-height: 18px; align-items: center; justify-content: center; margin: 2px 0 0; color: rgba(74,33,48,.62); font-size: 11px; line-height: 15px; text-align: center; }
+#demo .h7-home .sa-home-guide-stage {
+  display: grid;
+  min-height: 0;
+  grid-template-columns: 36px minmax(0,1fr) 36px;
+  align-items: center;
+  gap: 8px;
+}
+#demo .h7-home .sa-home-guide-media {
+  position: relative;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  justify-self: center;
+  overflow: hidden;
+  border-radius: 22px;
+  background: #000;
+  isolation: isolate;
+}
+#demo .h7-home .sa-home-guide-media .sa-guide-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+#demo .h7-home .sa-home-guide-media .sa-guide-art-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
+#demo .h7-home .sa-home-guide-media .sa-guide-sides { top: 8px; }
+#demo .h7-home .sa-home-guide-nav {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(151,0,45,.2);
+  border-radius: 50%;
+  background: rgba(151,0,45,.62);
+  cursor: pointer;
+}
+#demo .h7-home .sa-home-guide-nav img { display: block; width: 18px; height: 18px; object-fit: contain; }
+#demo .h7-home .sa-home-guide-nav:disabled { opacity: .24; pointer-events: none; }
+#demo .h7-home .sa-home-guide-footer { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+#demo .h7-home .sa-home-guide-dots { display: flex; align-items: center; justify-content: center; gap: 7px; }
+#demo .h7-home .sa-home-guide-dots i { display: block; width: 6px; height: 6px; border-radius: 50%; background: rgba(151,0,45,.2); }
+#demo .h7-home .sa-home-guide-dots i.is-active { width: 18px; border-radius: 4px; background: #97002d; }
+#demo .h7-home:has(.sa-home-leak-notice) {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+#demo .h7-home:has(.sa-home-leak-notice) > main {
+  bottom: 0;
+  padding-bottom: 190px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+#demo .h7-home:has(.sa-home-leak-notice) > main::-webkit-scrollbar { display: none; }
 
 #demo .v4-overlay .v4-logged.air2-abnormal-logged {
   position: absolute;
@@ -534,6 +651,7 @@
 #demo .sa-major-summary .air2-logged-summary-main .sa-logged-actions button { width: 100%; height: 52px; flex: 0 0 52px; margin: 0; border: 0; border-radius: 37px; color: #fff; background: #770523; box-shadow: none; font-size: 16px; font-weight: 600; line-height: 21px; }
 #demo .sa-major-summary.is-minor-leak .sa-logged-actions { gap: 22px; }
 #demo .sa-major-summary.is-minor-leak .air2-logged-summary-main .sa-logged-actions p { min-height: 54px; }
+#demo .sa-major-summary.is-guide-consumed .sa-logged-actions { justify-content: flex-start; }
 
 #demo .sa-log-guide { min-width: 100%; height: 100%; padding: 0; }
 #demo .sa-major-summary .air2-logged-guide { display: none; }
