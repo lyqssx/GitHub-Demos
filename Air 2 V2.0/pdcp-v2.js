@@ -132,8 +132,9 @@
   // Reuse original r50 markup, assets and CSS; only the check list changes.
 function guide(adjust){return adjust?angleGuide():'';}
 function skipButton(){if(state.leakAdjusting)return '';return'<button class="r50-skip" data-pdcp="fit-skip" type="button">Skip</button>';}
-function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong><span>Your pumps are positioned correctly</span>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
-  function fitPanel() { return panel(state.page === 'home' ? 'home' : 'control'); }
+function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
+  function fitPanel() { return panel('control'); }
+  function fitOverlay() { return '<div class="pdcp-fit-overlay">' + fitPanel() + '</div>'; }
   function originalPump(k) {
     const side = nowSide(k), paused = state.paused, kind = state.flowKind;
     state.paused = paused || side.stopped;
@@ -172,7 +173,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     controls.insertAdjacentHTML('afterbegin', method === 'preset' ? presetCard() : planCard());
     screen.dataset.pdcpMethod = method;
     controls.insertAdjacentHTML('afterbegin', dataDisclosure());
-    if(angleDemo && state.leakAdjusting) screen.insertAdjacentHTML('beforeend','<div class="pdcp-fit-overlay">'+panel('control')+'</div>');
+    if(angleDemo && state.leakAdjusting) screen.insertAdjacentHTML('beforeend',fitOverlay());
     const levels = controls.querySelector('.v4-levels');
     levels.classList.add('pdcp-level-card');
     levels.insertAdjacentHTML('afterbegin', '<h2 class="pdcp-level-title"><img src="./assets/pdcp-level-gauge.svg" alt="">Level <span>0~15</span></h2>');
@@ -200,7 +201,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if (settings) { settings.dataset.pdcp = 'methods'; settings.setAttribute('aria-label','Pumping settings'); }
     if (fit) {
       screen.querySelector('.v4-start')?.remove();
-      screen.insertAdjacentHTML('beforeend','<div class="pdcp-fit-overlay">'+fitPanel()+'</div>');
+      screen.insertAdjacentHTML('beforeend',fitOverlay());
     }
     if (sheet === 'metrics') screen.insertAdjacentHTML('beforeend', metricsSheet());
     return screen.outerHTML;
@@ -316,18 +317,60 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
         incoming.addEventListener('animationend', () => incoming.classList.remove('is-entering'), {once:true});
       }
     }
-    root.querySelector('.pdcp-mode-window')?.classList.toggle('pdcp-deep',!!session?.deep && !session.paused);
+    syncDeepVisual();
     if (nextMode) lastModeWindow = root.querySelector('.pdcp-mode-window');
     if (oldPage === (root.firstElementChild?.className || '')) { const scroll = root.querySelector('.pdcp-scroll,.v4-controls'); if (scroll) scroll.scrollTop = previousScroll; }
-    if (fit && state.page === 'home') { const dock = root.querySelector('.v4-home-dock'); if (dock) dock.outerHTML = fitPanel(); }
+    if (fit && state.page === 'home') { const dock = root.querySelector('.v4-home-dock'); if (dock) dock.outerHTML = fitOverlay(); }
     if (state.page === 'home') {
       const dock = root.querySelector('.v4-dock-mode,.h7-dock-mode');
+      const toggle = dock?.querySelector('button');
+      if (toggle) {
+        const active = !!session && !session.finished;
+        const pumping = active && !session.paused && !endingPending;
+        toggle.removeAttribute('data-quick-start'); toggle.removeAttribute('data-v4'); toggle.removeAttribute('data-action');
+        toggle.dataset.pdcp = active ? 'pause' : 'start';
+        toggle.setAttribute('aria-label', pumping ? 'Pause pumping' : active ? 'Resume pumping' : 'Start pumping');
+        toggle.disabled = !!state.leakAdjusting || endingPending;
+        toggle.innerHTML = '<img src="' + (pumping ? r2Asset('pause.svg') : h7Asset('dock-play.svg')) + '" alt="">';
+      }
       if (dock) { const copy = dock.querySelector('span'); if (copy) copy.innerHTML = '<b>' + methodNames[method] + '</b>' + (session && !session.finished ? '<em>' + clock(session.elapsed) + '</em>' : ''); }
     }
     signature = session ? [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|') : '';
   }
+  let deepVisual = {session:null, active:false, start:0, exit:0, frame:null};
+  function syncDeepVisual() {
+    const now = performance.now();
+    const active = !!session?.deep && !session.paused && !session.finished;
+    if (deepVisual.session !== session) {
+      if (deepVisual.frame) cancelAnimationFrame(deepVisual.frame);
+      deepVisual = {session, active:false, start:now, exit:0, frame:null};
+    }
+    if (active !== deepVisual.active) {
+      if (active && !deepVisual.exit) deepVisual.start = now;
+      deepVisual.exit = active ? 0 : now;
+      deepVisual.active = active;
+    }
+    const draw = () => {
+      deepVisual.frame = null;
+      const t = performance.now();
+      const progress = deepVisual.exit ? Math.min(1,(t-deepVisual.exit)/3200) : 0;
+      const strength = deepVisual.active ? 1 : deepVisual.exit ? 1-progress*progress*(3-2*progress) : 0;
+      const phase = (1-Math.cos((t-deepVisual.start)/4800*Math.PI*2))/2;
+      const card = root.querySelector('.pdcp-plan');
+      const mode = card?.querySelector('.pdcp-mode-window');
+      mode?.classList.toggle('pdcp-deep', strength > 0);
+      if (card) {
+        card.style.setProperty('--pdcp-breath-phase',String(phase));
+        card.style.setProperty('--pdcp-deep-strength',String(strength));
+      }
+      if (deepVisual.active || progress < 1 && deepVisual.exit) deepVisual.frame = requestAnimationFrame(draw);
+      else deepVisual.exit = 0;
+    };
+    if (deepVisual.frame) cancelAnimationFrame(deepVisual.frame);
+    draw();
+  }
   function patchLive() {
-    root.querySelector('.pdcp-mode-window')?.classList.toggle('pdcp-deep',!!session?.deep && !session.paused);
+    syncDeepVisual();
     const values = { 'preset-time': presetTime(), timer: clock(session ? session.elapsed : 0), mode: modeNames[session && (!session.finished || endingPending) ? session.mode : (method === 'manual' ? manualMode : 'stimulation')] };
     ['l', 'r'].forEach(k => { const s = nowSide(k); Object.assign(values, { [k + '-volume']: amount(s.volume), [k + '-flow']: flow(session && session.paused ? 0 : s.flow), [k + '-count']: s.count, [k + '-peak']: flow(s.peak) }); const fill = root.querySelector(`[data-fill="${k}"]`); if (fill) fill.style.height = Math.min(80, s.volume / CONFIG.demo.bowlCapacityMl * 80) + '%'; });
     root.querySelectorAll('[data-pdcp-pump]').forEach(el => { const k = el.dataset.pdcpPump; const side = nowSide(k); const kind = session?.paused || side.stopped ? 'paused' : side.flow < 1 ? 'low' : side.flow < 8 ? 'medium' : 'high'; if (el.dataset.pdcpFlow !== kind) { el.outerHTML = originalPump(k); return; } const label = el.querySelector('.amount'); if (label) label.textContent = amount(side.volume) + ' oz'; const liquid = el.querySelector('.c32-liquid'); if (liquid) { const height = Math.min(94, side.volume / CONFIG.demo.bowlCapacityMl * 94); liquid.style.height = height + 'px'; liquid.style.setProperty('--liquid-height', height + 'px'); } });
