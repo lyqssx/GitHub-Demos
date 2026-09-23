@@ -15,6 +15,7 @@
   let triggerDrag = null, suppressTriggerClickUntil = 0;
   let dataExpanded = false, angleDemo = null, angleAnimation = null, endingPending = false;
   let triggersOpen = false, exportBusy = false, simulationRemainder = 0;
+  let triggerEnd = null;
   const overrides = { l: null, r: null };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clock = s => Math.floor(Math.max(0, s) / 60).toString().padStart(2, '0') + ':' + Math.floor(Math.max(0, s) % 60).toString().padStart(2, '0');
@@ -45,10 +46,39 @@
     if (active === wasActive) return;
     if (active) remind(method === 'auto' ? 'auto' : 'suggestion', method === 'auto'
       ? 'Let-down detected. Switched to Expression mode.'
-      : 'Let-down detected. You can switch to Expression when you are ready.');
+      : 'Let-down detected. Try Expression.');
     else remind(method === 'auto' ? 'ending' : 'suggestion', method === 'auto'
       ? 'Let-down has eased. Switched to Mixed mode.'
       : 'Milk flow has slowed. You can finish pumping when you are ready.');
+  }
+  // Trigger-driven finish uses real, unpaused seconds, not the 10× sensor clock.
+  function cancelTriggerEnd() {
+    if (triggerEnd?.noticeId === state.controlNotice?.id) {
+      clearTimeout(reminderTimer); state.controlNotice = null;
+    }
+    triggerEnd = null;
+  }
+  function advanceTriggerEnd(seconds) {
+    if (!triggerEnd) return;
+    if (session !== triggerEnd.session || !session || session.finished || method !== 'auto' ||
+        ['l', 'r'].some(k => session.sides[k].active && !session.sides[k].stopped)) {
+      cancelTriggerEnd(); return;
+    }
+    if (session.paused) return;
+    triggerEnd.elapsed += seconds;
+    if (triggerEnd.elapsed >= 65) {
+      cancelTriggerEnd(); settle('auto', true); return;
+    }
+    if (triggerEnd.elapsed >= 60) {
+      const left = Math.ceil(65 - triggerEnd.elapsed);
+      if (left !== triggerEnd.lastSecond) {
+        triggerEnd.lastSecond = left;
+        state.page = 'control';
+        remind('ending', `Pumping will end in ${left} ${left === 1 ? 'second' : 'seconds'}.`);
+        triggerEnd.noticeId = state.controlNotice.id;
+        render();
+      }
+    }
   }
   function stat(k, name, label, value, suffix = '') {
     return `<div class="pdcp-stat"><span>${label}</span><strong data-live="${k}-${name}">${value}</strong>${suffix ? `<small>${suffix}</small>` : ''}</div>`;
@@ -72,8 +102,8 @@
     const angles=angleDemo ?? {l:0,r:45}, allAligned=['l','r'].every(k=>Math.abs(angles[k])<=2);
     return `<section class="pdcp-angle-guide" role="status"><div class="pdcp-angle-pair">${['l','r'].map(k=>{
       const value=angles[k],aligned=Math.abs(value)<=2,rad=value*Math.PI/180;
-      return `<div class="pdcp-angle-side ${aligned?'is-aligned':''}"><header><b>${k==='l'?'Left':'Right'}</b><span>${Math.round(Math.abs(value))}°</span></header><svg viewBox="0 0 150 175" role="img" aria-label="${k==='l'?'Left':'Right'} pump ${Math.round(Math.abs(value))} degrees. ${aligned?'Aligned':value>0?'Rotate left':'Rotate right'}"><line x1="75" y1="8" x2="75" y2="153" stroke="#9d9298" stroke-width="1.3" stroke-dasharray="4 3"/><g transform="rotate(${value} 75 83)"><svg x="30" y="37" width="90" height="92" viewBox="0 0 100 102" overflow="hidden"><image href="${r2Asset('control-pumps.png')}" x="${k==='r'?-107:0}" y="-2" width="210" height="102"/></svg><line x1="75" y1="17" x2="75" y2="145" stroke="currentColor" stroke-width="2"/></g>${aligned?'<circle cx="75" cy="83" r="9" fill="currentColor"/><path d="m70 83 3 3 6-7" fill="none" stroke="white" stroke-width="1.7"/>':`<path d="M75 55 A28 28 0 0 ${value>0?1:0} ${75+28*Math.sin(rad)} ${83-28*Math.cos(rad)}" fill="none" stroke="currentColor" stroke-width="1.5"/><g transform="${value>0?'':'translate(150 0) scale(-1 1)'}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M88 166 A16 16 0 0 0 62 154"/><path d="m62 148 0 6 6 0"/></g>`}</svg><p>${aligned?'Aligned ✓':value>0?'Rotate left':'Rotate right'}</p></div>`;
-    }).join('')}</div><small>${allAligned?'Both pumps aligned · preparing to resume':'Match each pump axis to its fixed center line'}</small></section>`;
+      return `<div class="pdcp-angle-side ${aligned?'is-aligned':''}"><header><b>${k==='l'?'Left':'Right'}</b><span>${Math.round(Math.abs(value))}°</span></header><svg viewBox="0 0 150 175" role="img" aria-label="${k==='l'?'Left':'Right'} pump ${Math.round(Math.abs(value))} degrees. ${aligned?'Aligned':value>0?'Rotate left':'Rotate right'}"><line x1="75" y1="8" x2="75" y2="153" stroke="#9d9298" stroke-width="1.3" stroke-dasharray="4 3"/><g transform="rotate(${value} 75 83)"><svg x="30" y="37" width="90" height="92" viewBox="0 0 100 102" overflow="hidden"><image href="${r2Asset('control-pumps.png')}" x="${k==='r'?-107:0}" y="-2" width="210" height="102"/></svg><line x1="75" y1="17" x2="75" y2="145" stroke="currentColor" stroke-width="2"/></g>${aligned?'<circle cx="75" cy="83" r="9" fill="currentColor"/><path d="m70 83 3 3 6-7" fill="none" stroke="white" stroke-width="1.7"/>':`<path d="M75 55 A28 28 0 0 ${value>0?1:0} ${75+28*Math.sin(rad)} ${83-28*Math.cos(rad)}" fill="none" stroke="currentColor" stroke-width="1.5"/><g transform="${value>0?'':'translate(150 0) scale(-1 1)'}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M140 36 A16 16 0 0 0 114 24"/><path d="m114 18 0 6 6 0"/></g>`}</svg><p>${aligned?'Aligned ✓':value>0?'Rotate left':'Rotate right'}</p></div>`;
+    }).join('')}</div></section>`;
   }
   function playAngleDemo() {
     if(!state.leakAdjusting && fit!=='angle') return;
@@ -102,7 +132,7 @@
   // Reuse original r50 markup, assets and CSS; only the check list changes.
 function guide(adjust){return adjust?angleGuide():'';}
 function skipButton(){if(state.leakAdjusting)return '';return'<button class="r50-skip" data-pdcp="fit-skip" type="button">Skip</button>';}
-function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong><span>Follow the direction shown for each pump</span>':raw>=5?'<strong>Everything looks good</strong><span>Your pumps are positioned correctly</span>':'<strong>Fit Check</strong><span>Keep still while we check your fit</span>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
+function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong><span>Your pumps are positioned correctly</span>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
   function fitPanel() { return panel(state.page === 'home' ? 'home' : 'control'); }
   function originalPump(k) {
     const side = nowSide(k), paused = state.paused, kind = state.flowKind;
@@ -227,10 +257,10 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     const r = report, date = new Date(r.startedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     const full = ['l', 'r'].filter(k => r.sides[k].stopReason === 'full');
     const stages = r.segments.filter(s => s.duration > 0);
-    return `<section class="pdcp-screen pdcp-report" role="dialog" aria-modal="true" aria-label="Pumping report"><header class="pdcp-header v4-top">${btn('close-report', '<img src="./assets/pdcp-report-close-glyph.svg" alt="">', 'pdcp-icon v4-circle', 'aria-label="Close report"')}<span class="pdcp-report-date">${esc(date)}</span>${btn('share', '↗', 'pdcp-icon', 'aria-label="Export report image"')}</header><div class="pdcp-scroll pdcp-report-body">${full.length ? `<div class="pdcp-notice">${full.length === 2 ? 'Both bowls are full.' : sideLabel(full[0]) + ' bowl is full.'} The session has ended and been recorded. Empty the bowls before starting again.</div>` : r.endReason === 'battery' ? '<div class="pdcp-notice">Battery is too low. The session has ended and been recorded. Please charge both pumps.</div>' : ''}${!r.valid ? '<div class="pdcp-notice">No milk was recorded and pumping lasted 5 minutes or less. This is not counted as a pumping record.</div>' : ''}<section class="pdcp-total-card"><div class="pdcp-total-top"><span>Total milk</span>${btn('edit','<img src="./assets/figma-review-r2/lactation-edit.svg" alt="">','pdcp-report-edit','aria-label="Edit session"')}</div><div class="pdcp-total">${amount(r.total)}<small>${unit}</small></div><div class="pdcp-report-duration"><span>Session duration</span><strong>${clock(r.reportedDuration ?? r.elapsed)}</strong></div><div class="pdcp-split-bar"><i style="width:${percentage('l') ?? 50}%"></i></div><div class="pdcp-volume-sides">${['l', 'r'].map(k => `<div><span><i class="pdcp-dot ${k}"></i>${sideLabel(k)} <small>${percentage(k) !== null ? percentage(k) + '%' : '—'}</small></span><strong>${amount(r.sides[k].volume)} <small>${unit}</small></strong></div>`).join('')}</div>${r.edited ? '<span class="pdcp-edited">Edited</span>' : ''}</section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Let-downs</h2></div><div class="pdcp-summary-grid"><span></span><b>Left</b><b>Right</b>${[['Let-downs',k=>r.sides[k].count],['Average flow',k=>flow((r.originalVolumes?.[k]??r.sides[k].volume)/Math.max(1,r.sides[k].seconds)*60)],['Peak flow',k=>flow(r.sides[k].peak)]].map(([label,value])=>`<span>${label}${label!=='Let-downs'?'<small>oz/min</small>':''}</span>${['l','r'].map(k=>`<strong>${value(k)}</strong>`).join('')}`).join('')}</div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Pumping pattern</h2><div class="pdcp-legend"><span><i class="pdcp-dot l"></i>L</span><span><i class="pdcp-dot r"></i>R</span></div></div>${curveSvg(r)}<p class="pdcp-caption">Flow throughout this session. Dashed lines mark each let-down group’s peak time.</p></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Session stages</h2></div><div class="pdcp-timeline">${stages.map(s => `<i class="${s.mode}" style="flex:${s.duration}" title="${modeNames[s.mode]} ${clock(s.duration)}"></i>`).join('')}</div><div class="pdcp-stage-head"><span>Mode / method</span><span>Duration</span><span>Milk · ${unit}</span></div>${stages.length ? stages.map(s => `<div class="pdcp-stage-row"><div><b><i class="pdcp-stage-dot ${s.mode}"></i>${modeNames[s.mode]}</b><small>${methodNames[s.method]}${s.method === 'preset' ? ' · ' + esc(s.preset) : ''} · ${clock(s.start)}</small></div><strong>${clock(s.duration)}</strong><strong>${amount(s.l + s.r)}</strong></div>`).join('') : '<p class="pdcp-caption">No pumping time recorded.</p>'}${r.edited ? '<p class="pdcp-caption">Stage milk and the flow curve reflect original sensor data. Corrected milk amounts and duration are shown above.</p>' : ''}</section><div class="pdcp-report-bottom">${btn('share', exportBusy ? 'Preparing image…' : 'Save report image', 'pdcp-secondary', exportBusy ? 'disabled' : '')}${btn('close-report', 'Done', 'pdcp-primary')}</div></div>${sheet === 'edit' ? editSheet() : ''}<div class="pdcp-toast" role="status" aria-live="polite"></div></section>`;
+    return `<section class="pdcp-screen pdcp-report" role="dialog" aria-modal="true" aria-label="Pumping report"><header class="pdcp-header v4-top">${btn('close-report', '<img src="./assets/pdcp-report-close-glyph.svg" alt="">', 'pdcp-icon v4-circle', 'aria-label="Close report"')}<span class="pdcp-report-date">${esc(date)}</span>${btn('share', '↗', 'pdcp-icon', 'aria-label="Export report image"')}</header><div class="pdcp-scroll pdcp-report-body">${full.length ? `<div class="pdcp-notice">${full.length === 2 ? 'Both bowls are full.' : sideLabel(full[0]) + ' bowl is full.'} The session has ended and been recorded. Empty the bowls before starting again.</div>` : r.endReason === 'battery' ? '<div class="pdcp-notice">Battery is too low. The session has ended and been recorded. Please charge both pumps.</div>' : ''}${!r.valid ? '<div class="pdcp-notice">No milk was recorded and pumping lasted 5 minutes or less. This is not counted as a pumping record.</div>' : ''}<section class="pdcp-total-card"><div class="pdcp-total-top"><span>Total milk</span>${btn('edit','<img src="./assets/figma-review-r2/lactation-edit.svg" alt="">','pdcp-report-edit','aria-label="Edit session"')}</div><div class="pdcp-total">${amount(r.total)}<small>${unit}</small></div><div class="pdcp-report-duration"><span>Session duration</span><strong>${clock(r.reportedDuration ?? r.elapsed)}</strong></div><div class="pdcp-split-bar"><i style="width:${percentage('l') ?? 50}%"></i></div><div class="pdcp-volume-sides">${['l', 'r'].map(k => `<div><span><i class="pdcp-dot ${k}"></i>${sideLabel(k)} <small>${percentage(k) !== null ? percentage(k) + '%' : '—'}</small></span><strong>${amount(r.sides[k].volume)} <small>${unit}</small></strong></div>`).join('')}</div>${r.edited ? '<span class="pdcp-edited">Edited</span>' : ''}</section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Let-downs</h2></div><div class="pdcp-summary-grid"><span></span><b>Left</b><b>Right</b>${[['Let-downs',k=>r.sides[k].count],['Average flow',k=>flow((r.originalVolumes?.[k]??r.sides[k].volume)/Math.max(1,r.sides[k].seconds)*60)],['Peak flow',k=>flow(r.sides[k].peak)]].map(([label,value])=>`<span>${label}${label!=='Let-downs'?'<small>oz/min</small>':''}</span>${['l','r'].map(k=>`<strong>${value(k)}</strong>`).join('')}`).join('')}</div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Pumping pattern</h2><div class="pdcp-legend"><span><i class="pdcp-dot l"></i>L</span><span><i class="pdcp-dot r"></i>R</span></div></div>${curveSvg(r)}</section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Session stages</h2></div><div class="pdcp-timeline">${stages.map(s => `<i class="${s.mode}" style="flex:${s.duration}" title="${modeNames[s.mode]} ${clock(s.duration)}"></i>`).join('')}</div><div class="pdcp-stage-head"><span>Mode / method</span><span>Duration</span><span>Milk · ${unit}</span></div>${stages.length ? stages.map(s => `<div class="pdcp-stage-row"><div><b><i class="pdcp-stage-dot ${s.mode}"></i>${modeNames[s.mode]}</b><small>${methodNames[s.method]}${s.method === 'preset' ? ' · ' + esc(s.preset) : ''} · ${clock(s.start)}</small></div><strong>${clock(s.duration)}</strong><strong>${amount(s.l + s.r)}</strong></div>`).join('') : '<p class="pdcp-caption">No pumping time recorded.</p>'}${r.edited ? '<p class="pdcp-caption">Stage milk and the flow curve reflect original sensor data. Corrected milk amounts and duration are shown above.</p>' : ''}</section><div class="pdcp-report-bottom">${btn('share', exportBusy ? 'Preparing image…' : 'Save report image', 'pdcp-secondary', exportBusy ? 'disabled' : '')}${btn('close-report', 'Done', 'pdcp-primary')}</div></div>${sheet === 'edit' ? editSheet() : ''}<div class="pdcp-toast" role="status" aria-live="polite"></div></section>`;
   }
   function editSheet() {
-    return `<div class="pdcp-sheet-backdrop"><section class="pdcp-sheet" role="dialog" aria-modal="true" aria-label="Edit session"><header><h2>Edit session</h2>${btn('close-sheet', '×', 'pdcp-icon', 'aria-label="Cancel editing"')}</header><p class="pdcp-sheet-help">Correct the milk amounts or session duration if needed.</p><form id="pdcp-edit-form"><div class="pdcp-edit-fields">${['l', 'r'].map(k => `<label>${sideLabel(k)} · ${unit}<input class="pdcp-milk-editor" name="${k}" type="number" inputmode="decimal" min="0" max="${amount(CONFIG.demo.bowlCapacityMl)}" step="any" value="${amount(report.sides[k].volume)}" required></label>`).join('')}</div><div class="pdcp-edit-duration"><span>Session duration</span><div class="pdcp-duration-wheels">${[['minutes',999,Math.floor((report.reportedDuration ?? report.elapsed)/60),'min'],['seconds',59,Math.floor((report.reportedDuration ?? report.elapsed)%60),'sec']].map(([name,max,value,label])=>`<div class="pdcp-wheel-column"><input type="hidden" name="${name}" value="${value}"><div class="pdcp-time-wheel" data-wheel="${name}" role="spinbutton" tabindex="0" aria-label="${name==='minutes'?'Minutes':'Seconds'}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max+1},(_,i)=>`<div class="pdcp-wheel-option" data-wheel-value="${i}">${String(i).padStart(2,'0')}</div>`).join('')}</div><span class="pdcp-wheel-unit">${label}</span></div>`).join('')}</div></div><p class="pdcp-form-error" role="alert"></p><button class="pdcp-primary" type="submit">Apply changes</button>${btn('close-sheet', 'Cancel', 'pdcp-text-button')}</form></section></div>`;
+    return `<div class="pdcp-sheet-backdrop"><section class="pdcp-sheet" role="dialog" aria-modal="true" aria-label="Edit session"><header><h2>Edit session</h2>${btn('close-sheet', '×', 'pdcp-icon', 'aria-label="Cancel editing"')}</header><form id="pdcp-edit-form"><div class="pdcp-edit-fields">${['l', 'r'].map(k => `<label>${sideLabel(k)}<span class="pdcp-milk-input-wrap"><input class="pdcp-milk-editor" name="${k}" type="number" inputmode="decimal" min="0" max="${amount(CONFIG.demo.bowlCapacityMl)}" step="any" value="${amount(report.sides[k].volume)}" required><small>${unit}</small></span></label>`).join('')}</div><div class="pdcp-edit-duration"><span>Session duration</span><div class="pdcp-duration-wheels">${[['minutes',999,Math.floor((report.reportedDuration ?? report.elapsed)/60),'min'],['seconds',59,Math.floor((report.reportedDuration ?? report.elapsed)%60),'sec']].map(([name,max,value,label])=>`<div class="pdcp-wheel-column"><input type="hidden" name="${name}" value="${value}"><div class="pdcp-time-wheel" data-wheel="${name}" role="spinbutton" tabindex="0" aria-label="${name==='minutes'?'Minutes':'Seconds'}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max+1},(_,i)=>`<div class="pdcp-wheel-option" data-wheel-value="${i}">${String(i).padStart(2,'0')}</div>`).join('')}</div><span class="pdcp-wheel-unit">${label}</span></div>`).join('')}</div></div><p class="pdcp-form-error" role="alert"></p><button class="pdcp-primary" type="submit">Apply changes</button>${btn('close-sheet', 'Cancel', 'pdcp-text-button')}</form></section></div>`;
   }
   let lastModeWindow = null;
   function bindMilkEditors() {
@@ -251,7 +281,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     root.querySelectorAll('[data-wheel]').forEach(wheel=>{
       const input=wheel.closest('form').elements[wheel.dataset.wheel], row=36;
       wheel.scrollTop=Number(input.value)*row;
-      const update=()=>{const value=Math.max(0,Math.min(Number(wheel.getAttribute('aria-valuemax')),Math.round(wheel.scrollTop/row)));input.value=value;wheel.setAttribute('aria-valuenow',value);wheel.querySelectorAll('.pdcp-wheel-option').forEach((el,i)=>el.classList.toggle('selected',i===value));};
+      const update=()=>{const value=Math.max(0,Math.min(Number(wheel.getAttribute('aria-valuemax')),Math.round(wheel.scrollTop/row)));input.value=value;const form=wheel.closest('form');form.querySelector('[type=submit]').disabled=Number(form.elements.minutes.value)*60+Number(form.elements.seconds.value)<1;wheel.setAttribute('aria-valuenow',value);wheel.querySelectorAll('.pdcp-wheel-option').forEach((el,i)=>el.classList.toggle('selected',i===value));};
       update();wheel.addEventListener('scroll',update,{passive:true});
       wheel.addEventListener('keydown',e=>{if(!['ArrowUp','ArrowDown','Home','End'].includes(e.key))return;e.preventDefault();const max=Number(wheel.getAttribute('aria-valuemax')),current=Number(input.value);const next=e.key==='Home'?0:e.key==='End'?max:Math.max(0,Math.min(max,current+(e.key==='ArrowDown'?1:-1)));wheel.scrollTo({top:next*row,behavior:'smooth'});});
       wheel.addEventListener('click',e=>{const option=e.target.closest('[data-wheel-value]');if(option)wheel.scrollTo({top:Number(option.dataset.wheelValue)*row,behavior:'smooth'});});
@@ -311,8 +341,8 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   }
   function beginPumping() {
     if (!fit) return;
-    if (Math.min(state.batteryL ?? 80, state.batteryR ?? 75) <= 3) { fit = null; state.page = 'control'; notice = 'Battery is too low to start. Please charge your pumps.'; render(); return; }
-    fit = null; finishReminderShown = false; session = new Session({ method, mode: manualMode, preset }); report = null; notice = '';
+    if (Math.min(state.batteryL ?? 80, state.batteryR ?? 75) <= 3) { fit = null; state.page = 'control'; notice = ''; remind('low-battery', 'Battery too low to start. Please charge.'); render(); return; }
+    cancelTriggerEnd(); fit = null; finishReminderShown = false; session = new Session({ method, mode: manualMode, preset }); report = null; notice = '';
     overrides.l = overrides.r = null; simulationRemainder = 0; timerAt = performance.now(); render();
   }
   function fitOk() {
@@ -330,12 +360,13 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   }
   function settle(reason = 'manual', afterNotice = false) {
     if (!session || report) return;
+    cancelTriggerEnd();
     if(!afterNotice && reason !== 'manual'){
       if(endingPending)return; endingPending=true;
       if(!session.finished)session.finish(reason);
       state.leakAdjusting=false;angleDemo=null;state.page='control';
       remind(reason==='full'?'complete':'ending',reason==='full'?'Both bowls are full. Pumping has finished.':'Pumping has finished. Your session is complete.');
-      render();setTimeout(()=>settle(reason,true),3000);return;
+      render();setTimeout(()=>settle(reason,true),5000);return;
     }
     endingPending=false;
     if (!session.finished) session.finish(reason);
@@ -382,9 +413,9 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if (session.finished) { settle('full'); return; }
     letdownReminder(wasActive);
     if (!session.readyToFinish) finishReminderShown = false;
-    else if (!finishReminderShown) { finishReminderShown = true; remind('ending', 'No new let-down for 2 minutes. Ready to finish? Hold to finish when you are ready.'); }
+    else if (!triggerEnd && !finishReminderShown) { finishReminderShown = true; if (method === 'auto') { triggerEnd = { session, elapsed: 60, lastSecond: 5, noticeId: null }; remind('ending', 'Pumping will end in 5 seconds.'); triggerEnd.noticeId = state.controlNotice.id; } else remind('suggestion', 'Milk flow has eased. You can finish now.'); }
     const stopped = ['l', 'r'].filter(k => session.sides[k].stopped);
-    if (stopped.length === 1 && previousStops === 0) remind('complete', sideLabel(stopped[0]) + ' bowl is full and has stopped. The other side is still pumping. One report will be ready when both sides finish.');
+    if (stopped.length === 1 && previousStops === 0) remind('complete', sideLabel(stopped[0]) + ' bowl full. This side has stopped.');
     syncLegacy(); const next = [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|');
     if (!sheet && state.page === 'control') render(next !== signature);
     if(state.page==='home'){root.querySelectorAll('.v4-dock-mode em,.h7-dock-mode em').forEach(el=>el.textContent=clock(session.elapsed));}
@@ -416,7 +447,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     hold.frame=requestAnimationFrame(frame);
   }, true);
   ['pointerup', 'pointercancel', 'blur'].forEach(name => window.addEventListener(name, cancelHold, true));
-  window.addEventListener('keydown', e => { if (e.target.closest('[data-pdcp="finish"]') && ['Enter', ' '].includes(e.key)) { e.preventDefault(); sheet = 'finish-confirm'; render(); const screen = root.querySelector('.pdcp-screen,.pdcp-legacy-control'); screen.insertAdjacentHTML('beforeend', `<div class="pdcp-sheet-backdrop"><section class="pdcp-sheet" role="dialog" aria-modal="true" aria-label="Finish session"><h2>Finish this session?</h2>${btn('finish-confirm', 'Finish and view report', 'pdcp-primary')}${btn('close-sheet', 'Keep pumping', 'pdcp-text-button')}</section></div>`); } if (e.key === 'Escape' && sheet) { sheet = null; render(); } }, true);
+  window.addEventListener('keydown', e => { if (e.target.closest('[data-pdcp="finish"]') && ['Enter', ' '].includes(e.key)) { e.preventDefault(); if (!e.repeat) settle(); } if (e.key === 'Escape' && sheet) { sheet = null; render(); } }, true);
   window.addEventListener('input', e => {
     const k = e.target.dataset.level; if (!k) return;
     const value = Number(e.target.value); const target = k === 'l' ? 'levelL' : 'levelR'; state[target] = value;
@@ -430,7 +461,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     const form = e.target, l = form.elements.l.value, r = form.elements.r.value;
     const minutes = Number(form.elements.minutes.value), seconds = Number(form.elements.seconds.value);
     const duration = minutes * 60 + seconds;
-    if (!form.elements.minutes.value.trim() || !form.elements.seconds.value.trim() || !Number.isInteger(minutes) || !Number.isInteger(seconds) || minutes < 0 || minutes > 999 || seconds < 0 || seconds > 59 || duration < 1) { form.querySelector('.pdcp-form-error').textContent = 'Enter minutes and seconds for a duration of at least 00:01.'; return; }
+    if (!form.elements.minutes.value.trim() || !form.elements.seconds.value.trim() || !Number.isInteger(minutes) || !Number.isInteger(seconds) || minutes < 0 || minutes > 999 || seconds < 0 || seconds > 59 || duration < 1) { return; }
     const factor = ML_PER_OZ;
     const toMl = value => { const max = Number(amount(CONFIG.demo.bowlCapacityMl)); return Number(value) <= max ? Math.min(CONFIG.demo.bowlCapacityMl, Number(value) * factor) : NaN; };
     const left = l === amount(report.sides.l.volume) ? report.sides.l.volume : toMl(l);
@@ -506,12 +537,12 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
           if (state.controlNotice !== recovered) return;
           recovered.phase = 'closing-recovered'; render();
           reminderTimer = setTimeout(() => { if (state.controlNotice === recovered) { state.controlNotice = null; render(); } }, 340);
-        }, 3000);
+        }, 5000);
         render();
       } else fitOk();
       return;
     }
-    if (!session || session.finished) { notice = 'Start pumping to try this event.'; if (!report) render(); return; }
+    if (!session || session.finished) { notice = ''; if (!report) render(); return; }
     if (['angle-error','angle-left','angle-both'].includes(id)) {
       clearTimeout(reminderTimer); state.leakAdjusting = true; state.leakSide = 'r';
       session.paused = true; simulationRemainder = 0; angleDemo=id==='angle-both'?{l:-45,r:50}:id==='angle-left'?{l:-45,r:0}:{l:0,r:45}; state.leakSide=id==='angle-both'?'both':id==='angle-left'?'l':'r'; state.page='control';
@@ -520,10 +551,22 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     }
     if(id==='angle-demo'){playAngleDemo();return;}
     if (state.leakAdjusting && id !== 'critical-battery') return;
-    if (id === 'letdown-start' || id === 'letdown-end') { const wasActive = ['l', 'r'].some(k => session.sides[k].active); for (const k of ['l', 'r']) { overrides[k] = id === 'letdown-start'; session.letdown(k, overrides[k]); } letdownReminder(wasActive); }
-    if(id==='deep-peak'||id==='deep-half') { for(const k of ['l','r']) {overrides[k]=id==='deep-peak'?30:15;session.letdown(k,true);} step(1); }
+    if (id === 'letdown-start' || id === 'letdown-end') {
+      cancelTriggerEnd();
+      const wasActive = ['l', 'r'].some(k => session.sides[k].active);
+      for (const k of ['l', 'r']) { overrides[k] = id === 'letdown-start'; session.letdown(k, overrides[k]); }
+      letdownReminder(wasActive);
+      if (id === 'letdown-end') {
+        state.page = 'control';
+        if (method === 'auto') {
+          triggerEnd = { session, elapsed: 0, lastSecond: null, noticeId: null };
+          finishReminderShown = true;
+        } else remind('suggestion', 'Let-down has ended. You can finish pumping now.');
+      }
+    }
+    if(id==='deep-peak'||id==='deep-half') { cancelTriggerEnd(); for(const k of ['l','r']) {overrides[k]=id==='deep-peak'?30:15;session.letdown(k,true);} step(1); }
     if(id==='full-left'||id==='full-right') {const k=id==='full-left'?'l':'r'; session.sides[k].volume=session.capacity;session.stopSide(k,'full');if(session.finished){settle('full');return;} remind('complete',sideLabel(k)+' bowl is full. This side has stopped; the other side continues.');}
-    if (id === 'low-battery') { state.batteryL = 12; state.batteryR = 10; remind('low-battery', 'Battery is running low. You can finish this session, then charge Air 2 soon.'); }
+    if (id === 'low-battery') { state.batteryL = 12; state.batteryR = 10; remind('low-battery', 'Low battery. Charge after this session.'); }
     if (id === 'critical-battery') {
       state.batteryL = 3; state.batteryR = 2; session.paused = true;
       const endingSession = session;
@@ -613,7 +656,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
       text(report.edited ? 'Edited total; pattern and stages retain original sensor data.' : 'Recorded automatically. Duration excludes pauses.', 60, y + 35, 20, '#998b92');
       const blob = await new Promise(resolve => c.toBlob(resolve, 'image/png')); if (!blob) throw new Error('Image export unavailable');
       const download = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = download; a.download = 'Air2-session-' + new Date(report.startedAt).toISOString().slice(0, 10) + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(download), 1000);
-      const toast = root.querySelector('.pdcp-toast'); if (toast) toast.textContent = 'Report image ready to save.';
+      // Successful export needs no additional toast.
     } catch (_) { const toast = root.querySelector('.pdcp-toast'); if (toast) toast.textContent = 'Image export is unavailable. You can still take a screenshot of this report.'; }
     finally { exportBusy = false; }
   }
@@ -621,5 +664,5 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   window.v4View = v4View = render; window.view = view = render; window.v4RunFit = v4RunFit = startFit;
   state.pdcpV2 = true; state.auto = true;
   mountTriggers(); render();
-  setInterval(() => { const now = performance.now(); const dt = Math.min(1, Math.max(0, (now - timerAt) / 1000)); timerAt = now; if (!session || session.finished || session.paused) { simulationRemainder = 0; return; } simulationRemainder += dt * CONFIG.demo.secondsPerRealSecond; const seconds = Math.floor(simulationRemainder); simulationRemainder -= seconds; if (seconds) step(seconds); }, 250);
+  setInterval(() => { const now = performance.now(); const dt = Math.min(1, Math.max(0, (now - timerAt) / 1000)); timerAt = now; advanceTriggerEnd(dt); if (!session || session.finished || session.paused) { simulationRemainder = 0; return; } simulationRemainder += dt * CONFIG.demo.secondsPerRealSecond; const seconds = Math.floor(simulationRemainder); simulationRemainder -= seconds; if (seconds) step(seconds); }, 250);
 }());

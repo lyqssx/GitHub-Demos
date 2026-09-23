@@ -41,7 +41,7 @@
     decouple.src='./auto-switch-decoupled.js?v=20260817-13';
     decouple.onload=function(){
       var pdcp=document.createElement('script');
-      pdcp.src='./pdcp-v2.js?v=design-lock-65';
+      pdcp.src='./pdcp-v2.js?v=design-lock-70';
       document.body.appendChild(pdcp);
     };
     document.body.appendChild(decouple);

@@ -261,8 +261,9 @@
 #demo .pdcp-live-grid small,#demo .pdcp-summary-grid small {display:block;font-size:9px;color:#a2949b;margin-top:2px;}
 #demo .pdcp-plan:not(.pdcp-manual-plan) {min-height:0!important;height:auto!important;padding-bottom:16px!important;}
 #demo .pdcp-plan .pdcp-mode-status {border-bottom:0!important;padding-bottom:0!important;}
-#demo .pdcp-mode-window.pdcp-deep .pdcp-mode-item:not(.is-leaving) img {animation:pdcp-deep-breathe 2.8s ease-in-out infinite;transform-origin:center;}
-@keyframes pdcp-deep-breathe {0%,100%{transform:scale(.85);opacity:.72}50%{transform:scale(1.3);opacity:1}}
+#demo .pdcp-mode-window.pdcp-deep .pdcp-mode-item:not(.is-leaving) img {animation:pdcp-deep-breathe 1.65s cubic-bezier(.4,0,.2,1) infinite;transform-origin:center;}
+@keyframes pdcp-deep-breathe {0%,100%{transform:scale(.72);opacity:.6}50%{transform:scale(1.65);opacity:1}}
+#demo .pdcp-mode-window.pdcp-deep:not(:has(.is-leaving)) {overflow:visible;}
 #demo .pdcp-angle-guide {background:#fff;border-radius:24px;padding:16px 20px;margin-bottom:14px;color:#240f1b;}
 #demo .pdcp-angle-guide header {display:flex;justify-content:space-between;align-items:center;font-size:14px;}
 #demo .pdcp-angle-guide header span {font-size:22px;font-variant-numeric:tabular-nums;}
@@ -392,3 +393,16 @@
 #demo #pdcp-edit-form .pdcp-milk-editor:focus {cursor:text;outline:1px solid rgba(151,0,45,.35);outline-offset:0;}
 #demo .pdcp-milk-editor::-webkit-inner-spin-button,#demo .pdcp-milk-editor::-webkit-outer-spin-button {-webkit-appearance:none;margin:0;}
 #demo .pdcp-milk-editor::selection {background:rgba(151,0,45,.18);color:#3e0010;}
+
+/* September review: compact alignment, unobtrusive editing. */
+#demo .v4-list > h1 {top:63px!important;height:40px;line-height:40px;margin:0!important;}
+#demo .pdcp-fit-overlay .r50-fit-head {min-height:30px!important;}
+#demo .pdcp-legacy-control .r97-leak-adjusting,
+#demo .pdcp-legacy-control .r97-leak-adjusting * {animation:none!important;}
+#demo .pdcp-legacy-control .r97-leak-guide {display:none!important;}
+#demo .pdcp-milk-input-wrap {position:relative;display:block;}
+#demo .pdcp-milk-input-wrap input {width:100%;padding-right:36px;}
+#demo .pdcp-milk-input-wrap small {position:absolute;right:14px;top:50%;transform:translateY(-50%);font:12px var(--font);color:#816c75;pointer-events:none;}
+
+#demo #pdcp-edit-form button[type="submit"]:disabled {opacity:.45;cursor:default;}
+#demo .c36-notice:not(.r72-leak-notice) p {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
