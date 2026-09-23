@@ -407,65 +407,34 @@
 #demo #pdcp-edit-form button[type="submit"]:disabled {opacity:.45;cursor:default;}
 #demo .c36-notice:not(.r72-leak-notice) p {display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;}
 
-/* Deep Expression atmosphere trial: persistent layers allow a soft exit. */
+/* Fixed glow textures: animate opacity, never re-rasterize blur radii. */
 #demo .pdcp-plan {position:relative;isolation:isolate;}
-#demo .pdcp-plan::after,
+#demo .pdcp-plan::before,#demo .pdcp-plan::after {
+ content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+ opacity:0;z-index:0;animation:none;transition:none;
+}
 #demo .pdcp-plan::before {
- content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;
- transition:opacity .65s ease;z-index:0;
+ box-shadow:inset 0 0 12px 1px rgba(13,111,232,.18),inset 0 0 4px rgba(224,239,255,.85);
 }
 #demo .pdcp-plan::after {
- box-shadow:inset 0 0 18px 2px rgba(13,111,232,.27),inset 0 0 5px rgba(224,239,255,.95),0 0 12px rgba(13,111,232,.12);
-}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {
- opacity:1;animation:pdcp-deep-soft-breathe 4.8s ease-in-out infinite;
-}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::before {
- box-shadow:inset 0 0 24px 3px rgba(13,111,232,.4),0 0 18px rgba(13,111,232,.2);
- animation:pdcp-deep-arrival 2.4s ease-in-out both;
+ box-shadow:inset 0 0 22px 3px rgba(13,111,232,.24),0 0 15px rgba(13,111,232,.16);
 }
 #demo .pdcp-plan > * {position:relative;z-index:1;}
-@keyframes pdcp-deep-soft-breathe {
- 0%,100% {box-shadow:inset 0 0 12px 1px rgba(13,111,232,.18),inset 0 0 4px rgba(224,239,255,.8),0 0 7px rgba(13,111,232,.08);}
- 50% {box-shadow:inset 0 0 22px 3px rgba(13,111,232,.34),inset 0 0 6px rgba(224,239,255,.95),0 0 15px rgba(13,111,232,.18);}
+#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::before {
+ opacity:var(--pdcp-deep-strength,1);will-change:opacity,transform;
+ transform:scale(calc(.992 + .008 * var(--pdcp-deep-strength,1)));
 }
-@keyframes pdcp-deep-arrival {0% {opacity:0;}30% {opacity:1;}100% {opacity:0;}}
-@media(prefers-reduced-motion:reduce){
- #demo .pdcp-plan::before {display:none;}
- #demo .pdcp-plan::after {animation:none!important;transition:none;}
-}
-
-/* A single inherited phase drives the droplet and edge together. */
-@property --pdcp-breath-phase {syntax:"<number>";inherits:true;initial-value:0;}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep) {
- animation:pdcp-shared-breath 4.8s ease-in-out infinite;
+#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {
+ opacity:calc(var(--pdcp-deep-strength,1) * (.2 + .8 * var(--pdcp-breath-phase,0)));
+ transform:scale(calc(.985 + .015 * var(--pdcp-deep-strength,1)));
+ will-change:opacity,transform;
 }
 #demo .pdcp-plan .pdcp-mode-window.pdcp-deep .pdcp-mode-item:not(.is-leaving) img {
  animation:none;
- transform:scale(calc(.72 + .93 * var(--pdcp-breath-phase)));
- opacity:calc(.6 + .4 * var(--pdcp-breath-phase));
-}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {
- animation:none;
- box-shadow:inset 0 0 calc(12px + 10px * var(--pdcp-breath-phase)) calc(1px + 2px * var(--pdcp-breath-phase)) rgba(13,111,232,calc(.18 + .16 * var(--pdcp-breath-phase))),inset 0 0 calc(4px + 2px * var(--pdcp-breath-phase)) rgba(224,239,255,.9),0 0 calc(7px + 8px * var(--pdcp-breath-phase)) rgba(13,111,232,calc(.08 + .1 * var(--pdcp-breath-phase)));
-}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::before {animation:none;opacity:0;}
-@keyframes pdcp-shared-breath {0%,100%{--pdcp-breath-phase:0;}50%{--pdcp-breath-phase:1;}}
-@media(prefers-reduced-motion:reduce){
- #demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep) {animation:none;--pdcp-breath-phase:.4;}
-}
-
-/* Preserve the breath phase through renders, taper its amplitude on exit. */
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep) {animation:none;}
-#demo .pdcp-plan .pdcp-mode-window.pdcp-deep .pdcp-mode-item:not(.is-leaving) img {
- transform:scale(calc(1 + (-.28 + .93 * var(--pdcp-breath-phase)) * var(--pdcp-deep-strength,1)));
- opacity:calc(1 - (.4 - .4 * var(--pdcp-breath-phase)) * var(--pdcp-deep-strength,1));
-}
-#demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {
- opacity:var(--pdcp-deep-strength,1);transition:none;
- box-shadow:inset 0 0 calc((12px + 10px * var(--pdcp-breath-phase)) * var(--pdcp-deep-strength,1)) calc(2px * var(--pdcp-deep-strength,1)) rgba(13,111,232,.3),inset 0 0 calc(5px * var(--pdcp-deep-strength,1)) rgba(224,239,255,.9),0 0 calc((7px + 8px * var(--pdcp-breath-phase)) * var(--pdcp-deep-strength,1)) rgba(13,111,232,.16);
+ transform:scale(calc(1 + (-.28 + .93 * var(--pdcp-breath-phase,0)) * var(--pdcp-deep-strength,1)));
+ opacity:calc(1 - (.4 - .4 * var(--pdcp-breath-phase,0)) * var(--pdcp-deep-strength,1));
 }
 @media(prefers-reduced-motion:reduce){
  #demo .pdcp-plan .pdcp-mode-window.pdcp-deep img {transform:none!important;opacity:1!important;}
- #demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {box-shadow:inset 0 0 12px rgba(13,111,232,.2);}
+ #demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {opacity:calc(.5 * var(--pdcp-deep-strength,1));transform:none;}
 }
