@@ -440,7 +440,7 @@
 }
 
 /* September 24 review: fixed measurements, focused checks and report inspection. */
-#demo .pdcp-fit-backdrop {position:absolute;inset:0;z-index:109;background:rgba(245,239,237,.45);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
+#demo .pdcp-fit-backdrop {position:absolute;inset:0;z-index:109;background:rgba(245,239,237,.18);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
 #demo .pdcp-fit-overlay .r50-fit-copy {padding-right:8px;}
 #demo .pdcp-fit-overlay .r50-fit-copy strong {font-size:17px;}
 #demo .pdcp-fit-overlay .r50-skip {flex-shrink:0;min-width:48px;padding:0 10px;}
@@ -500,3 +500,45 @@
 #demo .pdcp-milk-row {position:relative;width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:initial;}
 #demo .pdcp-milk-row:focus-visible {outline:2px solid #97002d;outline-offset:3px;border-radius:18px;}
 #demo .pdcp-milk-row .pdcp-data-toggle {pointer-events:none;}
+
+/* Wearing warning stays readable above the in-session blur backdrop (109). */
+#demo .v4-control.pdcp-legacy-control:has(.pdcp-fit-backdrop) .r72-leak-notice {z-index:111!important;}
+
+/* Explicit button geometry and content alignment across WebKit and Chromium. */
+#demo .v4-control.pdcp-legacy-control > .v4-start {
+  -webkit-appearance:none;appearance:none;
+  box-sizing:border-box;left:20px;right:20px;width:auto;
+  display:flex;align-items:center;justify-content:center;
+  margin:0;padding:0 16px;text-align:center;
+  font-family:var(--font);font-size:16px;line-height:22px;
+}
+
+/* Figma 267:24681 — Settings device information, a full second-level page. */
+#demo .pdcp-device-info-body {position:absolute;top:138px;left:0;right:0;bottom:34px;overflow-y:auto;}
+#demo .pdcp-info-pumps {height:152px;box-sizing:border-box;padding-top:8px;display:flex;justify-content:center;gap:10px;}
+#demo .pdcp-info-pumps>div {width:120px;display:flex;align-items:center;flex-direction:column;gap:8px;font:400 14px/18px var(--font);}
+#demo .pdcp-info-pump {position:relative;width:100px;height:100px;overflow:hidden;}
+#demo .pdcp-info-pump img {position:absolute;max-width:none;width:210.34%;height:102.33%;top:-2.33%;left:-.05%;}
+#demo .pdcp-info-pump.r img {left:-106.35%;}
+#demo .pdcp-info-name {height:24px;display:flex;align-items:center;justify-content:center;gap:19px;}
+#demo .pdcp-info-name strong {max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 16px/24px var(--font);}
+#demo .pdcp-info-name button {width:24px;height:24px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;padding:0;}
+#demo .pdcp-info-name img {width:13px;height:13px;}
+#demo .pdcp-info-card {margin:24px 16px 0;padding:0 16px;background:#fff;border-radius:20px;}
+#demo .pdcp-info-card>div {display:flex;align-items:center;justify-content:space-between;min-height:51px;box-sizing:border-box;gap:10px;}
+#demo .pdcp-info-card>div+div {border-top:1px solid #f0ecee;}
+#demo .pdcp-info-card dt {font:500 14px/18px var(--font);color:#240f1b;}
+#demo .pdcp-info-card dd {margin:0;display:flex;align-items:center;gap:4px;font:400 14px/18px var(--font);color:rgba(60,60,67,.6);}
+#demo .pdcp-info-card dd button {display:flex;align-items:center;justify-content:center;padding:0;background:none;width:20px;height:20px;}
+#demo .pdcp-info-card dd img {width:20px;height:20px;}
+#demo #pdcp-device-name-form input {box-sizing:border-box;width:100%;padding:14px;margin:0 0 24px;border:1px solid #ddd2d5;border-radius:12px;background:#fff;color:#240f1b;font:400 16px/22px var(--font);}
+
+/* Keep the source silhouette at its original size while allowing edge overshoot. */
+#demo .v4-control .c32-vessel .c32-base {inset:auto;left:-2px;top:-2px;width:95.2895px;height:97.4842px;max-width:none;overflow:visible;}
+#demo .v4-control .c32-liquid-clip {overflow:visible!important;}
+
+/* Total milk follows the report's shared outside-heading card layout. */
+#demo .pdcp-total-value-row {display:flex;align-items:center;justify-content:space-between;gap:16px;}
+#demo .pdcp-total-value-row .pdcp-report-edit {position:static;flex-shrink:0;margin:0;}
+#demo .pdcp-report .pdcp-total-value-row .pdcp-total {margin:0 0 10px;}
+#demo .pdcp-total-value-row .pdcp-report-edit {align-self:center;transform:translateY(-5px);}

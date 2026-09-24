@@ -79,3 +79,5 @@
 - 报告顺序为 Pumping pattern、总量、Let-downs、Session stages。隐藏常驻峰值时间胶囊；按住曲线按横向时间位置显示时间和左右流速，移动更新，释放或取消隐藏。
 - 阶段条及阶段标记对应模式图标色：Stimulation 酒红、Expression 蓝、Mixed 金橙。
 - 设置页依据 Figma 2lEJIa1soUaOqd3TyI87PD / 264:23758，入口为控制页齿轮。Pre-Pumping Check 默认开启并本地保存，影响下一次会话的前置检测；不关闭吸乳过程异常检测。固件操作为无硬件连接的 Demo 提示。
+
+- 佩戴检测遮罩区分场景：启动前检测不模糊背景；会话中佩戴异常使用轻度 3px 模糊、18% 浅色遮罩。
