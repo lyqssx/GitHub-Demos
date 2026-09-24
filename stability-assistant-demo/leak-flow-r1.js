@@ -7,30 +7,30 @@
       kind: 'tube-left',
       title: 'Check Left Tubing',
       label: 'Left tubing air seal',
-      copy: 'Reinsert tubing firmly',
-      assets: ['./assets/stability-assistant/figma-tubing-left.svg']
+      copy: 'Reinsert the left tube firmly',
+      assets: ['./assets/stability-assistant/figma-guide-20260925-pump-left.svg?v=2']
     },
     right: {
       kind: 'tube-right',
       title: 'Check Right Tubing',
       label: 'Right tubing air seal',
-      copy: 'Reinsert tubing firmly',
-      assets: ['./assets/stability-assistant/figma-tubing-right.svg']
+      copy: 'Reinsert the right tube firmly',
+      assets: ['./assets/stability-assistant/figma-guide-20260925-pump-right.svg?v=2']
     },
     both: {
       kind: 'tube-both',
       title: 'Check Tubing',
       label: 'Left and right tubing air seal',
       copy: 'Reinsert both tubes firmly',
-      assets: ['./assets/stability-assistant/figma-tubing-both.svg']
+      assets: ['./assets/stability-assistant/figma-guide-20260925-pump.svg?v=2']
     }
   };
   var LOG_TUBING_STEP = {
     kind: 'tube-both',
     title: 'Check Tubing',
     label: 'Left and right tubing air seal',
-    copy: 'Reinsert both tubes firmly',
-    assets: ['./assets/stability-assistant/figma-tubing-both.svg']
+    copy: 'Reinsert tubing firmly',
+    assets: ['./assets/stability-assistant/figma-guide-20260925-pump.svg?v=2']
   };
   var COMMON_GUIDE_STEPS = [
     {
@@ -38,21 +38,27 @@
       title: 'Check Cup',
       label: 'Cup and flange assembly',
       copy: 'Snap rim shut<br>Seat duckbill valve',
-      assets: ['./assets/stability-assistant/figma-cup-guide-crop.png']
+      assets: ['./assets/stability-assistant/figma-guide-20260925-cup-arrows.svg']
     },
     {
       kind: 'fit',
       title: 'Check Fit',
       label: 'Center the nipple in the tunnel',
       copy: 'Center the nipple<br>Seal flange firmly',
-      assets: ['./assets/stability-assistant/figma-fit-center-original.png']
+      assets: ['./assets/stability-assistant/figma-guide-20260925-fit.svg']
     }
+  ];
+  var HOME_GUIDE_VISUALS = [
+    './assets/stability-assistant/figma-guide-20260925-tubing.svg',
+    './assets/stability-assistant/figma-guide-20260925-cup-arrows.svg',
+    './assets/stability-assistant/figma-guide-20260925-fit.svg'
   ];
   var root = document.getElementById('demo');
   var baseView;
   var baseFit;
   var baseLogged;
   var baseHome;
+  var baseLog;
   var swipe = null;
   var loggedSwipe = null;
   var resolvedTimer = null;
@@ -246,7 +252,7 @@
     var step = steps[index];
     var asset = step.assets[0];
     var sideIndicators = step.kind.indexOf('tube-') === 0
-      ? '<span class="sa-guide-sides" aria-hidden="true"><i class="' + (step.kind === 'tube-left' || step.kind === 'tube-both' ? 'is-active' : '') + '">L</i><i class="' + (step.kind === 'tube-right' || step.kind === 'tube-both' ? 'is-active' : '') + '">R</i></span>'
+      ? '<span class="sa-guide-sides" aria-hidden="true"><img class="' + (step.kind === 'tube-left' || step.kind === 'tube-both' ? 'is-active' : '') + '" src="./assets/stability-assistant/figma-guide-20260925-left-label.svg?v=2" alt=""><img class="' + (step.kind === 'tube-right' || step.kind === 'tube-both' ? 'is-active' : '') + '" src="./assets/stability-assistant/figma-guide-20260925-right-label.svg?v=2" alt=""></span>'
       : '';
     return '<span class="sa-guide-art sa-guide-art-' + step.kind + '" role="img" aria-label="' + step.label + '">' +
       sideIndicators +
@@ -272,7 +278,7 @@
           (fitNotDetected ? '' : '<button class="sa-guide-skip" type="button" data-sa-action="ignore-for-now">Skip</button>') + '</header>' +
         '<p class="sa-guide-copy">' + guideCopy + '</p>' +
         '<div class="sa-guide-stage">' + (fitNotDetected ? '' : '<button class="sa-guide-prev" type="button" data-sa-action="guide-prev" aria-label="Previous guidance page" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>') +
-          '<div class="sa-guide-media">' + guideArtMarkup(index) + '</div>' +
+          '<div class="sa-guide-media sa-guide-media-' + step.kind + '">' + guideArtMarkup(index) + '</div>' +
           (fitNotDetected ? '' : '<button class="sa-guide-next" type="button" data-sa-action="guide-next" aria-label="' + (index === steps.length - 1 ? 'Finish guidance and check the seal' : 'Next guidance page') + '">' + (index === steps.length - 1 ? '<span class="sa-guide-confirm">✓</span>' : guideArrow('right')) + '</button>') + '</div>' +
         (fitNotDetected ? '<button class="sa-fit-resume" type="button" data-sa-action="resume-fit-not-detected">Start Pumping</button>' : '<footer class="sa-guide-footer">' + dotsMarkup(index, 'sa-guide-dots') + '</footer>') +
       '</section>' +
@@ -307,6 +313,19 @@
   function hasUnresolvedMajorLeak() {
     return Array.isArray(state.v3LeakEvents) && state.v3LeakEvents.some(function (event) {
       return event && event.severity === 'major' && event.resolutionStatus !== 'resolved';
+    });
+  }
+
+  function continuedWithSeriousLeak() {
+    if (!Array.isArray(state.v3LeakEvents)) return false;
+    return state.v3LeakEvents.some(function (event) {
+      if (!event || event.severity !== 'major') return false;
+      return event.userAction === 'continue_unresolved' ||
+        event.userAction === 'repeat_skip_continue' ||
+        event.userAction === 'ignore_continue' ||
+        event.userAction === 'ignore_for_now' ||
+        event.pumpAction === 'started_with_unresolved_leak' ||
+        event.pumpAction === 'resumed_with_unresolved_leak';
     });
   }
 
@@ -345,18 +364,20 @@
     var index = Math.max(0, Math.min(steps.length - 1, Number(state.v3HomeGuideIndex) || 0));
     var step = steps[index];
     return '<section class="sa-home-leak-notice" role="region" aria-label="Fit Guide after a slight air leak">' +
-      '<header class="sa-home-guide-header"><h2>Fit Guide</h2>' +
-      '<button class="sa-home-leak-notice-close" type="button" data-sa-action="dismiss-home-leak-notice" aria-label="Dismiss air leak notice">' +
-        '<img src="./assets/stability-assistant/figma-r4/home-notice-close.svg" alt="">' +
+      '<header class="sa-home-guide-header"><span class="sa-home-guide-title">' +
+        '<img src="./assets/stability-assistant/figma-r4/fit-guide-title.svg" alt=""><h2>Fit Guide</h2>' +
+      '</span><button class="sa-home-leak-notice-close" type="button" data-sa-action="dismiss-home-leak-notice" aria-label="Dismiss air leak notice">' +
+        '<img src="./assets/stability-assistant/figma-r4/fit-guide-close.svg" alt="">' +
       '</button></header>' +
-      '<p class="sa-home-guide-intro">A slight air leak was detected last session. Check your fit before the next session.</p>' +
-      '<div class="sa-home-guide-step"><h3>' + step.title + '</h3><p>' + step.copy + '</p></div>' +
-      '<div class="sa-home-guide-stage">' +
-        '<button class="sa-home-guide-nav" type="button" data-sa-action="home-guide-prev" aria-label="Previous Fit Guide step" ' + (index === 0 ? 'disabled' : '') + '>' + guideArrow('left') + '</button>' +
-        '<div class="sa-home-guide-media">' + guideArtMarkup(index, steps) + '</div>' +
-        '<button class="sa-home-guide-nav" type="button" data-sa-action="home-guide-next" aria-label="Next Fit Guide step" ' + (index === steps.length - 1 ? 'disabled' : '') + '>' + guideArrow('right') + '</button>' +
+      '<p class="sa-home-guide-intro">We noticed a slight air leak last time and adjusted the suction for you. Checking your fit before your next session would be helpful.</p>' +
+      '<div class="sa-home-guide-step"><h3 class="sa-home-guide-step-title">' + step.title + '</h3>' +
+        '<div class="sa-home-guide-step-body"><div class="sa-home-guide-stage">' +
+          '<img class="sa-home-guide-visual" src="' + HOME_GUIDE_VISUALS[index] + '" alt="' + step.label + '">' +
+          '<button class="sa-home-guide-hotspot sa-home-guide-hotspot-prev" type="button" data-sa-action="home-guide-prev" aria-label="Previous Fit Guide step" ' + (index === 0 ? 'disabled' : '') + '></button>' +
+          '<button class="sa-home-guide-hotspot sa-home-guide-hotspot-next" type="button" data-sa-action="home-guide-next" aria-label="Next Fit Guide step" ' + (index === steps.length - 1 ? 'disabled' : '') + '></button>' +
+        '</div><p class="sa-home-guide-step-copy">' + step.copy + '</p>' +
+        '<footer class="sa-home-guide-footer">' + dotsMarkup(index, 'sa-home-guide-dots', steps) + '</footer></div>' +
       '</div>' +
-      '<footer class="sa-home-guide-footer">' + dotsMarkup(index, 'sa-home-guide-dots', steps) + '</footer>' +
     '</section>';
   }
 
@@ -489,7 +510,18 @@
       window.v4Home = v4Home = function () {
         var html = baseHome.apply(this, arguments);
         if (!shouldShowHomeLeakNotice()) return html;
-        return html.replace('</section><section class="v4-home-card v4-lactation">', '</section>' + homeLeakNoticeMarkup() + '<section class="v4-home-card v4-lactation">');
+        return html.replace('<main class="v4-home-cards">', '<main class="v4-home-cards">' + homeLeakNoticeMarkup());
+      };
+    }
+
+    if (typeof window.v4Log === 'function') {
+      baseLog = window.v4Log;
+      window.v4Log = v4Log = function () {
+        var html = baseLog.apply(this, arguments);
+        if (!continuedWithSeriousLeak()) return html;
+        return html
+          .replace('class="v4-log r2-log r47-log"', 'class="v4-log r2-log r47-log sa-serious-leak-continued"')
+          .replace('<h1>Log Pumping Amount</h1>', '<h1>Log Pumping Amount</h1><p class="sa-log-volume-warning">A serious air leak occurred during this session and may affect the recorded milk volume.</p>');
       };
     }
 
@@ -973,23 +1005,6 @@
     return true;
   }
 
-  function previewHomeLeakNotice() {
-    clearLoggedAutoCloseTimer();
-    state.air2SessionSummaryKind = 'minor-leak';
-    state.v3FitGuideConsumed = false;
-    state.v3HomeLeakNoticeVisible = true;
-    state.v3LoggedGuideOpen = false;
-    state.v3HomeGuideIndex = 0;
-    state.v3LoggedGuideSource = '';
-    state.air2ShowLoggedSummary = false;
-    state.modal = null;
-    state.page = 'home';
-    state.running = false;
-    state.paused = false;
-    repaint();
-    return true;
-  }
-
   function resetLeak() {
     var f = flow();
     clearTimeout(resolvedTimer);
@@ -1058,7 +1073,6 @@
     if (id === 'fit-check-passed') return runLegacyTrigger('fit-ok', 'Open Fit Check before returning a passed result.');
     if (id === 'minor-leak') return runLegacyTrigger('minor-leak', 'Start pumping before triggering a minor leak.');
     if (id === 'fit-not-detected-20s') return beginFitNotDetectedGuide();
-    if (id === 'home-leak-reminder') return previewHomeLeakNotice();
     if (id.indexOf('serious-leak-') === 0) {
       var side = id.replace('serious-leak-', '');
       if (state.modal === 'fit') return beginSevere('self_check', side);
@@ -1094,6 +1108,8 @@
       markFitGuideConsumed('home-inline');
       state.v3HomeGuideIndex = 0;
       repaint();
+      var homeCards = root.querySelector('.h7-home .v4-home-cards');
+      if (homeCards) homeCards.scrollTop = 0;
       return;
     } else if (id === 'home-guide-prev' || id === 'home-guide-next') {
       var homeSteps = loggedGuideSteps();
@@ -1160,7 +1176,6 @@
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-normal"><b>Seal check passed</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-failed"><b>Air leak remains</b></button>' +
         '<button class="demo-trigger-action" type="button" data-sa-trigger="minor-leak"><b>Slight leak</b></button>' +
-        '<button class="demo-trigger-action" type="button" data-sa-trigger="home-leak-reminder"><b>Post-session reminder</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-left"><b>Serious leak · Left</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-right"><b>Serious leak · Right</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="serious-leak-both"><b>Serious leak · Both</b></button>' +

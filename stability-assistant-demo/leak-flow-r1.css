@@ -286,13 +286,17 @@
 #demo .sa-guide-status.is-retry { min-height: 43px; grid-template-columns: 24px minmax(0,1fr); gap: 9px; padding: 7px 12px; border-color: rgba(255,226,232,.25); border-radius: 12px; background: rgba(60,0,18,.2); }
 #demo .sa-guide-status.is-retry i { width: 22px; height: 22px; font-size: 12px; }
 #demo .sa-guide-stage { display: grid; width: 100%; grid-template-columns: 44px 208px 44px; align-items: center; justify-content: center; gap: 8px; margin-top: 2px; }
-#demo .sa-guide-media { position: relative; width: 208px; height: 196px; overflow: hidden; border-radius: 24px; background: #000; isolation: isolate; }
+#demo .sa-guide-media { position: relative; width: 208px; height: 196px; overflow: hidden; border-radius: 24px; background: #f6f6f6; isolation: isolate; }
 #demo .sa-guide-art { position: absolute; inset: 0; display: block; isolation: isolate; pointer-events: none; user-select: none; }
 #demo .sa-guide-art img { display: block; max-width: none; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 #demo .sa-guide-art-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: none; }
+#demo .sa-guide-art-cup .sa-guide-art-image,
+#demo .sa-guide-art-fit .sa-guide-art-image { object-fit: cover; }
 #demo .sa-guide-sides { position: absolute; z-index: 2; top: 8px; left: 50%; display: flex; gap: 7px; transform: translateX(-50%); }
 #demo .sa-guide-sides i { display: grid; width: 30px; height: 20px; place-items: center; box-sizing: border-box; border: 1.5px solid #3d3d3d; border-radius: 11px; color: rgba(255,255,255,.8); background: #191919; font-size: 11px; font-style: normal; font-weight: 650; line-height: 1; }
 #demo .sa-guide-sides i.is-active { border-color: rgba(239,76,78,.45); color: #ef4c4e; background: #3c0a0b; }
+#demo .sa-guide-sides img { width: 30px; height: 20px; opacity: .35; }
+#demo .sa-guide-sides img.is-active { opacity: 1; }
 #demo .sa-guide-copy { display: flex; height: 40px; min-height: 40px; align-items: center; justify-content: center; box-sizing: border-box; margin: 4px 42px 2px; color: rgba(255,255,255,.82); font-size: 12px; line-height: 17px; text-align: center; }
 #demo .sa-guide-footer { position: relative; display: flex; min-height: 18px; align-items: center; justify-content: center; margin-top: 4px; }
 #demo .sa-guide-prev,
@@ -476,117 +480,194 @@
 /* Expanded post-session Fit Guide on the device sub-home. */
 #demo .h7-home .sa-home-leak-notice {
   position: relative;
-  display: grid;
+  display: flex;
   width: 100%;
-  height: 432px;
-  grid-template-rows: 46px 42px 64px minmax(0,1fr) 18px;
-  row-gap: 6px;
+  height: 456px;
+  flex-direction: column;
+  gap: 16px;
   box-sizing: border-box;
-  margin-top: 16px;
-  padding: 16px 16px 14px;
+  margin: 0 0 16px;
+  padding: 16px;
   overflow: hidden;
-  border: .3px solid rgba(161,64,82,.15);
+  border: 0;
   border-radius: 24px;
-  color: #3e0010;
-  background:
-    radial-gradient(ellipse 210px 150px at 10% 108%, rgba(255,121,54,.14), rgba(255,198,54,0) 72%),
-    #fff0f1;
-  box-shadow: 0 8px 24px rgba(65,20,35,.04);
+  color: #240f1b;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,.04);
 }
 #demo .h7-home .sa-home-guide-header {
   display: flex;
+  width: 100%;
+  height: 24px;
   min-width: 0;
+  flex: 0 0 24px;
   align-items: center;
   justify-content: space-between;
 }
+#demo .h7-home .sa-home-guide-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+#demo .h7-home .sa-home-guide-title > img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  object-fit: contain;
+}
 #demo .h7-home .sa-home-guide-header h2 {
   margin: 0;
-  color: #97002d;
-  font-size: 18px;
-  font-weight: 700;
+  color: #240f1b;
+  font-size: 16px;
+  font-weight: 500;
   line-height: 22px;
-  letter-spacing: 0;
+  letter-spacing: .32px;
 }
 #demo .h7-home .sa-home-leak-notice-close {
   display: grid;
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
   place-items: center;
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(255,255,255,.54);
+  background: transparent;
   cursor: pointer;
 }
-#demo .h7-home .sa-home-leak-notice-close img { display: block; width: 18px; height: 18px; object-fit: contain; }
+#demo .h7-home .sa-home-leak-notice-close img { display: block; width: 24px; height: 24px; object-fit: contain; }
 #demo .h7-home .sa-home-guide-intro {
-  display: flex;
-  max-width: 320px;
-  align-items: center;
+  width: 100%;
   margin: 0;
-  color: rgba(62,0,16,.68);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 17px;
-  letter-spacing: 0;
+  color: rgba(36,15,27,.44);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: .28px;
   text-align: left;
 }
-#demo .h7-home .sa-home-guide-step { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-#demo .h7-home .sa-home-guide-step h3 { margin: 0; color: #770523; font-size: 15px; font-weight: 700; line-height: 19px; letter-spacing: 0; }
-#demo .h7-home .sa-home-guide-step p { display: flex; min-height: 18px; align-items: center; justify-content: center; margin: 2px 0 0; color: rgba(74,33,48,.62); font-size: 11px; line-height: 15px; text-align: center; }
-#demo .h7-home .sa-home-guide-stage {
-  display: grid;
+#demo .h7-home .sa-home-guide-step {
+  display: flex;
+  width: 100%;
   min-height: 0;
-  grid-template-columns: 36px minmax(0,1fr) 36px;
-  align-items: center;
+  flex: 1;
+  flex-direction: column;
   gap: 8px;
+  align-items: center;
 }
-#demo .h7-home .sa-home-guide-media {
+#demo .h7-home .sa-home-guide-step-title {
+  display: flex;
+  width: 100%;
+  height: 20px;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #240f1b;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: .28px;
+  text-align: center;
+}
+#demo .h7-home .sa-home-guide-step-body {
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+}
+#demo .h7-home .sa-home-guide-stage {
   position: relative;
-  width: auto;
+  display: block;
+  width: 329px;
   max-width: 100%;
-  height: 100%;
-  aspect-ratio: 1;
-  justify-self: center;
+  height: 220px;
+  flex: 0 0 220px;
   overflow: hidden;
-  border-radius: 22px;
-  background: #000;
-  isolation: isolate;
+  border-radius: 16px;
+  background: #f6f6f6;
 }
-#demo .h7-home .sa-home-guide-media .sa-guide-art { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
-#demo .h7-home .sa-home-guide-media .sa-guide-art-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
-#demo .h7-home .sa-home-guide-media .sa-guide-sides { top: 8px; }
-#demo .h7-home .sa-home-guide-nav {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
+#demo .h7-home .sa-home-guide-visual {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+#demo .h7-home .sa-home-guide-step-copy {
+  display: flex;
+  width: 100%;
+  height: 40px;
+  flex: 0 0 40px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: rgba(36,15,27,.44);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: .28px;
+  text-align: center;
+}
+#demo .h7-home .sa-home-guide-footer { position: relative; z-index: 2; display: flex; width: 100%; height: 20px; flex: 0 0 20px; align-items: center; justify-content: center; }
+#demo .h7-home .sa-home-guide-dots { display: flex; align-items: center; justify-content: center; gap: 4px; }
+#demo .h7-home .sa-home-guide-dots i { display: block; width: 4px; height: 4px; border-radius: 50%; background: #ded9dc; }
+#demo .h7-home .sa-home-guide-dots i.is-active { width: 4px; border-radius: 50%; background: #3e0010; }
+#demo .h7-home .sa-home-guide-hotspot {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  width: 50%;
   padding: 0;
-  border: 1px solid rgba(151,0,45,.2);
-  border-radius: 50%;
-  background: rgba(151,0,45,.62);
+  border: 0;
+  background: transparent;
+  opacity: 0;
   cursor: pointer;
 }
-#demo .h7-home .sa-home-guide-nav img { display: block; width: 18px; height: 18px; object-fit: contain; }
-#demo .h7-home .sa-home-guide-nav:disabled { opacity: .24; pointer-events: none; }
-#demo .h7-home .sa-home-guide-footer { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
-#demo .h7-home .sa-home-guide-dots { display: flex; align-items: center; justify-content: center; gap: 7px; }
-#demo .h7-home .sa-home-guide-dots i { display: block; width: 6px; height: 6px; border-radius: 50%; background: rgba(151,0,45,.2); }
-#demo .h7-home .sa-home-guide-dots i.is-active { width: 18px; border-radius: 4px; background: #97002d; }
-#demo .h7-home:has(.sa-home-leak-notice) {
+#demo .h7-home .sa-home-guide-hotspot-prev { left: 0; }
+#demo .h7-home .sa-home-guide-hotspot-next { right: 0; }
+#demo .h7-home .sa-home-guide-hotspot:disabled { pointer-events: none; }
+#demo .h7-home {
+  isolation: isolate;
   overflow-x: hidden;
   overflow-y: hidden;
 }
-#demo .h7-home:has(.sa-home-leak-notice) > main {
-  bottom: 0;
-  padding-bottom: 190px;
+#demo .h7-home > .v4-home-cards {
+  z-index: 0;
+  isolation: isolate;
+  bottom: 166px;
+  padding-bottom: 16px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior-y: contain;
   scrollbar-width: none;
 }
-#demo .h7-home:has(.sa-home-leak-notice) > main::-webkit-scrollbar { display: none; }
+#demo .h7-home > .v4-home-cards::-webkit-scrollbar { display: none; }
+#demo .h7-home > .h7-home-dock { z-index: 10; isolation: isolate; }
+
+/* Show data-quality context only after the user explicitly pumps through a serious leak. */
+#demo .v4-log.r47-log.sa-serious-leak-continued h1 { margin-bottom: 0; }
+#demo .v4-log.r47-log .sa-log-volume-warning {
+  max-width: 312px;
+  margin: 6px auto 0;
+  color: rgba(119,5,35,.72);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  letter-spacing: 0;
+  text-align: center;
+}
+#demo .v4-log.r47-log.sa-serious-leak-continued .v4-log-date { margin-top: 4px; }
+#demo .v4-log.r47-log.sa-serious-leak-continued .r47-log-amounts { margin-top: 12px; }
+#demo .v4-log.r47-log.sa-serious-leak-continued .v4-duration { margin-top: 24px; }
+#demo .v4-log.r47-log.sa-serious-leak-continued .v4-save { margin-top: 20px; }
 
 #demo .v4-overlay .v4-logged.air2-abnormal-logged {
   position: absolute;

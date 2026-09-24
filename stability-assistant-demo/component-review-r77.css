@@ -1,0 +1,110 @@
+/* Reviewed Self-Check layout and Figma Speed component (1789:87423). */
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-fit-guide-panel {
+  padding: 24px;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-header {
+  min-height: 30px;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-copy {
+  margin: 8px 0 0;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-stage {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin-top: 0;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-media {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 329 / 220;
+  border-radius: 16px;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-art-image {
+  object-fit: contain;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) [class*="sa-guide-art-tube-"] .sa-guide-art-image {
+  width: 63.22%;
+  height: 94.55%;
+  inset: auto auto 0 50%;
+  transform: translateX(-50%);
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-sides { top: 7px; gap: 16px; }
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-sides img { width: 48px; height: 32px; }
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-prev,
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: #e6e6e6;
+  color: #858585;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-prev { left: 8px; }
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-next { right: 8px; }
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-stage button img { filter: brightness(0) opacity(.45); }
+#demo .sa-guide-layer:not(.is-fit-not-detected) .sa-guide-footer { margin-top: 8px; }
+
+#demo .v4-control .v4-controls > .v4-speed {
+  display: flex !important;
+  flex-direction: column;
+  gap: 16px;
+  height: auto !important;
+  padding: 16px 20px !important;
+  border: 0 !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+#demo .v4-control .v4-speed h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 !important;
+  color: #240f1b;
+  font-size: 14px !important;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: .28px;
+}
+#demo .v4-control .v4-speed h2::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: url('./assets/stability-assistant/figma-speed-icon.svg') center / 16px 14px no-repeat;
+}
+#demo .v4-control .v4-speed-list {
+  display: flex !important;
+  gap: 0 !important;
+  width: 100%;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 4px !important;
+  border-radius: 99px !important;
+  background: rgba(36,15,27,.04) !important;
+}
+#demo .v4-control .v4-speed-list button {
+  flex: 1;
+  min-width: 0;
+  width: auto !important;
+  height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 31px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: rgba(36,15,27,.44) !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 22px;
+}
+#demo .v4-control .v4-speed-list button.active {
+  background: #fff !important;
+  color: #240f1b !important;
+  box-shadow: 0 4px 8px rgba(36,15,27,.08) !important;
+}
