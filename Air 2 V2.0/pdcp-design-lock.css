@@ -438,3 +438,65 @@
  #demo .pdcp-plan .pdcp-mode-window.pdcp-deep img {transform:none!important;opacity:1!important;}
  #demo .pdcp-plan:has(.pdcp-mode-window.pdcp-deep)::after {opacity:calc(.5 * var(--pdcp-deep-strength,1));transform:none;}
 }
+
+/* September 24 review: fixed measurements, focused checks and report inspection. */
+#demo .pdcp-fit-backdrop {position:absolute;inset:0;z-index:109;background:rgba(245,239,237,.45);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
+#demo .pdcp-fit-overlay .r50-fit-copy {padding-right:8px;}
+#demo .pdcp-fit-overlay .r50-fit-copy strong {font-size:17px;}
+#demo .pdcp-fit-overlay .r50-skip {flex-shrink:0;min-width:48px;padding:0 10px;}
+#demo .v4-control.pdcp-legacy-control > .pdcp-data-disclosure {position:absolute;top:263px;left:16px;right:16px;margin:0;z-index:45;}
+#demo .v4-control.pdcp-legacy-control > .v4-controls {top:329px!important;overflow-x:hidden;overscroll-behavior:contain;}
+#demo .v4-control.pdcp-legacy-control.pdcp-details-expanded > .v4-controls {top:417px!important;}
+#demo .pdcp-report .pdcp-timeline .stimulation,#demo .pdcp-report .pdcp-stage-dot.stimulation {background:#a52e53;}
+#demo .pdcp-report .pdcp-timeline .expression,#demo .pdcp-report .pdcp-stage-dot.expression {background:#176bc1;}
+#demo .pdcp-report .pdcp-timeline .mixed,#demo .pdcp-report .pdcp-stage-dot.mixed {background:#d48a16;}
+#demo .pdcp-chart-wrap {position:relative;}
+#demo .pdcp-flow-chart {touch-action:none;user-select:none;}
+#demo .pdcp-chart-cursor {position:absolute;top:10%;bottom:15%;width:1px;background:rgba(71,44,57,.4);pointer-events:none;}
+#demo .pdcp-chart-tooltip {position:absolute;top:12px;transform:translateX(-50%);padding:9px 12px;background:rgba(255,255,255,.94);border:1px solid rgba(36,15,27,.07);box-shadow:0 5px 20px #240f1b14;border-radius:14px;backdrop-filter:blur(12px);font:500 12px/18px var(--font);pointer-events:none;white-space:nowrap;}
+#demo .pdcp-chart-tooltip b {display:block;text-align:center;margin-bottom:3px;font-variant-numeric:tabular-nums;}
+#demo .pdcp-chart-tooltip span {display:flex;gap:5px;align-items:center;font-variant-numeric:tabular-nums;}
+#demo .pdcp-chart-tooltip small {color:#8a7d83;font-size:10px;}
+#demo .pdcp-chart-tooltip[hidden],#demo .pdcp-chart-cursor[hidden] {display:none;}
+#demo .pdcp-settings {position:absolute;inset:0;background:#f9f7f5;color:#240f1b;font-family:var(--font);}
+#demo .pdcp-settings .v4-top {top:62px;height:60px;}
+#demo .pdcp-settings .v4-top h1 {position:absolute;left:65px;right:65px;text-align:center;font:500 16px/22px var(--font);pointer-events:none;}
+#demo .pdcp-settings .v4-top img {width:24px;height:24px;}
+#demo .pdcp-settings-body {position:absolute;top:138px;left:16px;right:16px;bottom:34px;overflow-y:auto;display:flex;flex-direction:column;gap:24px;}
+#demo .pdcp-settings button {border:0;font:500 14px/18px var(--font);color:inherit;cursor:pointer;}
+#demo .pdcp-settings-device {display:flex;align-items:center;gap:16px;padding:16px;background:#fff;border-radius:24px;min-height:82px;text-align:left;}
+#demo .pdcp-settings-pumps {display:block;width:84px;height:42px;overflow:hidden;flex-shrink:0;}
+#demo .pdcp-settings-pumps img {display:block;width:84px;height:42px;object-fit:contain;}
+#demo .pdcp-settings-device-copy {flex:1;display:flex;flex-direction:column;gap:8px;}
+#demo .pdcp-settings-device-copy>strong {font-size:16px;font-weight:500;}
+#demo .pdcp-settings-batteries {display:flex;gap:14px;font:400 12px/18px var(--font);}
+#demo .pdcp-settings-batteries>span {display:flex;align-items:center;gap:6px;}
+#demo .pdcp-settings-batteries b {position:relative;width:27px;height:14px;}
+#demo .pdcp-settings-batteries img {width:27px;height:14px;}
+#demo .pdcp-settings-batteries i {position:absolute;inset:0 3px 0 0;color:#fff;text-align:center;font:500 10px/14px var(--font);}
+#demo .pdcp-settings-chevron {width:16px;height:16px;}
+#demo .pdcp-settings h2 {margin:0 0 8px;color:#9f969b;font:400 14px/18px var(--font);}
+#demo .pdcp-settings-function {padding:16px;border-radius:12px;background:#fff;}
+#demo .pdcp-settings-function>div {display:flex;align-items:center;justify-content:space-between;}
+#demo .pdcp-settings-function strong {font:500 14px/18px var(--font);}
+#demo .pdcp-settings-function p {padding-right:54px;margin:0;font:400 12px/18px var(--font);color:rgba(36,15,27,.44);}
+#demo .pdcp-settings-switch {position:relative;width:42px;height:24px;flex-shrink:0;border-radius:20px;background:#ccc5c8;}
+#demo .pdcp-settings-switch i {position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .18s;}
+#demo .pdcp-settings-switch[aria-checked=true] {background:#3e0010;}
+#demo .pdcp-settings-switch[aria-checked=true] i {transform:translateX(18px);}
+#demo .pdcp-settings-general {background:#fff;border-radius:20px;padding:0 16px;}
+#demo .pdcp-settings-general>button {display:flex;justify-content:space-between;align-items:center;background:none;width:100%;padding:16px 0;min-height:50px;text-align:left;}
+#demo .pdcp-settings-general>button+button {border-top:1px solid #f0ecee;}
+#demo .pdcp-settings-new {display:flex;align-items:center;gap:8px;color:#8c858a;font-weight:400;}
+#demo .pdcp-settings-new i {width:7px;height:7px;background:#eb4747;border-radius:50%;}
+#demo .pdcp-settings .pdcp-settings-delete {margin-top:8px;min-height:52px;background:#fff;border-radius:999px;color:#eb4747;font-size:16px;}
+#demo .pdcp-settings .v4-top h1 {top:14px;left:60px;right:60px;width:auto;margin:0;transform:none;}
+#demo .pdcp-chart-wrap {background:#fff;border-radius:24px;}
+#demo .pdcp-chart-wrap>svg {display:block;width:100%;height:auto;}
+
+/* Keep the leading chart separate from the total card. */
+#demo .pdcp-report-section + .pdcp-total-card {margin-top:24px;}
+
+#demo .pdcp-milk-row {position:relative;width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:initial;}
+#demo .pdcp-milk-row:focus-visible {outline:2px solid #97002d;outline-offset:3px;border-radius:18px;}
+#demo .pdcp-milk-row .pdcp-data-toggle {pointer-events:none;}

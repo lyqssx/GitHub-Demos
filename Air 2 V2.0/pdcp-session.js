@@ -115,7 +115,13 @@
     [680,2],[710,9],[730,6],[760,3],[790,9],[810,5],[840,15],
     [865,10],[890,5],[920,8],[950,4],[990,2],[1040,1],[1120,.2],[1200,0]];
   function demoSensor(k, t, groups = 2) {
-    const x = Math.max(0, t - (k === 'r' ? 5 : 0));
+    const elapsed = Math.max(0, t - (k === 'r' ? 5 : 0));
+    // First let-down: about 3 minutes deep, then 5 minutes regular Expression.
+    // Retain the approved trace shape and half-peak release rule.
+    const x = elapsed <= 60 ? elapsed : elapsed <= 240
+      ? 60 + (elapsed - 60) * (350 / 180)
+      : elapsed <= 540 ? 410 + (elapsed - 240) * (210 / 300)
+      : elapsed + 80;
     if (x >= 1200 || (groups === 1 && x >= 700)) return {active:false,flow:0};
     let i = 1; while (i < TRACE.length - 1 && x > TRACE[i][0]) i++;
     const [a,b] = [TRACE[i-1],TRACE[i]], u = Math.max(0,Math.min(1,(x-a[0])/(b[0]-a[0])));

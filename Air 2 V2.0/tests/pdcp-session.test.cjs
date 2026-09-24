@@ -127,15 +127,31 @@ test('Each let-down stores its own main peak, not only the global maximum', () =
  assert.equal(s.sides.l.events.length,2);assert.equal(s.sides.l.events[0].peak,30);assert.equal(s.sides.l.events[1].peak,12);
 });
 
-test('default left and right traces reach full within one minute of each other', () => {
+test('shorter demo keeps left/right milk and end timing close without forcing full bowls', () => {
   const { demoSensor } = require('../pdcp-session.js');
-  const volumes = {l:0,r:0}, fullAt = {};
+  const volumes={l:0,r:0}, ended={};
   for(let t=0;t<1400;t++) for(const k of ['l','r']) {
-    volumes[k] += demoSensor(k,t).flow/60;
-    if(volumes[k]>=180 && fullAt[k]===undefined) fullAt[k]=t;
+    const sample=demoSensor(k,t);volumes[k]+=sample.flow/60;
+    if(sample.active)ended[k]=t;
   }
-  assert.ok(Number.isFinite(fullAt.l) && Number.isFinite(fullAt.r));
-  assert.ok(Math.abs(fullAt.l-fullAt.r)<=60);
+  assert.ok(volumes.l>0 && volumes.r>0);
+  assert.ok(Math.abs(volumes.l-volumes.r)/Math.max(volumes.l,volumes.r)<.05);
+  assert.ok(Math.abs(ended.l-ended.r)<=10);
+});
+
+test('default Auto fixture has about three minutes deep and five minutes regular Expression', () => {
+  const { demoSensor } = require('../pdcp-session.js');
+  const s=new Session();let deepStart,deepEnd,mixedAt;
+  for(let t=0;t<590;t++) {
+    const flows={};for(const k of ['l','r']){const sample=demoSensor(k,t);s.letdown(k,sample.active);flows[k]=sample.flow;}
+    s.advance(1,flows);
+    if(s.deep && deepStart===undefined)deepStart=t;
+    if(deepStart!==undefined && !s.deep && deepEnd===undefined)deepEnd=t;
+    if(s.mode==='mixed' && mixedAt===undefined)mixedAt=t;
+  }
+  assert.ok(Math.abs(deepEnd-deepStart-180)<=10);
+  assert.ok(Math.abs(mixedAt-deepEnd-300)<=10);
+  assert.equal(s.finished,false);
 });
 
 test('duration corrections update the record without retiming sensor evidence', () => {
