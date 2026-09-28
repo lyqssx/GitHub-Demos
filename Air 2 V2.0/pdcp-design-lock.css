@@ -219,7 +219,7 @@
 #demo .pdcp-manual-tabs img{width:24px;height:24px;object-fit:contain}
 
 /* Figma 115:6804: native rhythm card, scoped to the preset slot. */
-#demo .pdcp-legacy-control .pdcp-preset-card {box-sizing:border-box;position:relative;height:129px;padding:15.7px 19.7px;border:.3px solid rgba(161,64,82,.15);border-radius:24px;overflow:hidden;background:radial-gradient(ellipse at left bottom,rgba(255,121,54,.16),transparent 75%),#fff0f1;box-shadow:0 4px 12px rgba(0,0,0,.02);}
+#demo .pdcp-legacy-control .pdcp-preset-card {box-sizing:border-box;position:relative;height:95px;padding:15.7px 19.7px;border:.3px solid rgba(161,64,82,.15);border-radius:24px;overflow:hidden;background:radial-gradient(ellipse at left bottom,rgba(255,121,54,.16),transparent 75%),#fff0f1;box-shadow:0 4px 12px rgba(0,0,0,.02);}
 #demo .pdcp-preset-head {display:flex;align-items:center;gap:10px;height:22px;}
 #demo .pdcp-preset-head h2 {margin:0;font-size:14px;line-height:18px;font-weight:500;letter-spacing:.28px;color:#3e0010;}
 #demo .pdcp-preset-head > span {box-sizing:border-box;height:22px;padding:1px 8px;border:1px solid rgba(62,0,16,.12);border-radius:8px;font-size:12px;line-height:18px;font-weight:500;letter-spacing:.24px;color:rgba(62,0,16,.8);font-variant-numeric:tabular-nums;}
@@ -544,3 +544,14 @@
 #demo .pdcp-total-value-row .pdcp-report-edit {align-self:center;transform:translateY(-5px);}
 
 #demo .pdcp-report .pdcp-total-card > .pdcp-total-top {margin-bottom:18px;}
+
+/* All method timers follow the method name using the Figma time tag. */
+#demo .pdcp-plan-head,#demo .pdcp-manual-head,#demo .pdcp-preset-head {display:flex;align-items:center;gap:10px;min-height:22px;height:auto;}
+#demo .pdcp-plan-head h2,#demo .pdcp-manual-head h2,#demo .pdcp-preset-head h2 {flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#demo .pdcp-method-time {flex:none;box-sizing:border-box;height:22px;padding:1px 8px;border:1px solid rgba(62,0,16,.12);border-radius:8px;color:rgba(62,0,16,.8);font:500 12px/18px var(--font);letter-spacing:.24px;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#demo .pdcp-plan-head>button,#demo .pdcp-manual-head>button,#demo .pdcp-preset-head>button {position:static;flex:0 0 20px;width:20px;height:22px;margin:0;padding:0;display:grid;place-items:center;}
+
+#demo .pdcp-plan-head>button,#demo .pdcp-manual-head>button,#demo .pdcp-preset-head>button {margin-left:auto;}
+#demo .pdcp-manual-head {gap:8px;}
+
+#demo .pdcp-preset-head .pdcp-preset-icon {width:20px;height:20px;flex:0 0 20px;margin-right:-2px;}
