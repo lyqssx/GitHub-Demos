@@ -45,13 +45,13 @@
       title: 'Check Fit',
       label: 'Center the nipple in the tunnel',
       copy: 'Center the nipple<br>Seal flange firmly',
-      assets: ['./assets/stability-assistant/figma-guide-20260925-fit.svg']
+      assets: ['./assets/stability-assistant/figma-guide-20260925-fit.svg?v=2']
     }
   ];
   var HOME_GUIDE_VISUALS = [
     './assets/stability-assistant/figma-guide-20260925-tubing.svg',
     './assets/stability-assistant/figma-guide-20260925-cup-arrows.svg',
-    './assets/stability-assistant/figma-guide-20260925-fit.svg'
+    './assets/stability-assistant/figma-guide-20260925-fit.svg?v=2'
   ];
   var root = document.getElementById('demo');
   var baseView;
