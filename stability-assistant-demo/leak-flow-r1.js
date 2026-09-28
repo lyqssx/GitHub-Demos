@@ -60,6 +60,7 @@
   var baseHome;
   var baseLog;
   var swipe = null;
+  var homeSwipe = null;
   var loggedSwipe = null;
   var resolvedTimer = null;
   var recheckTimer = null;
@@ -373,8 +374,6 @@
       '<div class="sa-home-guide-step"><h3 class="sa-home-guide-step-title">' + step.title + '</h3>' +
         '<div class="sa-home-guide-step-body"><div class="sa-home-guide-stage">' +
           '<img class="sa-home-guide-visual" src="' + HOME_GUIDE_VISUALS[index] + '" alt="' + step.label + '">' +
-          '<button class="sa-home-guide-hotspot sa-home-guide-hotspot-prev" type="button" data-sa-action="home-guide-prev" aria-label="Previous Fit Guide step" ' + (index === 0 ? 'disabled' : '') + '></button>' +
-          '<button class="sa-home-guide-hotspot sa-home-guide-hotspot-next" type="button" data-sa-action="home-guide-next" aria-label="Next Fit Guide step" ' + (index === steps.length - 1 ? 'disabled' : '') + '></button>' +
         '</div><p class="sa-home-guide-step-copy">' + step.copy + '</p>' +
         '<footer class="sa-home-guide-footer">' + dotsMarkup(index, 'sa-home-guide-dots', steps) + '</footer></div>' +
       '</div>' +
@@ -1271,6 +1270,11 @@
   }
 
   function onPointerDown(event) {
+    var homeGuide = event.target.closest && event.target.closest("#demo .sa-home-guide-step");
+    if (homeGuide && event.isPrimary !== false && event.button === 0) {
+      homeSwipe = { id: event.pointerId, x: event.clientX, y: event.clientY, element: homeGuide };
+      homeGuide.setPointerCapture(event.pointerId);
+    }
     var guide = event.target.closest && event.target.closest('#demo .sa-guide-layer');
     if (guide) swipe = { id: event.pointerId, x: event.clientX };
     var save = event.target.closest && event.target.closest('#demo [data-v4="save"]');
@@ -1287,6 +1291,16 @@
   }
 
   function onPointerUp(event) {
+    if (homeSwipe && homeSwipe.id === event.pointerId) {
+      var homeDx = event.clientX - homeSwipe.x;
+      var homeDy = event.clientY - homeSwipe.y;
+      var homeElement = homeSwipe.element;
+      homeSwipe = null;
+      if (homeElement.isConnected && Math.abs(homeDx) >= 42 && Math.abs(homeDx) > Math.abs(homeDy) * 1.5) {
+        action(homeDx < 0 ? "home-guide-next" : "home-guide-prev");
+      }
+      return;
+    }
     if (loggedSwipe && loggedSwipe.id === event.pointerId) {
       var loggedDx = event.clientX - loggedSwipe.x;
       var loggedCard = loggedSwipe.card;
@@ -1330,7 +1344,7 @@
     document.addEventListener('click', onClick, true);
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointercancel', function () { swipe = null; loggedSwipe = null; }, true);
+    document.addEventListener('pointercancel', function () { swipe = null; loggedSwipe = null; homeSwipe = null; }, true);
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('click', function (event) {
       if (event.target.closest && event.target.closest('#demo [data-v4="save"]')) {

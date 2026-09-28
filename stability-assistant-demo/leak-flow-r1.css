@@ -549,6 +549,9 @@
   text-align: left;
 }
 #demo .h7-home .sa-home-guide-step {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
   display: flex;
   width: 100%;
   min-height: 0;
@@ -619,21 +622,6 @@
 #demo .h7-home .sa-home-guide-dots { display: flex; align-items: center; justify-content: center; gap: 4px; }
 #demo .h7-home .sa-home-guide-dots i { display: block; width: 4px; height: 4px; border-radius: 50%; background: #ded9dc; }
 #demo .h7-home .sa-home-guide-dots i.is-active { width: 4px; border-radius: 50%; background: #3e0010; }
-#demo .h7-home .sa-home-guide-hotspot {
-  position: absolute;
-  z-index: 3;
-  top: 0;
-  bottom: 0;
-  width: 50%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  opacity: 0;
-  cursor: pointer;
-}
-#demo .h7-home .sa-home-guide-hotspot-prev { left: 0; }
-#demo .h7-home .sa-home-guide-hotspot-next { right: 0; }
-#demo .h7-home .sa-home-guide-hotspot:disabled { pointer-events: none; }
 #demo .h7-home {
   isolation: isolate;
   overflow-x: hidden;
