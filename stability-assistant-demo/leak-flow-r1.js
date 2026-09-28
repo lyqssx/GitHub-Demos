@@ -1269,10 +1269,72 @@
     }
   }
 
+  function prepareHomeSwipe(element, event) {
+    if (element.dataset.settling) return null;
+    var index = Number(state.v3HomeGuideIndex) || 0;
+    var steps = loggedGuideSteps();
+    var width = element.getBoundingClientRect().width;
+    var track = document.createElement('div');
+    track.className = 'sa-home-swipe-track';
+    var footer = element.querySelector(".sa-home-guide-footer").cloneNode(true);
+    steps.forEach(function (step, i) {
+      var slide = element.cloneNode(true);
+      slide.className = 'sa-home-swipe-slide';
+      slide.querySelector('.sa-home-guide-step-title').textContent = step.title;
+      var image = slide.querySelector('.sa-home-guide-visual');
+      image.src = HOME_GUIDE_VISUALS[i];
+      image.alt = step.label;
+      slide.querySelector('.sa-home-guide-step-copy').innerHTML = step.copy;
+      slide.querySelector(".sa-home-guide-footer").remove();
+      track.appendChild(slide);
+    });
+    element.style.height = element.offsetHeight + 'px';
+    element.style.gap = "0";
+    element.replaceChildren(track, footer);
+    track.style.transform = 'translate3d(' + (-index * 100) + '%,0,0)';
+    element._swipeIndex = index;
+    return { id: event.pointerId, x: event.clientX, y: event.clientY, element: element, width: width, index: index, track: track, axis: null };
+  }
+
+  function onHomePointerMove(event) {
+    var drag = homeSwipe;
+    if (!drag || drag.id !== event.pointerId) return;
+    var dx = event.clientX - drag.x;
+    var dy = event.clientY - drag.y;
+    if (!drag.axis && Math.max(Math.abs(dx), Math.abs(dy)) > 6) drag.axis = Math.abs(dx) > Math.abs(dy) * 1.5 ? 'x' : 'y';
+    if (drag.axis !== 'x') return;
+    if ((drag.index === 0 && dx > 0) || (drag.index === loggedGuideSteps().length - 1 && dx < 0)) dx *= 0.22;
+    dx = Math.max(-drag.width, Math.min(drag.width, dx));
+    drag.track.style.transform = 'translate3d(' + (-drag.index * 100 + dx / drag.width * 100) + '%,0,0)';
+  }
+
+  function settleHomeSwipe(element, dx, dy) {
+    if (!element.isConnected) return;
+    var track = element.querySelector('.sa-home-swipe-track');
+    if (!track) return;
+    var index = element._swipeIndex;
+    var threshold = Math.max(42, element.getBoundingClientRect().width * 0.18);
+    var next = index;
+    if (Math.abs(dx) >= threshold && Math.abs(dx) > Math.abs(dy) * 1.5) next += dx < 0 ? 1 : -1;
+    next = Math.max(0, Math.min(loggedGuideSteps().length - 1, next));
+    element.dataset.settling = 'true';
+    track.style.transition = 'transform 240ms cubic-bezier(.22,.61,.36,1)';
+    track.style.transform = 'translate3d(' + (-next * 100) + '%,0,0)';
+    setTimeout(function () {
+      if (!element.isConnected) return;
+      var screen = root.querySelector('.h7-home .v4-home-cards');
+      var top = screen ? screen.scrollTop : 0;
+      state.v3HomeGuideIndex = next;
+      repaint();
+      screen = root.querySelector('.h7-home .v4-home-cards');
+      if (screen) screen.scrollTop = top;
+    }, 250);
+  }
+
   function onPointerDown(event) {
     var homeGuide = event.target.closest && event.target.closest("#demo .sa-home-guide-step");
     if (homeGuide && event.isPrimary !== false && event.button === 0) {
-      homeSwipe = { id: event.pointerId, x: event.clientX, y: event.clientY, element: homeGuide };
+      homeSwipe = prepareHomeSwipe(homeGuide, event);
       homeGuide.setPointerCapture(event.pointerId);
     }
     var guide = event.target.closest && event.target.closest('#demo .sa-guide-layer');
@@ -1296,9 +1358,7 @@
       var homeDy = event.clientY - homeSwipe.y;
       var homeElement = homeSwipe.element;
       homeSwipe = null;
-      if (homeElement.isConnected && Math.abs(homeDx) >= 42 && Math.abs(homeDx) > Math.abs(homeDy) * 1.5) {
-        action(homeDx < 0 ? "home-guide-next" : "home-guide-prev");
-      }
+      settleHomeSwipe(homeElement, homeDx, homeDy);
       return;
     }
     if (loggedSwipe && loggedSwipe.id === event.pointerId) {
@@ -1344,7 +1404,8 @@
     document.addEventListener('click', onClick, true);
     document.addEventListener('pointerdown', onPointerDown, true);
     document.addEventListener('pointerup', onPointerUp, true);
-    document.addEventListener('pointercancel', function () { swipe = null; loggedSwipe = null; homeSwipe = null; }, true);
+    document.addEventListener('pointermove', onHomePointerMove, true);
+    document.addEventListener('pointercancel', function () { swipe = null; loggedSwipe = null; if (homeSwipe) settleHomeSwipe(homeSwipe.element, 0, 0); homeSwipe = null; }, true);
     document.addEventListener('keydown', onKeyDown, true);
     document.addEventListener('click', function (event) {
       if (event.target.closest && event.target.closest('#demo [data-v4="save"]')) {
