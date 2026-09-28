@@ -537,8 +537,10 @@
 #demo .v4-control .c32-vessel .c32-base {inset:auto;left:-2px;top:-2px;width:95.2895px;height:97.4842px;max-width:none;overflow:visible;}
 #demo .v4-control .c32-liquid-clip {overflow:visible!important;}
 
-/* Total milk follows the report's shared outside-heading card layout. */
+/* Total milk leads the report, with its title inside and edit beside the value. */
 #demo .pdcp-total-value-row {display:flex;align-items:center;justify-content:space-between;gap:16px;}
 #demo .pdcp-total-value-row .pdcp-report-edit {position:static;flex-shrink:0;margin:0;}
 #demo .pdcp-report .pdcp-total-value-row .pdcp-total {margin:0 0 10px;}
 #demo .pdcp-total-value-row .pdcp-report-edit {align-self:center;transform:translateY(-5px);}
+
+#demo .pdcp-report .pdcp-total-card > .pdcp-total-top {margin-bottom:18px;}
