@@ -1157,7 +1157,7 @@
   }
 
   function triggerGroupMarkup() {
-    return '<section class="demo-trigger-group sa-trigger-group"><h3>Stability Assistant</h3>' +
+    return '<section class="demo-trigger-group sa-trigger-group"><h3>Leak Detection</h3>' +
       '<div class="demo-trigger-grid">' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-normal"><b>Seal check passed</b></button>' +
         '<button class="demo-trigger-action is-primary" type="button" data-sa-trigger="suction-failed"><b>Air leak remains</b></button>' +
