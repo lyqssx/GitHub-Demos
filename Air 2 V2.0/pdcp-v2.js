@@ -165,11 +165,11 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if (side.stopped) pump.insertAdjacentHTML('beforeend', '<span class="pdcp-native-stop">' + (side.stopReason === 'full' ? 'Full · stopped' : 'Finished') + '</span>');
     return pump.outerHTML;
   }
-  const speedIcons = ['https://www.figma.com/api/mcp/asset/13c19845-5766-4b3d-bf83-b23e82f5092a.svg','https://www.figma.com/api/mcp/asset/331e4bca-4fd3-4383-8037-895ce44527d8.svg','https://www.figma.com/api/mcp/asset/5c5faa2a-f247-4f2e-973c-29f5de76ac72.svg'];
+  const speedIcons = ['assets/pdcp-speed-slow.svg','assets/pdcp-speed-regular.svg','assets/pdcp-speed-fast.svg'];
   function speedCard() {
     const labels = ['Slow','Regular','Fast'];
     state.speed = Math.min(3, Math.max(1, Number(state.speed) || 3));
-    return `<section class="v4-speed pdcp-speed-three"><h2><img src="https://www.figma.com/api/mcp/asset/2df0d269-2d6f-49be-9709-d9c005c2cc98.svg" alt="">Speed</h2><div class="pdcp-speed-track">${labels.map((label,i)=>`<button data-pdcp="speed" data-value="${i+1}" aria-label="${label}" aria-pressed="${state.speed===i+1}"><img src="${speedIcons[i]}" alt=""></button>`).join('')}</div><div class="pdcp-speed-labels">${labels.map((label,i)=>`<button data-pdcp="speed" data-value="${i+1}" class="${state.speed===i+1?'active':''}">${label}</button>`).join('')}</div></section>`;
+    return `<section class="v4-speed pdcp-speed-three"><h2><img src="assets/pdcp-speed-heading.svg" alt="">Speed</h2><div class="pdcp-speed-track">${labels.map((label,i)=>`<button data-pdcp="speed" data-value="${i+1}" aria-label="${label}" aria-pressed="${state.speed===i+1}"><img src="${speedIcons[i]}" alt=""></button>`).join('')}</div><div class="pdcp-speed-labels">${labels.map((label,i)=>`<button data-pdcp="speed" data-value="${i+1}" class="${state.speed===i+1?'active':''}">${label}</button>`).join('')}</div></section>`;
   }
   function control() {
     // Render the locked source design, then change only the approved plan slot.
