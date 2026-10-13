@@ -476,7 +476,7 @@
 #demo .pdcp-settings-batteries i {position:absolute;inset:0 3px 0 0;color:#fff;text-align:center;font:500 10px/14px var(--font);}
 #demo .pdcp-settings-chevron {width:16px;height:16px;}
 #demo .pdcp-settings h2 {margin:0 0 8px;color:#9f969b;font:400 14px/18px var(--font);}
-#demo .pdcp-settings-function {padding:16px;border-radius:12px;background:#fff;}
+#demo .pdcp-settings-function {padding:16px;border-radius:20px;background:#fff;}
 #demo .pdcp-settings-function>div {display:flex;align-items:center;justify-content:space-between;}
 #demo .pdcp-settings-function strong {font:500 14px/18px var(--font);}
 #demo .pdcp-settings-function p {padding-right:54px;margin:0;font:400 12px/18px var(--font);color:rgba(36,15,27,.44);}
