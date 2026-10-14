@@ -435,7 +435,7 @@
     return '<div class="sa-layer sa-result-layer" role="dialog" aria-modal="true" aria-labelledby="sa-result-title">' +
       '<div class="sa-scrim"></div><section class="sa-fit-guide-panel sa-check-result">' +
         '<h2 id="sa-result-title">Ready to Continue?</h2>' +
-        '<p class="sa-result-description">We\'ll check the seal again when you continue pumping. If a leak remains, we\'ll automatically adjust the suction.</p>' +
+        '<p class="sa-result-description">We\'ll check the seal again when you continue pumping. If a leak remains, recheck your setup.</p>' +
         '<div class="sa-result-actions"><button class="sa-primary" type="button" data-sa-action="resume-after-check">Continue Pumping</button>' +
           '<button class="sa-secondary" type="button" data-sa-action="ignore-for-now">Close</button></div>' +
       '</section></div>';

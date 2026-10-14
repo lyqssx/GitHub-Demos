@@ -32,10 +32,11 @@
   function settings() {
     return '<main class="ds-content">' +
       '<button class="ds-device ds-card" data-settings-action="info">' + pump('small') + '<span class="ds-device-copy"><b>' + escapeText(preferences.name) + '</b><span class="ds-battery"><img src="' + asset + 'battery-80.svg" alt="Battery 80 percent"></span></span>' + chevron() + '</button>' +
-      '<section class="ds-group"><h2>Behavior Detection</h2><div class="ds-card ds-controls"><div class="ds-brightness"><label for="ds-brightness">Screen/Button Brightness</label><input id="ds-brightness" type="range" min="0" max="100" value="' + preferences.brightness + '" style="--ds-progress:' + preferences.brightness + '%" ' + (!connected() ? 'disabled' : '') + '></div>' +
+      '<section class="ds-group"><h2>Device Features</h2>' +
+      '<div class="ds-card ds-leak"><div class="ds-setting-row"><div><b>Leak Detection</b><p>Receive air leak alerts and fit guidance.</p></div>' + toggle('leakAlerts', 'Leak Detection') + '</div></div>' +
+      '<div class="ds-card ds-controls"><div class="ds-brightness"><label for="ds-brightness">Screen/Button Brightness</label><input id="ds-brightness" type="range" min="0" max="100" value="' + preferences.brightness + '" style="--ds-progress:' + preferences.brightness + '%" ' + (!connected() ? 'disabled' : '') + '></div>' +
       '<div class="ds-setting-row"><div><b>Adaptive Brightness <em>Auto</em></b>' + (!preferences.adaptive ? '<p>Automatically adjusts screen, button, and night light brightness based on ambient light.</p>' : '') + '</div>' + toggle('adaptive', 'Adaptive Brightness') + '</div>' +
-      '<div class="ds-setting-row"><div><b>Night Light Auto-on</b>' + (!preferences.nightAuto ? '<p>Turn on the night light automatically when the device powers on.</p>' : '') + '</div>' + toggle('nightAuto', 'Night Light Auto-on') + '</div></div>' +
-      '<div class="ds-card ds-leak"><div class="ds-setting-row"><div><b>Leak Detection</b><p>Receive air leak alerts and fit guidance.</p></div>' + toggle('leakAlerts', 'Leak Detection') + '</div></div></section>' +
+      '<div class="ds-setting-row"><div><b>Night Light Auto-on</b>' + (!preferences.nightAuto ? '<p>Turn on the night light automatically when the device powers on.</p>' : '') + '</div>' + toggle('nightAuto', 'Night Light Auto-on') + '</div></div></section>' +
       '<section class="ds-group"><h2>General Settings</h2><div class="ds-card ds-general"><button data-settings-action="firmware"><b>Firmware Upgrade</b><span>New <i></i>' + chevron() + '</span></button><button data-settings-action="restore"><b>Restore Factory</b>' + chevron() + '</button></div></section>' +
       '<button class="ds-delete ds-card" data-settings-action="delete">Delete</button></main>';
   }
