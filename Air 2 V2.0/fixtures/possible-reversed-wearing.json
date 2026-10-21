@@ -1,0 +1,115 @@
+{
+  "purpose": "Demo only; timings and three reverse adjustments are not production thresholds.",
+  "side": "l",
+  "guide": "clockwise",
+  "promptAt": 7200,
+  "samples": [
+    [
+      0,
+      -18
+    ],
+    [
+      1800,
+      -18
+    ],
+    [
+      3000,
+      -26
+    ],
+    [
+      3800,
+      -26
+    ],
+    [
+      5000,
+      -34
+    ],
+    [
+      5800,
+      -34
+    ],
+    [
+      7000,
+      -42
+    ],
+    [
+      13700,
+      -42
+    ]
+  ],
+  "message": "Pumps may be swapped. Check the L/R labels on the device and try again.",
+  "sampleColumns": [
+    "elapsedMs",
+    "leftAngleDegrees"
+  ],
+  "angleConvention": "Negative = counterclockwise on the on-screen guide; guide asks for clockwise correction toward zero.",
+  "rightAngleDegrees": 0,
+  "onPrompt": "Suggest checking L/R markings only; do not assert reversed wearing, settle, or resume pumping.",
+  "correctAdjustment": {
+    "samples": [
+      [
+        0,
+        1
+      ],
+      [
+        1200,
+        0.66
+      ],
+      [
+        2400,
+        0.33
+      ],
+      [
+        3600,
+        0
+      ],
+      [
+        4800,
+        0
+      ]
+    ],
+    "sampleColumns": [
+      "elapsedMs",
+      "remainingAngleFraction"
+    ],
+    "start": "Current displayed left/right angles; cancel preceding wrong animation and toast.",
+    "result": "Both angles reach zero; show aligned state for 1.2 seconds, then continue existing wearing-check success flow."
+  },
+  "wrongAdjustment": "Replay relative reverse offsets from current tilted side, preserving the other side. Remain in adjustment after toast; allow correction at any time.",
+  "waitingForAdjustment": {
+    "initialAngles": {
+      "l": 0,
+      "r": 45
+    },
+    "autoAdjust": false,
+    "repeat": "Only on initial detection and sheet presentation. Do not repeat after a wrong adjustment Toast.",
+    "copy": {
+      "l": "Adjust the left pump as shown.",
+      "r": "Adjust the right pump as shown.",
+      "both": "Adjust both pumps as shown."
+    },
+    "cancelOn": [
+      "adjustment trigger",
+      "skip",
+      "successful alignment",
+      "session end"
+    ],
+    "note": "Timings are for Mock demonstration only; UI remains English, trigger controls are Chinese.",
+    "promptTrigger": "After the wearing sheet entrance/expansion finishes, followed by a 200 ms visual separation; cancelled on adjustment or dismissal."
+  },
+  "triggerAvailability": {
+    "佩戴角度异常": "Available during an active pumping session; opens adjustment and pauses the session.",
+    "调反了 / 调对了": "Enabled only while the visible wearing sheet is in its angle adjustment stage. Otherwise disabled and ignored without changing state."
+  },
+  "toastTiming": {
+    "rule": "max(3500ms, 1800ms + English word units / 3 * 1000 + CJK character count / 5 * 1000), rounded up to 250ms",
+    "longWords": "Each word contributes at least 1 unit, or character count / 8 if greater.",
+    "upperLimit": null,
+    "scope": "Transient wearing, reversed-side, battery and export-error Toasts. Device/business countdowns remain independent.",
+    "examplesMs": {
+      "Low battery. Please charge.": 3500,
+      "Adjust the right pump as shown.": 4000,
+      "Pumps may be swapped. Check the L/R labels on the device and try again.": 6500
+    }
+  }
+}

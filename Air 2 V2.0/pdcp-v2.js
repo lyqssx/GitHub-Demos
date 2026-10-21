@@ -19,6 +19,51 @@
   let dataExpanded = false, angleDemo = null, angleAnimation = null, endingPending = false;
   let triggersOpen = false, exportBusy = false, simulationRemainder = 0;
   let triggerEnd = null;
+  let reverseWearPrompt = false;
+  // Demo reading allowance: 1.8s to notice the hint, then 3 words/s or 5 CJK characters/s.
+  // No upper cap: longer copy must retain its reading time.
+  function toastDuration(text) {
+    const copy = String(text ?? '').trim();
+    const cjk = (copy.match(/[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/g) || []).length;
+    const words = copy.replace(/[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/g,' ').match(/[\p{L}\p{N}]+(?:['’/-][\p{L}\p{N}]+)*/gu) || [];
+    const wordUnits = words.reduce((sum, word) => sum + Math.max(1, word.length / 8), 0);
+    return Math.ceil(Math.max(3500, 1800 + wordUnits / 3 * 1000 + cjk / 5 * 1000) / 250) * 250;
+  }
+  let wearingToastTimer = null, wearingToastDelay = null, wearingPromptVersion = 0, wearingWaitPrompt = '';
+  function clearWearingWait() {
+    clearTimeout(wearingToastTimer); clearTimeout(wearingToastDelay);
+    wearingPromptVersion++;
+    wearingToastTimer = null; wearingToastDelay = null; wearingWaitPrompt = '';
+  }
+  function refreshWearingGuide() {
+    root.querySelectorAll('.pdcp-angle-guide').forEach(guide => guide.outerHTML = angleGuide());
+  }
+  function showWearingAdjustmentPrompt() {
+    clearWearingWait();
+    const overlay = root.querySelector('.pdcp-fit-overlay');
+    if (!overlay || (!state.leakAdjusting && fit !== 'angle') || angleAnimation || reverseWearPrompt) return;
+    const version = wearingPromptVersion;
+    // Let the sheet finish entering/expanding before presenting a separate transient hint.
+    const animations = overlay.getAnimations().filter(animation => animation.playState !== 'finished');
+    Promise.all(animations.map(animation => animation.finished)).then(() => {
+      if (version !== wearingPromptVersion || !overlay.isConnected) return;
+      wearingToastDelay = setTimeout(() => {
+        wearingToastDelay = null;
+        if (version !== wearingPromptVersion || !overlay.isConnected || (!state.leakAdjusting && fit !== 'angle') || angleAnimation || reverseWearPrompt) return;
+        const sides = ['l','r'].filter(k => Math.abs(angleDemo?.[k] ?? 0) > 2);
+        if (!sides.length) return;
+        wearingWaitPrompt = sides.length === 2 ? 'Adjust both pumps as shown.' : `Adjust the ${sides[0] === 'l' ? 'left' : 'right'} pump as shown.`;
+        refreshWearingGuide();
+        wearingToastTimer = setTimeout(() => { wearingWaitPrompt = ''; refreshWearingGuide(); }, toastDuration(wearingWaitPrompt));
+      }, 200);
+    }).catch(() => {}); // A dismissed or replaced sheet cancels its pending hint.
+  }
+  // Demo fixture only: three reverse movements, not a production detection threshold.
+  const reverseWearMock = {
+    side: 'l', guide: 'clockwise', promptAt: 7200,
+    samples: [[0,-18],[1800,-18],[3000,-26],[3800,-26],[5000,-34],[5800,-34],[7000,-42],[13700,-42]],
+    message: 'Pumps may be swapped. Check the L/R labels on the device and try again.'
+  };
   const overrides = { l: null, r: null };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const clock = s => Math.floor(Math.max(0, s) / 60).toString().padStart(2, '0') + ':' + Math.floor(Math.max(0, s) % 60).toString().padStart(2, '0');
@@ -113,28 +158,58 @@
     return `<section class="pdcp-angle-guide" role="status"><div class="pdcp-angle-pair">${['l','r'].map(k=>{
       const value=angles[k],aligned=Math.abs(value)<=2,rad=value*Math.PI/180;
       return `<div class="pdcp-angle-side ${aligned?'is-aligned':''}"><header><b>${k==='l'?'Left':'Right'}</b><span>${Math.round(Math.abs(value))}°</span></header><svg viewBox="0 0 150 175" role="img" aria-label="${k==='l'?'Left':'Right'} pump ${Math.round(Math.abs(value))} degrees. ${aligned?'Aligned':value>0?'Rotate left':'Rotate right'}"><line x1="75" y1="8" x2="75" y2="153" stroke="#9d9298" stroke-width="1.3" stroke-dasharray="4 3"/><g transform="rotate(${value} 75 83)"><svg x="30" y="37" width="90" height="92" viewBox="0 0 100 102" overflow="hidden"><image href="${r2Asset('control-pumps.png')}" x="${k==='r'?-107:0}" y="-2" width="210" height="102"/></svg><line x1="75" y1="17" x2="75" y2="145" stroke="currentColor" stroke-width="2"/></g>${aligned?'<circle cx="75" cy="83" r="9" fill="currentColor"/><path d="m70 83 3 3 6-7" fill="none" stroke="white" stroke-width="1.7"/>':`<path d="M75 55 A28 28 0 0 ${value>0?1:0} ${75+28*Math.sin(rad)} ${83-28*Math.cos(rad)}" fill="none" stroke="currentColor" stroke-width="1.5"/><g transform="${value>0?'':'translate(150 0) scale(-1 1)'}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M140 36 A16 16 0 0 0 114 24"/><path d="m114 18 0 6 6 0"/></g>`}</svg><p>${aligned?'Aligned ✓':value>0?'Rotate left':'Rotate right'}</p></div>`;
-    }).join('')}</div></section>`;
+    }).join('')}</div>${reverseWearPrompt || wearingWaitPrompt ? `<div class="pdcp-wear-toast" role="status" aria-live="polite">${esc(reverseWearPrompt ? reverseWearMock.message : wearingWaitPrompt)}</div>` : ''}</section>`;
   }
-  function playAngleDemo() {
-    if(!state.leakAdjusting && fit!=='angle') return;
-    if(angleAnimation) cancelAnimationFrame(angleAnimation);
-    const began=performance.now(), initial={...(angleDemo ?? {l:0,r:45})};
-    const frames=[[0,1],[2000,.66],[3800,.33],[5300,-.22],[6700,-.09],[8000,0],[9500,0]];
-    function frame(now){
-      if((!state.leakAdjusting && fit!=='angle') || session?.finished){angleAnimation=null;return;}
-      const elapsed=now-began;
-      angleDemo={};
-      for(const k of ['l','r']){
-        const t=Math.max(0,elapsed-(k==='r'&&initial.l!==0?900:0));
-        let i=1;while(i<frames.length-1&&t>frames[i][0])i++;
-        const [a,b]=[frames[i-1],frames[i]],u=Math.min(1,(t-a[0])/(b[0]-a[0]));
-        angleDemo[k]=initial[k]*(a[1]+(b[1]-a[1])*(u*u*(3-2*u)));
+  function canAdjustWearing() {
+    return !report && !endingPending && (fit === 'angle' || !!state.leakAdjusting)
+      && !!root.querySelector('.pdcp-fit-overlay .pdcp-angle-guide');
+  }
+  function playWearAdjustmentMock(correct) {
+    if (!canAdjustWearing()) return;
+    clearWearingWait();
+    clearTimeout(fitTimer);
+    clearTimeout(reminderTimer);
+    if (angleAnimation) cancelAnimationFrame(angleAnimation);
+    reverseWearPrompt = false;
+    const existingOverlay = root.querySelector('.pdcp-fit-overlay');
+    // Continue from the currently displayed angles, including a preceding wrong attempt.
+    const initial = {...(angleDemo ?? {l:-18,r:0})};
+    if (Object.values(initial).every(v => Math.abs(v) <= 2)) initial.l = -18;
+    const side = Math.abs(initial.l) > 2 ? 'l' : 'r';
+    state.leakSide = side;
+    angleDemo = {...initial};
+    if (existingOverlay) {
+      syncLegacy();
+      existingOverlay.innerHTML = fitPanel();
+    } else render();
+    const began = performance.now();
+    const samples = correct ? [[0,1],[1200,.66],[2400,.33],[3600,0],[4800,0]] : reverseWearMock.samples;
+    const endAt = correct ? 4800 : reverseWearMock.promptAt + toastDuration(reverseWearMock.message);
+    function frame(now) {
+      if (!state.leakAdjusting && fit !== 'angle') { angleAnimation = null; reverseWearPrompt = false; return; }
+      const elapsed = now - began;
+      let i = 1;
+      while (i < samples.length - 1 && elapsed > samples[i][0]) i++;
+      const [a,b] = [samples[i-1],samples[i]];
+      const u = Math.min(1, Math.max(0,(elapsed-a[0])/(b[0]-a[0])));
+      const value = a[1]+(b[1]-a[1])*u*u*(3-2*u);
+      angleDemo = correct ? {l:initial.l*value,r:initial.r*value} : {
+        ...initial, [side]:initial[side]+Math.sign(initial[side])*(Math.abs(value)-18)
+      };
+      reverseWearPrompt = !correct && elapsed >= reverseWearMock.promptAt && elapsed < endAt;
+      root.querySelectorAll('.pdcp-angle-guide').forEach(guide => guide.outerHTML = angleGuide());
+      if (elapsed >= endAt) {
+        angleAnimation = null;
+        if (correct) {
+          if (fit === 'angle') { angleDemo = null; fitOk(); }
+          else trigger('fit-confirmed');
+        }
+        // A wrong attempt ends with its own Toast; remain here without another hint.
+        return;
       }
-      root.querySelectorAll('.pdcp-angle-guide').forEach(guide=>guide.outerHTML=angleGuide());
-      if(elapsed>=10400){angleAnimation=null;if(fit==='angle'){angleDemo=null;fitOk();}else trigger('fit-confirmed');return;}
-      angleAnimation=requestAnimationFrame(frame);
+      angleAnimation = requestAnimationFrame(frame);
     }
-    angleAnimation=requestAnimationFrame(frame);
+    angleAnimation = requestAnimationFrame(frame);
   }
   function metricsSheet() {
     return `<div class="pdcp-sheet-backdrop"><section class="pdcp-sheet pdcp-flow-details" role="dialog" aria-modal="true" aria-label="Session details"><header><h2>Session details</h2>${btn('close-sheet', '×', 'pdcp-icon', 'aria-label="Close details"')}</header>${liveMetrics()}</section></div>`;
@@ -142,9 +217,9 @@
   // Reuse original r50 markup, assets and CSS; only the check list changes.
 function guide(adjust){return adjust?angleGuide():'';}
 function skipButton(){return'<button class="r50-skip" data-pdcp="fit-skip" type="button">Skip</button>';}
-function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
+function panel(place){if(fit==='checking')return '<section class="r50-fit-panel r50-'+place+' is-checking-wear" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy"><strong>Checking fit…</strong></div>'+skipButton()+'</header><div class="r50-fit-checks"><span class="r50-fit-item is-checking"><i class="r50-check-icon"><b></b></i>Wearing angle</span></div><div class="r50-progress"><i style="--r50-progress:8%"></i></div></section>';var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
   function fitPanel() { return panel('control'); }
-  function fitOverlay() { return (state.leakAdjusting ? '<div class="pdcp-fit-backdrop"></div>' : '') + '<div class="pdcp-fit-overlay" role="dialog" aria-modal="true" aria-label="Pump alignment check">' + fitPanel() + '</div>'; }
+  function fitOverlay() { return (state.leakAdjusting || fit === 'angle' ? '<div class="pdcp-fit-backdrop"></div>' : '') + '<div class="pdcp-fit-overlay" role="dialog" aria-modal="true" aria-label="Pump alignment check">' + fitPanel() + '</div>'; }
   function milkVisualHeight(volume) { return Math.min(88, Math.max(0, volume / CONFIG.demo.bowlCapacityMl * 94)); }
   function originalPump(k) {
     const side = nowSide(k), paused = state.paused, kind = state.flowKind;
@@ -155,6 +230,9 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     state.paused = paused; state.flowKind = kind;
     const pump = template.content.firstElementChild;
     pump.dataset.pdcpPump = k;
+    // Posture guidance belongs to the wearing sheet, never the background hardware.
+    pump.querySelectorAll('.r97-leak-adjusting').forEach(el => el.classList.remove('r97-leak-adjusting'));
+    pump.querySelectorAll('.r97-leak-guide').forEach(el => el.remove());
     const liquid = pump.querySelector('.c32-liquid');
     if (liquid) { const height = milkVisualHeight(side.volume) + 'px'; liquid.style.height = height; liquid.style.setProperty('--liquid-height', height); }
     const amountLabel = pump.querySelector('.amount');
@@ -329,6 +407,9 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     const editDraft = sheet === 'edit' && editForm ? Object.fromEntries(new FormData(editForm)) : null;
     const previousMode = root.querySelector('.pdcp-mode-window') || lastModeWindow;
     const previousScroll = root.querySelector('.pdcp-scroll,.v4-controls')?.scrollTop || 0;
+    const previousFitOverlay = root.querySelector('.pdcp-fit-overlay');
+    const previousFitScroll = previousFitOverlay?.scrollTop || 0;
+    const checkingHeight = previousFitOverlay?.querySelector('.is-checking-wear') ? previousFitOverlay.offsetHeight : 0;
     const oldPage = root.firstElementChild?.className || '';
     root.innerHTML = report ? `<div class="pdcp-report-overlay"><div class="pdcp-report-underlay" inert aria-hidden="true">${v4Home()}</div><div class="pdcp-report-dim"></div>${reportCard()}</div>` : state.page === 'device' ? v4Device() : state.page === 'home' ? v4Home() : state.page === 'list' ? programList() : state.page === 'settings' ? settingsPage() : state.page === 'device-info' ? deviceInfoPage() : control();
     if (report) bindFlowChart();
@@ -356,6 +437,21 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if (nextMode) lastModeWindow = root.querySelector('.pdcp-mode-window');
     if (oldPage === (root.firstElementChild?.className || '')) { const scroll = root.querySelector('.pdcp-scroll,.v4-controls'); if (scroll) scroll.scrollTop = previousScroll; }
     if (fit && state.page === 'home') { const dock = root.querySelector('.v4-home-dock'); if (dock) dock.outerHTML = fitOverlay(); }
+    // An already-open wearing sheet is a state update, not a new entrance.
+    // Keep its viewport stable across trigger-driven renders and check stages.
+    const nextFitOverlay = root.querySelector('.pdcp-fit-overlay');
+    if (previousFitOverlay && nextFitOverlay) {
+      nextFitOverlay.style.animation = 'none';
+      nextFitOverlay.scrollTop = previousFitScroll;
+      if (checkingHeight && nextFitOverlay.querySelector('.pdcp-angle-guide') && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const expandedHeight = nextFitOverlay.offsetHeight;
+        nextFitOverlay.style.overflow = 'hidden';
+        const expansion = nextFitOverlay.animate([{height:checkingHeight+'px'},{height:expandedHeight+'px'}], {duration:480,easing:'cubic-bezier(.22,.7,.3,1)'});
+        expansion.onfinish = () => { nextFitOverlay.style.overflow = ''; };
+      }
+      const backdrop = root.querySelector('.pdcp-fit-backdrop');
+      if (backdrop) backdrop.style.animation = 'none';
+    }
     if (state.page === 'home') {
       const dock = root.querySelector('.v4-dock-mode,.h7-dock-mode');
       const toggle = dock?.querySelector('button');
@@ -370,6 +466,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
       }
       if (dock) { const copy = dock.querySelector('span'); if (copy) copy.innerHTML = '<b>' + methodNames[method] + '</b>' + (session && !session.finished ? '<em>' + clock(session.elapsed) + '</em>' : ''); }
     }
+    if (triggersOpen) mountTriggers();
     signature = session ? [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|') : '';
   }
   let deepVisual = {session:null, active:false, start:0, exit:0, frame:null};
@@ -413,13 +510,22 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   }
   function startFit() {
     if (session && !session.finished) { state.page = 'control'; render(); return; }
-    clearTimeout(reminderTimer); state.controlNotice = null; state.leakAdjusting = false; state.leakSide = null;
-    report = null; session = null; sheet = null; fit = 'angle'; notice = ''; render();
-    clearTimeout(fitTimer);
+    clearWearingWait(); clearTimeout(fitTimer); clearTimeout(reminderTimer);
+    if (angleAnimation) cancelAnimationFrame(angleAnimation);
+    angleAnimation = null; angleDemo = null; reverseWearPrompt = false;
+    state.controlNotice = null; state.leakAdjusting = false; state.leakSide = null;
+    report = null; session = null; sheet = null; fit = 'checking'; notice = '';
     if (!prePumpingCheck) { beginPumping(); return; }
-    angleDemo={l:0,r:45}; render(); playAngleDemo();
+    render();
+    // Brief simulated sensor check before revealing the detected alignment issue.
+    fitTimer = setTimeout(() => {
+      if (fit !== 'checking') return;
+      fit = 'angle'; angleDemo = {l:0,r:45};
+      render(); showWearingAdjustmentPrompt();
+    }, 1500);
   }
   function beginPumping() {
+    clearWearingWait();
     if (!fit) return;
     if (Math.min(state.batteryL ?? 80, state.batteryR ?? 75) <= 3) { fit = null; state.page = 'control'; notice = ''; remind('low-battery', 'Battery too low to start. Please charge.'); render(); return; }
     cancelTriggerEnd(); fit = null; finishReminderShown = false; session = new Session({ method, mode: manualMode, preset }); report = null; notice = '';
@@ -427,6 +533,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   }
   function fitOk() {
     if (fit !== 'angle') return;
+    clearWearingWait();
     fit = 'battery'; render(); clearTimeout(fitTimer);
     fitTimer = setTimeout(() => {
       if (fit !== 'battery') return;
@@ -439,6 +546,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     }, 1200);
   }
   function settle(reason = 'manual', afterNotice = false) {
+    clearWearingWait();
     if (!session || report) return;
     cancelTriggerEnd();
     if(!afterNotice && reason !== 'manual'){
@@ -566,6 +674,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if(endingPending && ['start','pause','finish','finish-confirm','methods','mode'].includes(a)) return;
     if (a === 'start') { startFit(); return; }
     if (a === 'fit-skip') {
+      clearWearingWait(); reverseWearPrompt = false;
       clearTimeout(fitTimer); if(angleAnimation) cancelAnimationFrame(angleAnimation); angleAnimation=null;
       if(state.leakAdjusting) { angleDemo=null; trigger('fit-confirmed'); }
       else { angleDemo=null; beginPumping(); } return;
@@ -616,10 +725,42 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     if (a === 'share') { exportReport(); return; }
     if (a === 'toggle-triggers' && performance.now() < suppressTriggerClickUntil) return;
     if (a === 'toggle-triggers') { triggersOpen = !triggersOpen; mountTriggers(); return; }
+    if (a === 'trigger' && el.disabled) return;
     if (a === 'trigger') { trigger(value); triggersOpen = false; mountTriggers(); return; }
     render();
   }, true);
+  function pumpingTriggerAllowed() {
+    return !!session && !session.finished && !session.paused && !report && !endingPending && !fit && !state.leakAdjusting;
+  }
+  let batteryToastTimer = null;
+  function showBatteryEvent(id) {
+    const critical = id === 'critical-battery';
+    const active = !!session && !session.finished;
+    const text = critical
+      ? (active ? 'Battery is too low. Pumping has stopped. Your session will be recorded in 5 seconds.' : 'Battery too low to start. Please charge.')
+      : (active ? 'Low battery. Charge after this session.' : 'Low battery. Please charge.');
+    state.batteryL = critical ? 3 : 12; state.batteryR = critical ? 2 : 10;
+    clearTimeout(batteryToastTimer);
+    document.querySelector('.pdcp-battery-toast')?.remove();
+    if (critical && active) { session.paused = true; simulationRemainder = 0; }
+    if (state.page === 'control') { remind(id, text); render(); }
+    else {
+      render();
+      const toast = document.createElement('div');
+      toast.className = 'pdcp-battery-toast'; toast.setAttribute('role','status'); toast.setAttribute('aria-live','polite');
+      toast.textContent = text; document.body.appendChild(toast);
+      batteryToastTimer = setTimeout(() => toast.remove(), toastDuration(text));
+    }
+    if (critical && active) {
+      const endingSession = session;
+      setTimeout(() => { if (session === endingSession && !report && !session.finished) settle('battery'); }, 5000);
+    }
+  }
   function trigger(id) {
+    if (id === 'low-battery' || id === 'critical-battery') { showBatteryEvent(id); return; }
+    if (['angle-error','angle-left','angle-both','letdown-start','letdown-end','deep-peak','deep-half','full-left','full-right'].includes(id) && !pumpingTriggerAllowed()) return;
+    if (id === 'wear-reversed-mock' || id === 'wear-correct-mock') { playWearAdjustmentMock(id === 'wear-correct-mock'); return; }
+    reverseWearPrompt = false;
     if (id === 'fit-ok' && (state.leakAdjusting || fit==='angle')) {
       if(angleAnimation)cancelAnimationFrame(angleAnimation);angleAnimation=null;
       angleDemo={l:0,r:0};render();clearTimeout(fitTimer);
@@ -627,6 +768,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     }
     if (id === 'fit-confirmed' && angleDemo && !['l','r'].every(k=>Math.abs(angleDemo[k])<=2)) return;
     if (id === 'fit-confirmed' || id === 'fit-ok') {
+      clearWearingWait();
       if (state.leakAdjusting && session && !session.finished) {
         angleDemo=null; if(angleAnimation)cancelAnimationFrame(angleAnimation); angleAnimation=null;
         state.leakAdjusting = false; state.leakSide = null; session.paused = false;
@@ -648,9 +790,10 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
       clearTimeout(reminderTimer); state.leakAdjusting = true; state.leakSide = 'r';
       session.paused = true; simulationRemainder = 0; angleDemo=id==='angle-both'?{l:-45,r:50}:id==='angle-left'?{l:-45,r:0}:{l:0,r:45}; state.leakSide=id==='angle-both'?'both':id==='angle-left'?'l':'r'; state.page='control';
       state.controlNotice = {kind:'leak', phase:'warning', id:Date.now()};
-      render(); playAngleDemo(); return;
+      if (angleAnimation) cancelAnimationFrame(angleAnimation);
+      angleAnimation = null; render(); showWearingAdjustmentPrompt(); return;
     }
-    if(id==='angle-demo'){playAngleDemo();return;}
+    if(id==='angle-demo'){playWearAdjustmentMock(true);return;}
     if (state.leakAdjusting && id !== 'critical-battery') return;
     if (id === 'letdown-start' || id === 'letdown-end') {
       cancelTriggerEnd();
@@ -667,15 +810,6 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
     }
     if(id==='deep-peak'||id==='deep-half') { cancelTriggerEnd(); for(const k of ['l','r']) {overrides[k]=id==='deep-peak'?30:15;session.letdown(k,true);} step(1); }
     if(id==='full-left'||id==='full-right') {const k=id==='full-left'?'l':'r'; session.sides[k].volume=session.capacity;session.stopSide(k,'full');if(session.finished){settle('full');return;} remind('complete',sideLabel(k)+' bowl is full. This side has stopped; the other side continues.');}
-    if (id === 'low-battery') { state.batteryL = 12; state.batteryR = 10; remind('low-battery', 'Low battery. Charge after this session.'); }
-    if (id === 'critical-battery') {
-      state.batteryL = 3; state.batteryR = 2; session.paused = true;
-      const endingSession = session;
-      remind('critical-battery', 'Battery is too low. Pumping has stopped. Your session will be recorded in 5 seconds.');
-      render();
-      setTimeout(() => { if (session === endingSession && !report) settle('battery'); }, 5000);
-      return;
-    }
     render();
   }
   function placeTriggers(host, x, y) {
@@ -721,7 +855,9 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
   });
   function mountTriggers() {
     let host = document.querySelector('.pdcp-triggers'); if (!host) { host = document.createElement('aside'); host.className = 'pdcp-triggers'; document.body.appendChild(host); }
-    host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>Event triggers</h2><p>Demo only · ${CONFIG.demo.secondsPerRealSecond}× playback</p><h3>Wearing angle</h3>${btn('trigger', 'Right pump tilted', '', 'data-value="angle-error"')}${btn('trigger', 'Left pump tilted', '', 'data-value="angle-left"')}${btn('trigger', 'Both pumps tilted', '', 'data-value="angle-both"')}${btn('trigger', 'Simulate angle adjustment', '', 'data-value="angle-demo"')}${btn('trigger','Wearing OK','','data-value="fit-ok"')}<h3>Let-down</h3>${btn('trigger', 'Let-down starts', '', 'data-value="letdown-start"')}${btn('trigger', 'Let-down ends', '', 'data-value="letdown-end"')}<h3>Expression</h3>${btn('trigger','First peak · 0.5 mL/s','','data-value="deep-peak"')}${btn('trigger','Half peak · 0.25 mL/s','','data-value="deep-half"')}<h3>Full bowl</h3>${btn('trigger','Left bowl full','','data-value="full-left"')}${btn('trigger','Right bowl full','','data-value="full-right"')}<h3>Battery</h3>${btn('trigger', 'Low battery', '', 'data-value="low-battery"')}${btn('trigger', 'Critical low battery', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? 'Close triggers' : 'Triggers', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
+    const adjustmentDisabled = canAdjustWearing() ? '' : ' disabled';
+    const postureDisabled = pumpingTriggerAllowed() ? '' : ' disabled';
+    host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>事件模拟</h2><p>仅供演示 · ${CONFIG.demo.secondsPerRealSecond}倍播放</p><h3>佩戴调整</h3>${btn('trigger','佩戴角度异常','',`data-value="angle-error"${postureDisabled}`)}${btn('trigger','调反了','',`data-value="wear-reversed-mock"${adjustmentDisabled}`)}${btn('trigger','调对了','',`data-value="wear-correct-mock"${adjustmentDisabled}`)}<h3>奶阵</h3>${btn('trigger', '奶阵开始', '', `data-value="letdown-start"${postureDisabled}`)}${btn('trigger', '奶阵结束', '', `data-value="letdown-end"${postureDisabled}`)}<h3>吸乳</h3>${btn('trigger','首次峰值 · 0.5 mL/s','',`data-value="deep-peak"${postureDisabled}`)}${btn('trigger','半峰值 · 0.25 mL/s','',`data-value="deep-half"${postureDisabled}`)}<h3>奶满</h3>${btn('trigger','左侧奶满','',`data-value="full-left"${postureDisabled}`)}${btn('trigger','右侧奶满','',`data-value="full-right"${postureDisabled}`)}<h3>电量</h3>${btn('trigger', '低电量', '', 'data-value="low-battery"')}${btn('trigger', '严重低电量', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? '收起模拟' : '事件模拟', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
     const r = host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();
     placeTriggers(host, r.left, r.top);
   }
@@ -758,7 +894,7 @@ function panel(place){var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='batt
       const blob = await new Promise(resolve => c.toBlob(resolve, 'image/png')); if (!blob) throw new Error('Image export unavailable');
       const download = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = download; a.download = 'Air2-session-' + new Date(report.startedAt).toISOString().slice(0, 10) + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(download), 1000);
       // Successful export needs no additional toast.
-    } catch (_) { const toast = root.querySelector('.pdcp-toast'); if (toast) toast.textContent = 'Image export is unavailable. You can still take a screenshot of this report.'; }
+    } catch (_) { const toast = root.querySelector('.pdcp-toast'); if (toast) { toast.textContent = 'Image export is unavailable. You can still take a screenshot of this report.'; setTimeout(() => { toast.textContent = ''; }, toastDuration(toast.textContent)); } }
     finally { exportBusy = false; }
   }
   // A single session clock; legacy intervals are gated by state.pdcpV2.
