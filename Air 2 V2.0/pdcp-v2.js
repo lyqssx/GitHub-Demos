@@ -185,7 +185,7 @@
     return !wearConfirmation && !report && !endingPending && (fit === 'angle' || !!state.leakAdjusting)
       && !!root.querySelector('.pdcp-fit-overlay .pdcp-angle-guide');
   }
-  function playWearAdjustmentMock(correct) {
+  function playWearAdjustmentMock(correct, wrongSide = false) {
     if (!canAdjustWearing()) return;
     clearWearingWait();
     clearTimeout(fitTimer);
@@ -196,7 +196,8 @@
     // Continue from the currently displayed angles, including a preceding wrong attempt.
     const initial = {...(angleDemo ?? {l:-18,r:0})};
     if (Object.values(initial).every(v => Math.abs(v) <= 2)) initial.l = -18;
-    const side = Math.abs(initial.l) > 2 ? 'l' : 'r';
+    const side = ['l','r'].includes(state.leakSide) && Math.abs(initial[state.leakSide]) > 2 ? state.leakSide : Math.abs(initial.l) > 2 ? 'l' : 'r';
+    const movingSide = wrongSide ? (side === 'l' ? 'r' : 'l') : side;
     state.leakSide = side;
     angleDemo = {...initial};
     if (existingOverlay) {
@@ -205,7 +206,7 @@
     } else render();
     const began = performance.now();
     const samples = correct ? [[0,1],[1200,.66],[2400,.33],[3600,0],[4800,0]] : reverseWearMock.samples;
-    const endAt = correct ? 4800 : reverseWearMock.promptAt + toastDuration(reverseWearMock.message);
+    const endAt = correct ? 4800 : reverseWearMock.promptAt;
     function frame(now) {
       if (!state.leakAdjusting && fit !== 'angle') { angleAnimation = null; reverseWearPrompt = false; return; }
       const elapsed = now - began;
@@ -215,7 +216,7 @@
       const u = Math.min(1, Math.max(0,(elapsed-a[0])/(b[0]-a[0])));
       const value = a[1]+(b[1]-a[1])*u*u*(3-2*u);
       angleDemo = correct ? {l:initial.l*value,r:initial.r*value} : {
-        ...initial, [side]:initial[side]+Math.sign(initial[side])*(Math.abs(value)-18)
+        ...initial, [movingSide]:initial[movingSide]+(wrongSide ? -Math.sign(initial[side]) : Math.sign(initial[side]))*(Math.abs(value)-18)
       };
       if (!correct && elapsed >= reverseWearMock.promptAt) {
         angleAnimation = null; reverseWearPrompt = false;
@@ -230,7 +231,7 @@
           if (fit === 'angle') { angleDemo = null; fitOk(); }
           else trigger('fit-confirmed');
         }
-        // A wrong attempt ends with its own Toast; remain here without another hint.
+        // Wrong attempts are handled by the shared wearing confirmation above.
         return;
       }
       angleAnimation = requestAnimationFrame(frame);
@@ -809,7 +810,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     if (wearConfirmation) return;
     if (id === 'low-battery' || id === 'critical-battery') { showBatteryEvent(id); return; }
     if (['angle-error','angle-left','angle-both','letdown-start','letdown-end','deep-peak','deep-half','full-left','full-right'].includes(id) && !pumpingTriggerAllowed()) return;
-    if (id === 'wear-reversed-mock' || id === 'wear-correct-mock') { playWearAdjustmentMock(id === 'wear-correct-mock'); return; }
+    if (['wear-reversed-mock','wear-wrong-side-mock','wear-correct-mock'].includes(id)) { playWearAdjustmentMock(id === 'wear-correct-mock', id === 'wear-wrong-side-mock'); return; }
     reverseWearPrompt = false;
     if (id === 'fit-ok' && (state.leakAdjusting || fit==='angle')) {
       if(angleAnimation)cancelAnimationFrame(angleAnimation);angleAnimation=null;
@@ -942,7 +943,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     let host = document.querySelector('.pdcp-triggers'); if (!host) { host = document.createElement('aside'); host.className = 'pdcp-triggers'; document.body.appendChild(host); }
     const adjustmentDisabled = canAdjustWearing() ? '' : ' disabled';
     const postureDisabled = pumpingTriggerAllowed() ? '' : ' disabled';
-    host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>事件模拟</h2><p>仅供演示 · ${CONFIG.demo.secondsPerRealSecond}倍播放</p><h3>佩戴调整</h3>${btn('trigger','佩戴角度异常','',`data-value="angle-error"${postureDisabled}`)}${btn('trigger','调反了','',`data-value="wear-reversed-mock"${adjustmentDisabled}`)}${btn('trigger','调对了','',`data-value="wear-correct-mock"${adjustmentDisabled}`)}<h3>奶阵</h3>${btn('trigger', '奶阵开始', '', `data-value="letdown-start"${postureDisabled}`)}${btn('trigger', '奶阵结束', '', `data-value="letdown-end"${postureDisabled}`)}<h3>吸乳</h3>${btn('trigger','首次峰值 · 0.5 mL/s','',`data-value="deep-peak"${postureDisabled}`)}${btn('trigger','半峰值 · 0.25 mL/s','',`data-value="deep-half"${postureDisabled}`)}<h3>奶满</h3>${btn('trigger','左侧奶满','',`data-value="full-left"${postureDisabled}`)}${btn('trigger','右侧奶满','',`data-value="full-right"${postureDisabled}`)}<h3>电量</h3>${btn('trigger', '低电量', '', 'data-value="low-battery"')}${btn('trigger', '严重低电量', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? '收起模拟' : '事件模拟', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
+    host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>事件模拟</h2><p>仅供演示 · ${CONFIG.demo.secondsPerRealSecond}倍播放</p><h3>佩戴调整</h3>${btn('trigger','佩戴角度异常','',`data-value="angle-error"${postureDisabled}`)}${btn('trigger','调整方向反了','',`data-value="wear-reversed-mock"${adjustmentDisabled}`)}${btn('trigger','调整错侧了','',`data-value="wear-wrong-side-mock"${adjustmentDisabled}`)}${btn('trigger','调对了','',`data-value="wear-correct-mock"${adjustmentDisabled}`)}<h3>奶阵</h3>${btn('trigger', '奶阵开始', '', `data-value="letdown-start"${postureDisabled}`)}${btn('trigger', '奶阵结束', '', `data-value="letdown-end"${postureDisabled}`)}<h3>吸乳</h3>${btn('trigger','首次峰值 · 0.5 mL/s','',`data-value="deep-peak"${postureDisabled}`)}${btn('trigger','半峰值 · 0.25 mL/s','',`data-value="deep-half"${postureDisabled}`)}<h3>奶满</h3>${btn('trigger','左侧奶满','',`data-value="full-left"${postureDisabled}`)}${btn('trigger','右侧奶满','',`data-value="full-right"${postureDisabled}`)}<h3>电量</h3>${btn('trigger', '低电量', '', 'data-value="low-battery"')}${btn('trigger', '严重低电量', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? '收起模拟' : '事件模拟', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
     if (wearConfirmation) host.querySelectorAll('[data-pdcp="trigger"]').forEach(button => { button.disabled = true; });
     const r = host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();
     placeTriggers(host, r.left, r.top);

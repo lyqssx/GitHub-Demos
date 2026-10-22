@@ -32,3 +32,18 @@ test('refresh resets confirmation even when old browser storage says confirmed',
  vm.runInContext(initializer,refreshed);
  assert.equal(vm.runInContext('wearingConfirmed',refreshed),false);
 });
+
+const adjustment = source.slice(source.indexOf('  function playWearAdjustmentMock('), source.indexOf('  function metricsSheet()'));
+for (const guidedSide of ['r','l']) {
+  test(`opposite direction and wrong-side adjustments stay distinct (${guidedSide} guided)`,()=>{
+    for (const wrongSide of [false,true]) {
+      const context=vm.createContext({assert});
+      vm.runInContext(`let state={leakAdjusting:true,leakSide:'${guidedSide}'},fit=null,wearConfirmation=null,angleDemo=${guidedSide==='r'?'{l:0,r:45}':'{l:-45,r:0}'},angleAnimation=null,reverseWearPrompt=false,fitTimer=null,reminderTimer=null,callback;let resumes=0;const root={querySelector:()=>({}),querySelectorAll:()=>[]};const performance={now:()=>0};const reverseWearMock={samples:[[0,-18],[3000,-26],[5000,-34],[7000,-42],[13700,-42]],promptAt:7200};function canAdjustWearing(){return !wearConfirmation}function clearWearingWait(){}function clearTimeout(){}function cancelAnimationFrame(){}function syncLegacy(){}function fitPanel(){return ''}function render(){}function requestAnimationFrame(fn){callback=fn;return 1}function fitOk(){resumes++}function trigger(){resumes++}${adjustment}
+      playWearAdjustmentMock(false,${wrongSide});callback(7000);
+      assert.equal(angleDemo['${guidedSide}'],${guidedSide==='r'?(wrongSide?45:69):(wrongSide?-45:-69)});
+      assert.equal(angleDemo['${guidedSide==='r'?'l':'r'}'],${wrongSide?(guidedSide==='r'?-24:24):0});
+      callback(7200);assert.equal(wearConfirmation,'recheck');assert.equal(resumes,0);assert.equal(angleAnimation,null);
+      wearConfirmation=null;playWearAdjustmentMock(true);callback(4800);assert.equal(resumes,1);assert.equal(Math.abs(angleDemo.l),0);assert.equal(Math.abs(angleDemo.r),0);`,context);
+    }
+  });
+}

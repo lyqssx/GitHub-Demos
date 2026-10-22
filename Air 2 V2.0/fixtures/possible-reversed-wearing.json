@@ -99,7 +99,7 @@
   },
   "triggerAvailability": {
     "佩戴角度异常": "Available during an active pumping session; opens adjustment and pauses the session.",
-    "调反了 / 调对了": "Enabled only while the visible wearing sheet is in its angle adjustment stage. Otherwise disabled and ignored without changing state."
+    "调整方向反了 / 调整错侧了 / 调对了": "Enabled only while the visible wearing sheet is in its angle adjustment stage. Otherwise disabled and ignored without changing state."
   },
   "toastTiming": {
     "rule": "max(3500ms, 1800ms + English word units / 3 * 1000 + CJK character count / 5 * 1000), rounded up to 250ms",
@@ -117,5 +117,77 @@
     "trigger": "First Start Pumping after each page reload; previous localStorage confirmation is ignored.",
     "confirm": "Remember only in current page memory; continue existing startup flow.",
     "cancel": "No persistence or pumping; show again next time."
+  },
+  "scenarios": {
+    "调整方向反了": {
+      "trigger": "wear-reversed-mock",
+      "initial": {
+        "l": 0,
+        "r": 45
+      },
+      "samples": [
+        [
+          0,
+          0,
+          45
+        ],
+        [
+          3000,
+          0,
+          53
+        ],
+        [
+          5000,
+          0,
+          61
+        ],
+        [
+          7000,
+          0,
+          69
+        ]
+      ],
+      "columns": [
+        "elapsedMs",
+        "leftAngle",
+        "rightAngle"
+      ],
+      "result": "Same guided side moves away from alignment; show shared suspected-swapped confirmation."
+    },
+    "调整错侧了": {
+      "trigger": "wear-wrong-side-mock",
+      "initial": {
+        "l": 0,
+        "r": 45
+      },
+      "samples": [
+        [
+          0,
+          0,
+          45
+        ],
+        [
+          3000,
+          -8,
+          45
+        ],
+        [
+          5000,
+          -16,
+          45
+        ],
+        [
+          7000,
+          -24,
+          45
+        ]
+      ],
+      "columns": [
+        "elapsedMs",
+        "leftAngle",
+        "rightAngle"
+      ],
+      "result": "Guided right pump stays still while left pump moves; show the same suspected-swapped confirmation. Mirror sides when left is guided."
+    }
   }
 }
