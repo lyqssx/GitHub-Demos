@@ -11,8 +11,8 @@ function harness(confirmed=false, precheck=true) {
   vm.runInContext(`let session=null,state={page:'control'},report=null,sheet=null,fit=null,notice='',wearConfirmation=null,wearingConfirmed=${confirmed},prePumpingCheck=${precheck},angleDemo=null,angleAnimation=null,reverseWearPrompt=false,fitTimer=null,reminderTimer=null;let started=0,renders=0,writes=[],jobs=[];const wearingConfirmedKey='air2-wearing-confirmed:DAC1101FDF49:v1';const localStorage={setItem:(k,v)=>writes.push([k,v])};function render(){renders++}function clearWearingWait(){}function clearTimeout(){}function cancelAnimationFrame(){}function setTimeout(fn){jobs.push(fn);return jobs.length}function showWearingAdjustmentPrompt(){}function beginPumping(){started++;fit=null}${start}${confirm}`,context);
   return expression=>vm.runInContext(expression,context);
 }
-test('first-use confirmation precedes checks and is saved only after confirmation',()=>{
- const run=harness();run(`startFit();assert.equal(wearConfirmation,'first');assert.equal(jobs.length,0);assert.equal(started,0);assert.equal(writes.length,0);wearConfirmation=null;startFit();assert.equal(wearConfirmation,'first');confirmWearing();assert.equal(wearConfirmation,null);assert.equal(fit,'checking');assert.equal(writes.length,1);assert.equal(started,0);jobs[0]();assert.equal(fit,'angle');`);
+test('first-use confirmation precedes checks and is remembered only within the current page',()=>{
+ const run=harness();run(`startFit();assert.equal(wearConfirmation,'first');assert.equal(jobs.length,0);assert.equal(started,0);assert.equal(writes.length,0);wearConfirmation=null;startFit();assert.equal(wearConfirmation,'first');confirmWearing();assert.equal(wearConfirmation,null);assert.equal(fit,'checking');assert.equal(writes.length,0);assert.equal(wearingConfirmed,true);assert.equal(started,0);jobs[0]();assert.equal(fit,'angle');`);
 });
 test('previous confirmation bypasses onboarding and disabled precheck still requires first confirmation',()=>{
  harness(true)(`startFit();assert.equal(wearConfirmation,null);assert.equal(fit,'checking');assert.equal(writes.length,0);`);
@@ -20,4 +20,15 @@ test('previous confirmation bypasses onboarding and disabled precheck still requ
 });
 test('rechecking wearing does not resume pumping or reset measured angles',()=>{
  harness(true)(`session={finished:false,paused:true};state.leakAdjusting=true;angleDemo={l:0,r:69};wearConfirmation='recheck';confirmWearing();assert.equal(wearConfirmation,null);assert.equal(session.paused,true);assert.equal(state.leakAdjusting,true);assert.equal(angleDemo.r,69);assert.equal(started,0);assert.equal(writes.length,0);`);
+});
+
+test('refresh resets confirmation even when old browser storage says confirmed',()=>{
+ const initializer = source.match(/let wearingConfirmed = [^;]+;/)[0];
+ const state = vm.createContext({localStorage:{getItem:()=> 'true'}});
+ vm.runInContext(initializer,state);
+ assert.equal(vm.runInContext('wearingConfirmed',state),false);
+ vm.runInContext('wearingConfirmed=true',state);
+ const refreshed = vm.createContext({localStorage:{getItem:()=> 'true'}});
+ vm.runInContext(initializer,refreshed);
+ assert.equal(vm.runInContext('wearingConfirmed',refreshed),false);
 });

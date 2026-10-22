@@ -20,10 +20,9 @@
   let triggersOpen = false, exportBusy = false, simulationRemainder = 0;
   let triggerEnd = null;
   let reverseWearPrompt = false;
-  // This demo represents the device group shown on its device-info page.
-  const wearingConfirmedKey = 'air2-wearing-confirmed:DAC1101FDF49:v1';
+  // Demo confirmation lasts only for this page load; refreshing restores first use.
   let wearConfirmation = null;
-  let wearingConfirmed = localStorage.getItem(wearingConfirmedKey) === 'true';
+  let wearingConfirmed = false;
   function wearingConfirmationDialog() {
     const recheck = wearConfirmation === 'recheck';
     return `<div class="pdcp-wearing-confirm-backdrop"><section class="pdcp-wearing-confirm" role="dialog" aria-modal="true" aria-labelledby="wear-confirm-title"><h2 id="wear-confirm-title">${recheck ? 'Pumps May Be Swapped' : 'Check Pump Orientation'}</h2><figure class="pdcp-wearing-illustration"><div class="pdcp-wearing-labels" aria-hidden="true"><b>L</b><b>R</b></div><img src="./assets/air2-wearing-lr.png" alt="L on your left, R on your right. Look down and check that your pumps match the image, with the buttons facing inward."><figcaption>Look down and check that your pumps match the image, with the buttons facing inward.</figcaption></figure>${btn('wear-confirm',recheck ? 'Continue adjusting' : 'Confirm and continue','pdcp-wearing-primary')}</section></div>`;
@@ -34,7 +33,6 @@
     wearConfirmation = null;
     if (!recheck) {
       wearingConfirmed = true;
-      try { localStorage.setItem(wearingConfirmedKey, 'true'); } catch (_) {}
       startFit();
     } else {
       // Confirmation is not an angle measurement: remain paused until adjustment succeeds.

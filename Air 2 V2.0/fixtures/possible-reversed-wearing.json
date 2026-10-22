@@ -114,9 +114,8 @@
   },
   "firstUse": {
     "device": "DAC1101FDF49",
-    "storageKey": "air2-wearing-confirmed:DAC1101FDF49:v1",
-    "trigger": "First Start Pumping, before angle check, even if Pre-Pumping Check is disabled.",
-    "confirm": "Persist per-device confirmation, then continue the existing startup flow.",
+    "trigger": "First Start Pumping after each page reload; previous localStorage confirmation is ignored.",
+    "confirm": "Remember only in current page memory; continue existing startup flow.",
     "cancel": "No persistence or pumping; show again next time."
   }
 }
