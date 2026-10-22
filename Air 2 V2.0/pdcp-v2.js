@@ -20,6 +20,29 @@
   let triggersOpen = false, exportBusy = false, simulationRemainder = 0;
   let triggerEnd = null;
   let reverseWearPrompt = false;
+  // This demo represents the device group shown on its device-info page.
+  const wearingConfirmedKey = 'air2-wearing-confirmed:DAC1101FDF49:v1';
+  let wearConfirmation = null;
+  let wearingConfirmed = localStorage.getItem(wearingConfirmedKey) === 'true';
+  function wearingConfirmationDialog() {
+    const recheck = wearConfirmation === 'recheck';
+    return `<div class="pdcp-wearing-confirm-backdrop"><section class="pdcp-wearing-confirm" role="dialog" aria-modal="true" aria-labelledby="wear-confirm-title"><h2 id="wear-confirm-title">${recheck ? 'Pumps May Be Swapped' : 'Check Pump Orientation'}</h2><figure class="pdcp-wearing-illustration"><div class="pdcp-wearing-labels" aria-hidden="true"><b>L</b><b>R</b></div><img src="./assets/air2-wearing-lr.png" alt="L on your left, R on your right. Look down and check that your pumps match the image, with the buttons facing inward."><figcaption>Look down and check that your pumps match the image, with the buttons facing inward.</figcaption></figure>${btn('wear-confirm',recheck ? 'Continue adjusting' : 'Confirm and continue','pdcp-wearing-primary')}</section></div>`;
+  }
+  function confirmWearing() {
+    if (!wearConfirmation) return;
+    const recheck = wearConfirmation === 'recheck';
+    wearConfirmation = null;
+    if (!recheck) {
+      wearingConfirmed = true;
+      try { localStorage.setItem(wearingConfirmedKey, 'true'); } catch (_) {}
+      startFit();
+    } else {
+      // Confirmation is not an angle measurement: remain paused until adjustment succeeds.
+      clearWearingWait(); reverseWearPrompt = false;
+      render();
+    }
+  }
+
   // Demo reading allowance: 1.8s to notice the hint, then 3 words/s or 5 CJK characters/s.
   // No upper cap: longer copy must retain its reading time.
   function toastDuration(text) {
@@ -161,7 +184,7 @@
     }).join('')}</div>${reverseWearPrompt || wearingWaitPrompt ? `<div class="pdcp-wear-toast" role="status" aria-live="polite">${esc(reverseWearPrompt ? reverseWearMock.message : wearingWaitPrompt)}</div>` : ''}</section>`;
   }
   function canAdjustWearing() {
-    return !report && !endingPending && (fit === 'angle' || !!state.leakAdjusting)
+    return !wearConfirmation && !report && !endingPending && (fit === 'angle' || !!state.leakAdjusting)
       && !!root.querySelector('.pdcp-fit-overlay .pdcp-angle-guide');
   }
   function playWearAdjustmentMock(correct) {
@@ -196,7 +219,12 @@
       angleDemo = correct ? {l:initial.l*value,r:initial.r*value} : {
         ...initial, [side]:initial[side]+Math.sign(initial[side])*(Math.abs(value)-18)
       };
-      reverseWearPrompt = !correct && elapsed >= reverseWearMock.promptAt && elapsed < endAt;
+      if (!correct && elapsed >= reverseWearMock.promptAt) {
+        angleAnimation = null; reverseWearPrompt = false;
+        clearWearingWait(); wearConfirmation = 'recheck';
+        render(); return;
+      }
+      reverseWearPrompt = false;
       root.querySelectorAll('.pdcp-angle-guide').forEach(guide => guide.outerHTML = angleGuide());
       if (elapsed >= endAt) {
         angleAnimation = null;
@@ -216,7 +244,7 @@
   }
   // Reuse original r50 markup, assets and CSS; only the check list changes.
 function guide(adjust){return adjust?angleGuide():'';}
-function skipButton(){return'<button class="r50-skip" data-pdcp="fit-skip" type="button">Skip</button>';}
+function skipButton(){if(state.leakAdjusting)return '';return'<button class="r50-skip" data-pdcp="fit-skip" type="button">Skip</button>';}
 function panel(place){if(fit==='checking')return '<section class="r50-fit-panel r50-'+place+' is-checking-wear" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy"><strong>Checking fit…</strong></div>'+skipButton()+'</header><div class="r50-fit-checks"><span class="r50-fit-item is-checking"><i class="r50-check-icon"><b></b></i>Wearing angle</span></div><div class="r50-progress"><i style="--r50-progress:8%"></i></div></section>';var raw=(fit==='angle'||state.leakAdjusting)?1:fit==='battery'?4:fit==='ready'?5:6,list=raw===1?[['Wearing angle','adjust']]:raw===4?[['Wearing angle','done'],['Battery','checking']]:[['Wearing angle','done'],['Battery','done']],adjust=list.some(function(x){return x[1]==='adjust';}),starting=raw>=6;if(starting)return'<section class="r50-fit-panel r50-'+place+' is-starting" data-r50-place="'+place+'" role="status" aria-live="polite">'+skipButton()+'<div class="r50-start-ceremony"><i></i><strong>START</strong><span>Pumping begins now</span></div><div class="r50-progress"><i style="--r50-progress:100%"></i></div></section>';var copy=adjust?'<strong>Check pump alignment</strong>':raw>=5?'<strong>Everything looks good</strong>':'<strong>Fit Check</strong>';return'<section class="r50-fit-panel r50-'+place+'" data-r50-place="'+place+'" role="status" aria-live="polite"><header class="r50-fit-head"><div class="r50-fit-copy">'+copy+'</div>'+skipButton()+'</header><div class="r50-fit-checks">'+list.map(function(x){return'<span class="r50-fit-item is-'+x[1]+'"><i class="r50-check-icon">'+(x[1]==='done'?'✓':'<b></b>')+'</i>'+x[0]+'</span>';}).join('')+'</div>'+guide(adjust)+'<div class="r50-progress"><i style="--r50-progress:'+Math.min(100,Math.max(8,raw*20))+'%"></i></div></section>';}
   function fitPanel() { return panel('control'); }
   function fitOverlay() { return (state.leakAdjusting || fit === 'angle' ? '<div class="pdcp-fit-backdrop"></div>' : '') + '<div class="pdcp-fit-overlay" role="dialog" aria-modal="true" aria-label="Pump alignment check">' + fitPanel() + '</div>'; }
@@ -402,7 +430,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
   }
   function render(force = true) {
     syncLegacy();
-    if (!force && state.page === 'control' && !sheet && !fit && !report) { patchLive(); return; }
+    if (!force && state.page === 'control' && !sheet && !fit && !report && !wearConfirmation) { patchLive(); return; }
     const editForm = root.querySelector('#pdcp-edit-form');
     const editDraft = sheet === 'edit' && editForm ? Object.fromEntries(new FormData(editForm)) : null;
     const previousMode = root.querySelector('.pdcp-mode-window') || lastModeWindow;
@@ -466,7 +494,13 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
       }
       if (dock) { const copy = dock.querySelector('span'); if (copy) copy.innerHTML = '<b>' + methodNames[method] + '</b>' + (session && !session.finished ? '<em>' + clock(session.elapsed) + '</em>' : ''); }
     }
+    if (wearConfirmation) {
+      root.firstElementChild?.setAttribute('inert','');
+      root.insertAdjacentHTML('beforeend', wearingConfirmationDialog());
+      root.querySelector('[data-pdcp="wear-confirm"]')?.focus({preventScroll:true});
+    }
     if (triggersOpen) mountTriggers();
+    else repositionTriggers();
     signature = session ? [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|') : '';
   }
   let deepVisual = {session:null, active:false, start:0, exit:0, frame:null};
@@ -510,6 +544,11 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
   }
   function startFit() {
     if (session && !session.finished) { state.page = 'control'; render(); return; }
+    if (!wearingConfirmed) {
+      clearWearingWait(); clearTimeout(fitTimer);
+      report = null; sheet = null; fit = null; wearConfirmation = 'first';
+      render(); return;
+    }
     clearWearingWait(); clearTimeout(fitTimer); clearTimeout(reminderTimer);
     if (angleAnimation) cancelAnimationFrame(angleAnimation);
     angleAnimation = null; angleDemo = null; reverseWearPrompt = false;
@@ -546,6 +585,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     }, 1200);
   }
   function settle(reason = 'manual', afterNotice = false) {
+    wearConfirmation = null;
     clearWearingWait();
     if (!session || report) return;
     cancelTriggerEnd();
@@ -664,6 +704,14 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     report = session.snapshot(); updateHomeRecord();
     sheet = null; render();
   }, true);
+  window.addEventListener('keydown', e => {
+    if (!wearConfirmation) return;
+    if (e.key === 'Escape' && wearConfirmation === 'first') { e.preventDefault(); wearConfirmation = null; render(); return; }
+    if (e.key !== 'Tab') return;
+    const buttons = Array.from(root.querySelectorAll('.pdcp-wearing-confirm button'));
+    const index = buttons.indexOf(document.activeElement);
+    e.preventDefault(); buttons[(index + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus();
+  }, true);
   window.addEventListener('click', e => {
     const el = e.target.closest('[data-pdcp]');
     // Consume known Home/Device navigation before legacy capture handlers.
@@ -671,6 +719,9 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     const legacyAction = legacy && (legacy.dataset.v4 || legacy.dataset.action || legacy.dataset.quickStart);
     if (!el && !['home', 'device', 'control', 'start', 'pause', 'list', 'speed'].includes(legacyAction)) return;
     e.preventDefault(); e.stopImmediatePropagation(); const a = el ? el.dataset.pdcp : legacyAction; const value = el && el.dataset.value;
+    if (a === 'wear-confirm') { confirmWearing(); return; }
+    if (a === 'wear-cancel') { wearConfirmation = null; render(); return; }
+    if (wearConfirmation) return;
     if(endingPending && ['start','pause','finish','finish-confirm','methods','mode'].includes(a)) return;
     if (a === 'start') { startFit(); return; }
     if (a === 'fit-skip') {
@@ -730,7 +781,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     render();
   }, true);
   function pumpingTriggerAllowed() {
-    return !!session && !session.finished && !session.paused && !report && !endingPending && !fit && !state.leakAdjusting;
+    return !wearConfirmation && !!session && !session.finished && !session.paused && !report && !endingPending && !fit && !state.leakAdjusting;
   }
   let batteryToastTimer = null;
   function showBatteryEvent(id) {
@@ -757,6 +808,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     }
   }
   function trigger(id) {
+    if (wearConfirmation) return;
     if (id === 'low-battery' || id === 'critical-battery') { showBatteryEvent(id); return; }
     if (['angle-error','angle-left','angle-both','letdown-start','letdown-end','deep-peak','deep-half','full-left','full-right'].includes(id) && !pumpingTriggerAllowed()) return;
     if (id === 'wear-reversed-mock' || id === 'wear-correct-mock') { playWearAdjustmentMock(id === 'wear-correct-mock'); return; }
@@ -812,21 +864,56 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     if(id==='full-left'||id==='full-right') {const k=id==='full-left'?'l':'r'; session.sides[k].volume=session.capacity;session.stopSide(k,'full');if(session.finished){settle('full');return;} remind('complete',sideLabel(k)+' bowl is full. This side has stopped; the other side continues.');}
     render();
   }
-  function placeTriggers(host, x, y) {
+  function placeTriggers(host, x, y, avoid = null) {
     const button = host.querySelector('.pdcp-trigger-toggle');
-    const w = button.offsetWidth, h = button.offsetHeight;
-    host.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px';
-    host.style.top = Math.max(8, Math.min(innerHeight - h - 8, y)) + 'px';
+    const canvas = root.getBoundingClientRect();
+    const bounds = {left:Math.max(0,canvas.left),top:Math.max(0,canvas.top),right:Math.min(innerWidth,canvas.right),bottom:Math.min(innerHeight,canvas.bottom)};
+    const w = button.offsetWidth, h = button.offsetHeight, gap = 6;
+    if (bounds.right - bounds.left < w || bounds.bottom - bounds.top < h) return;
+    const left = bounds.left + gap, right = Math.max(left,bounds.right-w-gap);
+    const top = bounds.top + gap, bottom = Math.max(top,bounds.bottom-h-gap);
+    const targets = Array.from(root.querySelectorAll('button,input,[role="slider"],.v4-track,.v4-both-box,.pdcp-wearing-confirm,.pdcp-fit-overlay'))
+      .filter(el => el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden')
+      .map(el => el.getBoundingClientRect());
+    if (avoid) targets.push(avoid);
+    const overlap = (point,r) => Math.max(0,Math.min(point.x+w+8,r.right)-Math.max(point.x-8,r.left)) * Math.max(0,Math.min(point.y+h+8,r.bottom)-Math.max(point.y-8,r.top));
+    const candidates = [];
+    for (const edge of [left,right]) {
+      candidates.push({x:edge,y:Math.max(top,Math.min(bottom,y))});
+      for (let row=top;row<=bottom;row+=20) candidates.push({x:edge,y:row});
+      candidates.push({x:edge,y:bottom});
+    }
+    const score = point => targets.reduce((sum,r)=>sum+overlap(point,r),0)*1000 + Math.hypot(point.x-x,point.y-y);
+    const best = candidates.reduce((best,point)=>score(point)<score(best)?point:best,candidates[0]);
+    host.style.left = best.x+'px'; host.style.top = best.y+'px';
     host.style.right = 'auto'; host.style.bottom = 'auto';
     const panel = host.querySelector('.pdcp-trigger-panel');
     if (panel) {
-      const r = button.getBoundingClientRect();
-      panel.style.left = Math.max(8-r.left, Math.min(0, innerWidth-r.left-panel.offsetWidth-8)) + 'px';
-      panel.style.bottom = r.top > innerHeight/2 ? (h+10)+'px' : 'auto';
-      panel.style.top = r.top > innerHeight/2 ? 'auto' : (h+10)+'px';
-      panel.style.maxHeight = Math.max(80,(r.top > innerHeight/2 ? r.top : innerHeight-r.bottom)-18)+'px';
+      panel.style.width = Math.min(260,bounds.right-bounds.left-gap*2)+'px';
+      const above = best.y-bounds.top-gap, below = bounds.bottom-best.y-h-gap;
+      const upwards = above >= below;
+      panel.style.left = Math.max(bounds.left+gap-best.x,Math.min(0,bounds.right-gap-best.x-panel.offsetWidth))+'px';
+      panel.style.bottom = upwards ? (h+8)+'px' : 'auto';
+      panel.style.top = upwards ? 'auto' : (h+8)+'px';
+      panel.style.maxHeight = Math.max(0,(upwards ? above : below)-8)+'px';
     }
   }
+  function repositionTriggers(avoid = null) {
+    if (triggerDrag) return;
+    const host = document.querySelector('.pdcp-triggers');
+    if (!host) return;
+    const r = host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();
+    placeTriggers(host,r.left,r.top,avoid);
+  }
+  // Anticipate focus/hover on page controls; keep the floating handle out of their way.
+  function avoidUpcomingControl(e) {
+    const target = e.target.closest?.('#demo button,#demo input,#demo [role="slider"]');
+    if (!target || triggersOpen) return;
+    repositionTriggers(target.getBoundingClientRect());
+  }
+  window.addEventListener('pointerover',avoidUpcomingControl,true);
+  window.addEventListener('focusin',avoidUpcomingControl,true);
+  window.addEventListener('scroll',()=>repositionTriggers(),true);
   window.addEventListener('pointerdown', e => {
     const button = e.target.closest('.pdcp-trigger-toggle');
     if (!button || e.button !== 0) return;
@@ -858,6 +945,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     const adjustmentDisabled = canAdjustWearing() ? '' : ' disabled';
     const postureDisabled = pumpingTriggerAllowed() ? '' : ' disabled';
     host.innerHTML = `${triggersOpen ? `<section class="pdcp-trigger-panel"><h2>事件模拟</h2><p>仅供演示 · ${CONFIG.demo.secondsPerRealSecond}倍播放</p><h3>佩戴调整</h3>${btn('trigger','佩戴角度异常','',`data-value="angle-error"${postureDisabled}`)}${btn('trigger','调反了','',`data-value="wear-reversed-mock"${adjustmentDisabled}`)}${btn('trigger','调对了','',`data-value="wear-correct-mock"${adjustmentDisabled}`)}<h3>奶阵</h3>${btn('trigger', '奶阵开始', '', `data-value="letdown-start"${postureDisabled}`)}${btn('trigger', '奶阵结束', '', `data-value="letdown-end"${postureDisabled}`)}<h3>吸乳</h3>${btn('trigger','首次峰值 · 0.5 mL/s','',`data-value="deep-peak"${postureDisabled}`)}${btn('trigger','半峰值 · 0.25 mL/s','',`data-value="deep-half"${postureDisabled}`)}<h3>奶满</h3>${btn('trigger','左侧奶满','',`data-value="full-left"${postureDisabled}`)}${btn('trigger','右侧奶满','',`data-value="full-right"${postureDisabled}`)}<h3>电量</h3>${btn('trigger', '低电量', '', 'data-value="low-battery"')}${btn('trigger', '严重低电量', '', 'data-value="critical-battery"')}</section>` : ''}${btn('toggle-triggers', triggersOpen ? '收起模拟' : '事件模拟', 'pdcp-trigger-toggle', `aria-expanded="${triggersOpen}"`)}`;
+    if (wearConfirmation) host.querySelectorAll('[data-pdcp="trigger"]').forEach(button => { button.disabled = true; });
     const r = host.querySelector('.pdcp-trigger-toggle').getBoundingClientRect();
     placeTriggers(host, r.left, r.top);
   }

@@ -44,7 +44,7 @@
   ],
   "angleConvention": "Negative = counterclockwise on the on-screen guide; guide asks for clockwise correction toward zero.",
   "rightAngleDegrees": 0,
-  "onPrompt": "Suggest checking L/R markings only; do not assert reversed wearing, settle, or resume pumping.",
+  "onPrompt": "Show the correct wearing illustration in a confirmation dialog; keep pumping paused and angles unchanged. Confirmation returns to adjustment, not success.",
   "correctAdjustment": {
     "samples": [
       [
@@ -75,7 +75,7 @@
     "start": "Current displayed left/right angles; cancel preceding wrong animation and toast.",
     "result": "Both angles reach zero; show aligned state for 1.2 seconds, then continue existing wearing-check success flow."
   },
-  "wrongAdjustment": "Replay relative reverse offsets from current tilted side, preserving the other side. Remain in adjustment after toast; allow correction at any time.",
+  "wrongAdjustment": "Continue reverse motion from the current angle. At 7200ms show the L/R confirmation dialog instead of the former swapped-pumps Toast.",
   "waitingForAdjustment": {
     "initialAngles": {
       "l": 0,
@@ -111,5 +111,12 @@
       "Adjust the right pump as shown.": 4000,
       "Pumps may be swapped. Check the L/R labels on the device and try again.": 6500
     }
+  },
+  "firstUse": {
+    "device": "DAC1101FDF49",
+    "storageKey": "air2-wearing-confirmed:DAC1101FDF49:v1",
+    "trigger": "First Start Pumping, before angle check, even if Pre-Pumping Check is disabled.",
+    "confirm": "Persist per-device confirmation, then continue the existing startup flow.",
+    "cancel": "No persistence or pumping; show again next time."
   }
 }
