@@ -645,7 +645,7 @@
 #demo .pdcp-pump-half img {position:absolute;top:0;width:200%;max-width:none;height:100%;}
 #demo .pdcp-pump-half.is-r img {left:-100%;}
 #demo .pdcp-pump-half.is-l img {left:0;}
-#demo .pdcp-product-muted {filter:grayscale(1) contrast(.88) brightness(1.04);}
+#demo .pdcp-product-muted {filter:saturate(.6) brightness(1.06);opacity:.42;}
 #demo .pdcp-button-color {position:absolute;inset:0;pointer-events:none;}
 #demo .pdcp-pump-half.is-l .pdcp-button-color {clip-path:inset(64% 10% 15% 34% round 9px);}
 #demo .pdcp-pump-half.is-r .pdcp-button-color {clip-path:inset(64% 34% 15% 10% round 9px);}
