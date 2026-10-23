@@ -23,9 +23,13 @@
   // Demo confirmation lasts only for this page load; refreshing restores first use.
   let wearConfirmation = null;
   let wearingConfirmed = false;
+  function wearingComparisonRow(outward) {
+    const picture = (outward ? ['r','l'] : ['l','r']).map(side => `<div class="pdcp-pump-half is-${side}"><img class="pdcp-product-muted" src="./assets/air2-wearing-lr.png" alt=""><span class="pdcp-button-color"><img src="./assets/air2-wearing-lr.png" alt=""></span></div>`).join('');
+    return `<div class="pdcp-orientation-example ${outward ? 'is-outward' : 'is-inward'}"><div class="pdcp-example-label"><span aria-hidden="true">${outward ? '×' : '✓'}</span>${outward ? 'Buttons outward' : 'Buttons inward'}</div><div class="pdcp-example-photo" role="img" aria-label="${outward ? 'Incorrect: the pumps are swapped, with the button panels toward the outer sides.' : 'Correct: L on your left and R on your right, with both button panels toward the inside.'}">${picture}<i class="pdcp-button-zone is-left" aria-hidden="true"></i><i class="pdcp-button-zone is-right" aria-hidden="true"></i></div></div>`;
+  }
   function wearingConfirmationDialog() {
     const recheck = wearConfirmation === 'recheck';
-    return `<div class="pdcp-wearing-confirm-backdrop"><section class="pdcp-wearing-confirm" role="dialog" aria-modal="true" aria-labelledby="wear-confirm-title"><h2 id="wear-confirm-title">${recheck ? 'Pumps May Be Swapped' : 'Check Pump Orientation'}</h2><figure class="pdcp-wearing-illustration"><div class="pdcp-wearing-labels" aria-hidden="true"><b>L</b><b>R</b></div><img src="./assets/air2-wearing-lr.png" alt="L on your left, R on your right. Look down and check that your pumps match the image, with the buttons facing inward."><figcaption>Look down and check that your pumps match the image, with the buttons facing inward.</figcaption></figure>${btn('wear-confirm',recheck ? 'Continue adjusting' : 'Confirm and continue','pdcp-wearing-primary')}</section></div>`;
+    return `<div class="pdcp-wearing-confirm-backdrop"><section class="pdcp-wearing-confirm" role="dialog" aria-modal="true" aria-labelledby="wear-confirm-title"><h2 id="wear-confirm-title">${recheck ? 'Pumps May Be Swapped' : 'Check Pump Orientation'}</h2><figure class="pdcp-wearing-illustration">${wearingComparisonRow(false)}${wearingComparisonRow(true)}<figcaption>Look down and check that your pumps</figcaption></figure>${btn('wear-confirm',recheck ? 'Continue adjusting' : 'Confirm and continue','pdcp-wearing-primary')}</section></div>`;
   }
   function confirmWearing() {
     if (!wearConfirmation) return;
