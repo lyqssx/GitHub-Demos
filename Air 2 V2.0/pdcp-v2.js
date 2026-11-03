@@ -3,12 +3,19 @@
 (function () {
   'use strict';
   const { Session, CONFIG, ML_PER_OZ } = window.Air2PDCP;
+  const { finalStageLevels, buildRhythm, rhythmAt, commonStageLevels, validRhythm } = window.Air2PDCP;
+  function loadRhythms(key) {try { const data=JSON.parse(localStorage.getItem(key)||'[]');return Array.isArray(data)?data.filter(validRhythm).map(r=>({...r,stages:r.stages.map(s=>({mode:s.mode,duration:s.duration,finalLevels:finalStageLevels(s)}))})):[]; }catch(_){return [];} }
+  let savedRhythms = loadRhythms('air2-saved-rhythms');
+  let recentStageRecords = loadRhythms('air2-stage-level-history');
+  function writeRhythms(key,records) {try{localStorage.setItem(key,JSON.stringify(records));return true;}catch(_){return false;}}
   const originalControl = window.v4Control;
   const originalHardware = window.v4Hardware;
   const originalList = window.v4List;
   const modeNames = { stimulation: 'Stimulation', expression: 'Expression', mixed: 'Mixed' };
   const methodNames = { auto: 'Auto Switch', manual: 'Manual', preset: 'Preset' };
   const presets = { 'Milk Boost': [60, 300, 120, 720], 'Cozy Flow': [90, 360, 120, 720], 'Power Pumping': [120, 900, 480, 1200] };
+  savedRhythms.forEach(r=>{presets[r.name]=r.stages.map(s=>s.duration);});
+  let rhythmPlayback = null;
   let session = null, report = null, method = 'auto', manualMode = 'stimulation', preset = 'Milk Boost';
   let sheet = null, fit = null, fitTimer = null, notice = '', timerAt = performance.now(), holding = null, signature = '';
   const unit = 'oz';
@@ -168,7 +175,7 @@
     return `<span class="pdcp-method-time" data-live="${method === 'preset' ? 'preset-time' : 'timer'}" aria-label="${method === 'preset' ? 'Program duration' : 'Elapsed pumping time'}">${method === 'preset' ? presetTime() : clock(session.elapsed)}</span>`;
   }
   function presetCard() {
-    return `<section class="pdcp-preset-card"><div class="pdcp-preset-head"><img class="pdcp-preset-icon" src="./assets/pdcp-preset-icon.svg" alt=""><h2>${esc(preset)}</h2>${methodTimer()}${btn('methods','<img src="./assets/pdcp-preset-arrow.svg" alt="">','pdcp-preset-more','aria-label="Change pumping method"')}</div><img class="pdcp-preset-stages" src="./assets/pdcp-preset-stages.svg" alt="Pumping rhythm stages"></section>`;
+    return `<section class="pdcp-preset-card"><div class="pdcp-preset-head"><img class="pdcp-preset-icon" src="./assets/pdcp-preset-icon.svg" alt=""><h2>${esc(preset)}</h2>${methodTimer()}${btn('methods','<img src="./assets/pdcp-preset-arrow.svg" alt="">','pdcp-preset-more','aria-label="Change pumping method"')}</div>${savedRhythms.some(r=>r.name===preset) ? `<div class="pdcp-saved-stages">${savedRhythms.find(r=>r.name===preset).stages.map(stage=>`<i class="${stage.mode}" style="flex:${stage.duration}" title="${modeNames[stage.mode]} ${clock(stage.duration)}"></i>`).join('')}</div>` : '<img class="pdcp-preset-stages" src="./assets/pdcp-preset-stages.svg" alt="Pumping rhythm stages">'}</section>`;
   }
   function planCard() {
     const currentMode = session && (!session.finished || endingPending) ? session.mode : (method === 'manual' ? manualMode : 'stimulation');
@@ -348,6 +355,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     oldManual[0]?.insertAdjacentHTML('beforebegin', manualCards);
     oldManual.forEach(el => el.remove());
     screen.querySelectorAll('[data-v4="toggle-program"],[data-v4="choose-program"]').forEach(el => { el.dataset.pdcp = el.dataset.v4; el.removeAttribute('data-v4'); });
+    if(savedRhythms.length) content.insertAdjacentHTML('beforeend', `<section class="pdcp-saved-library"><h2>My rhythms</h2>${savedRhythms.map(r=>btn('use-saved-rhythm',`<span><b>${esc(r.name)}</b><small>${r.stages.length} stages · ${clock(r.total)}</small></span><span aria-hidden="true">›</span>`,'pdcp-saved-rhythm',`data-value="${esc(r.id)}"`)).join('')}</section>`);
     return screen.outerHTML + (sheet === 'program-confirm' ? v4Confirm().replace('The timer will reset.', 'Your session data will be kept.').replace('data-v4="confirm"', 'data-pdcp="confirm-program"').replace('data-v4="cancel"', 'data-pdcp="cancel-program"') : '');
   }
   function percentage(k) {
@@ -397,11 +405,25 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     svg.addEventListener('pointermove',e=>{if(pointer===e.pointerId)show(e);});
     ['pointerup','pointercancel','lostpointercapture'].forEach(event=>svg.addEventListener(event,hide));
   }
+  function levelSummary(stage) {
+    const levels=finalStageLevels(stage);return 'L '+(levels.l??'—')+' · R '+(levels.r??'—');
+  }
+  function saveCurrentRhythm() {
+    if(!report?.valid)return;
+    const existing=savedRhythms.find(r=>r.sourceId===report.id);
+    let number=1;while(savedRhythms.some(r=>r.name==='My rhythm '+number))number++;
+    const item=buildRhythm(report,existing?.name||'My rhythm '+number);if(!item)return;
+    const next=[...savedRhythms.filter(r=>r.sourceId!==report.id),item];
+    if(!writeRhythms('air2-saved-rhythms',next)) {
+      const toast=root.querySelector('.pdcp-toast');if(toast)toast.textContent='Unable to save. Device storage is full or unavailable.';return;
+    }
+    savedRhythms=next;presets[item.name]=item.stages.map(s=>s.duration);render();
+  }
   function reportCard() {
     const r = report, date = new Date(r.startedAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     const full = ['l', 'r'].filter(k => r.sides[k].stopReason === 'full');
     const stages = r.segments.filter(s => s.duration > 0);
-    return `<section class="pdcp-screen pdcp-report" role="dialog" aria-modal="true" aria-label="Pumping report"><header class="pdcp-header v4-top">${btn('close-report', '<img src="./assets/pdcp-report-close-glyph.svg" alt="">', 'pdcp-icon v4-circle', 'aria-label="Close report"')}<span class="pdcp-report-date">${esc(date)}</span>${btn('share', '↗', 'pdcp-icon', 'aria-label="Export report image"')}</header><div class="pdcp-scroll pdcp-report-body">${full.length ? `<div class="pdcp-notice">${full.length === 2 ? 'Both bowls are full.' : sideLabel(full[0]) + ' bowl is full.'} The session has ended and been recorded. Empty the bowls before starting again.</div>` : r.endReason === 'battery' ? '<div class="pdcp-notice">Battery is too low. The session has ended and been recorded. Please charge both pumps.</div>' : ''}${!r.valid ? '<div class="pdcp-notice">No milk was recorded and pumping lasted 5 minutes or less. This is not counted as a pumping record.</div>' : ''}<section class="pdcp-total-card"><div class="pdcp-total-top"><span>Total milk</span></div><div class="pdcp-total-value-row"><div class="pdcp-total">${amount(r.total)}<small>${unit}</small></div>${btn('edit','<img src="./assets/figma-review-r2/lactation-edit.svg" alt="">','pdcp-report-edit','aria-label="Edit session"')}</div><div class="pdcp-report-duration"><span>Session duration</span><strong>${clock(r.reportedDuration ?? r.elapsed)}</strong></div><div class="pdcp-split-bar"><i style="width:${percentage('l') ?? 50}%"></i></div><div class="pdcp-volume-sides">${['l', 'r'].map(k => `<div><span><i class="pdcp-dot ${k}"></i>${sideLabel(k)} <small>${percentage(k) !== null ? percentage(k) + '%' : '—'}</small></span><strong>${amount(r.sides[k].volume)} <small>${unit}</small></strong></div>`).join('')}</div>${r.edited ? '<span class="pdcp-edited">Edited</span>' : ''}</section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Pumping pattern</h2><div class="pdcp-legend"><span><i class="pdcp-dot l"></i>L</span><span><i class="pdcp-dot r"></i>R</span></div></div><div class="pdcp-chart-wrap">${curveSvg(r)}<div class="pdcp-chart-cursor" hidden></div><div class="pdcp-chart-tooltip" role="status" hidden></div></div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Let-downs</h2></div><div class="pdcp-summary-grid"><span></span><b>Left</b><b>Right</b>${[['Let-downs',k=>r.sides[k].count],['Average flow',k=>flow((r.originalVolumes?.[k]??r.sides[k].volume)/Math.max(1,r.sides[k].seconds)*60)],['Peak flow',k=>flow(r.sides[k].peak)]].map(([label,value])=>`<span>${label}${label!=='Let-downs'?'<small>oz/min</small>':''}</span>${['l','r'].map(k=>`<strong>${value(k)}</strong>`).join('')}`).join('')}</div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Session stages</h2></div><div class="pdcp-timeline">${stages.map(s => `<i class="${s.mode}" style="flex:${s.duration}" title="${modeNames[s.mode]} ${clock(s.duration)}"></i>`).join('')}</div><div class="pdcp-stage-head"><span>Mode / method</span><span>Duration</span><span>Milk · ${unit}</span></div>${stages.length ? stages.map(s => `<div class="pdcp-stage-row"><div><b><i class="pdcp-stage-dot ${s.mode}"></i>${modeNames[s.mode]}</b><small>${methodNames[s.method]}${s.method === 'preset' ? ' · ' + esc(s.preset) : ''} · ${clock(s.start)}</small></div><strong>${clock(s.duration)}</strong><strong>${amount(s.l + s.r)}</strong></div>`).join('') : '<p class="pdcp-caption">No pumping time recorded.</p>'}${r.edited ? '<p class="pdcp-caption">Stage milk and the flow curve reflect original sensor data. Corrected milk amounts and duration are shown above.</p>' : ''}</section><div class="pdcp-report-bottom">${btn('share', exportBusy ? 'Preparing image…' : 'Save report image', 'pdcp-secondary', exportBusy ? 'disabled' : '')}${btn('close-report', 'Done', 'pdcp-primary')}</div></div>${sheet === 'edit' ? editSheet() : ''}<div class="pdcp-toast" role="status" aria-live="polite"></div></section>`;
+    return `<section class="pdcp-screen pdcp-report" role="dialog" aria-modal="true" aria-label="Pumping report"><header class="pdcp-header v4-top">${btn('close-report', '<img src="./assets/pdcp-report-close-glyph.svg" alt="">', 'pdcp-icon v4-circle', 'aria-label="Close report"')}<span class="pdcp-report-date">${esc(date)}</span>${btn('share', '↗', 'pdcp-icon', 'aria-label="Export report image"')}</header><div class="pdcp-scroll pdcp-report-body">${full.length ? `<div class="pdcp-notice">${full.length === 2 ? 'Both bowls are full.' : sideLabel(full[0]) + ' bowl is full.'} The session has ended and been recorded. Empty the bowls before starting again.</div>` : r.endReason === 'battery' ? '<div class="pdcp-notice">Battery is too low. The session has ended and been recorded. Please charge both pumps.</div>' : ''}${!r.valid ? '<div class="pdcp-notice">No milk was recorded and pumping lasted 5 minutes or less. This is not counted as a pumping record.</div>' : ''}<section class="pdcp-total-card"><div class="pdcp-total-top"><span>Total milk</span></div><div class="pdcp-total-value-row"><div class="pdcp-total">${amount(r.total)}<small>${unit}</small></div>${btn('edit','<img src="./assets/figma-review-r2/lactation-edit.svg" alt="">','pdcp-report-edit','aria-label="Edit session"')}</div><div class="pdcp-report-duration"><span>Session duration</span><strong>${clock(r.reportedDuration ?? r.elapsed)}</strong></div><div class="pdcp-split-bar"><i style="width:${percentage('l') ?? 50}%"></i></div><div class="pdcp-volume-sides">${['l', 'r'].map(k => `<div><span><i class="pdcp-dot ${k}"></i>${sideLabel(k)} <small>${percentage(k) !== null ? percentage(k) + '%' : '—'}</small></span><strong>${amount(r.sides[k].volume)} <small>${unit}</small></strong></div>`).join('')}</div>${r.edited ? '<span class="pdcp-edited">Edited</span>' : ''}</section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Pumping pattern</h2><div class="pdcp-legend"><span><i class="pdcp-dot l"></i>L</span><span><i class="pdcp-dot r"></i>R</span></div></div><div class="pdcp-chart-wrap">${curveSvg(r)}<div class="pdcp-chart-cursor" hidden></div><div class="pdcp-chart-tooltip" role="status" hidden></div></div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Let-downs</h2></div><div class="pdcp-summary-grid"><span></span><b>Left</b><b>Right</b>${[['Let-downs',k=>r.sides[k].count],['Average flow',k=>flow((r.originalVolumes?.[k]??r.sides[k].volume)/Math.max(1,r.sides[k].seconds)*60)],['Peak flow',k=>flow(r.sides[k].peak)]].map(([label,value])=>`<span>${label}${label!=='Let-downs'?'<small>oz/min</small>':''}</span>${['l','r'].map(k=>`<strong>${value(k)}</strong>`).join('')}`).join('')}</div></section><section class="pdcp-report-section"><div class="pdcp-section-heading"><h2>Session stages</h2>${report.valid?btn('save-rhythm',savedRhythms.some(r=>r.sourceId===report.id)?'Saved':'Save rhythm','pdcp-save-rhythm',savedRhythms.some(r=>r.sourceId===report.id)?'disabled':''):''}</div><div class="pdcp-timeline">${stages.map(s => `<i class="${s.mode}" style="flex:${s.duration}" title="${modeNames[s.mode]} ${clock(s.duration)}"></i>`).join('')}</div><div class="pdcp-stage-head"><span>Mode / method</span><span class="pdcp-stage-level-head">Level</span><span>Duration</span><span>Milk · ${unit}</span></div>${stages.length ? stages.map((s,index) => `<div class="pdcp-stage-row"><div><b><i class="pdcp-stage-dot ${s.mode}"></i><span>${modeNames[s.mode]}</span></b><small>${methodNames[s.method]}${s.method === 'preset' ? ' · ' + esc(s.preset) : ''} · ${clock(s.start)}</small></div><div class="pdcp-stage-level-pair" aria-label="Final suction levels"><span>L</span><strong>${finalStageLevels(s).l??'—'}</strong><span>R</span><strong>${finalStageLevels(s).r??'—'}</strong></div><strong>${clock(s.duration)}</strong><strong>${amount(s.l + s.r)}</strong></div>`).join('') : '<p class="pdcp-caption">No pumping time recorded.</p>'}${r.edited ? '<p class="pdcp-caption">Stage milk and the flow curve reflect original sensor data. Corrected milk amounts and duration are shown above.</p>' : ''}</section><div class="pdcp-report-bottom">${btn('share', exportBusy ? 'Preparing image…' : 'Save report image', 'pdcp-secondary', exportBusy ? 'disabled' : '')}${btn('close-report', 'Done', 'pdcp-primary')}</div></div>${sheet === 'edit' ? editSheet() : ''}<div class="pdcp-toast" role="status" aria-live="polite"></div></section>`;
   }
   function editSheet() {
     return `<div class="pdcp-sheet-backdrop"><section class="pdcp-sheet" role="dialog" aria-modal="true" aria-label="Edit session"><header><h2>Edit session</h2>${btn('close-sheet', '×', 'pdcp-icon', 'aria-label="Cancel editing"')}</header><form id="pdcp-edit-form"><div class="pdcp-edit-fields">${['l', 'r'].map(k => `<label>${sideLabel(k)}<span class="pdcp-milk-input-wrap"><input class="pdcp-milk-editor" name="${k}" type="number" inputmode="decimal" min="0" max="${amount(CONFIG.demo.bowlCapacityMl)}" step="any" value="${amount(report.sides[k].volume)}" required><small>${unit}</small></span></label>`).join('')}</div><div class="pdcp-edit-duration"><span>Session duration</span><div class="pdcp-duration-wheels">${[['minutes',999,Math.floor((report.reportedDuration ?? report.elapsed)/60),'min'],['seconds',59,Math.floor((report.reportedDuration ?? report.elapsed)%60),'sec']].map(([name,max,value,label])=>`<div class="pdcp-wheel-column"><input type="hidden" name="${name}" value="${value}"><div class="pdcp-time-wheel" data-wheel="${name}" role="spinbutton" tabindex="0" aria-label="${name==='minutes'?'Minutes':'Seconds'}" aria-valuemin="0" aria-valuemax="${max}" aria-valuenow="${value}">${Array.from({length:max+1},(_,i)=>`<div class="pdcp-wheel-option" data-wheel-value="${i}">${String(i).padStart(2,'0')}</div>`).join('')}</div><span class="pdcp-wheel-unit">${label}</span></div>`).join('')}</div></div><p class="pdcp-form-error" role="alert"></p><button class="pdcp-primary" type="submit">Apply changes</button>${btn('close-sheet', 'Cancel', 'pdcp-text-button')}</form></section></div>`;
@@ -504,7 +526,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     }
     if (triggersOpen) mountTriggers();
     else repositionTriggers();
-    signature = session ? [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|') : '';
+    signature = session ? [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.levelL, state.levelR, state.controlNotice?.id || ''].join('|') : '';
   }
   let deepVisual = {session:null, active:false, start:0, exit:0, frame:null};
   function syncDeepVisual() {
@@ -570,7 +592,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     clearWearingWait();
     if (!fit) return;
     if (Math.min(state.batteryL ?? 80, state.batteryR ?? 75) <= 3) { fit = null; state.page = 'control'; notice = ''; remind('low-battery', 'Battery too low to start. Please charge.'); render(); return; }
-    cancelTriggerEnd(); fit = null; finishReminderShown = false; session = new Session({ method, mode: manualMode, preset }); report = null; notice = '';
+    cancelTriggerEnd(); fit = null; finishReminderShown = false; session = new Session({ method, mode: savedRhythms.find(r=>r.name===preset && method==='preset')?.stages[0].mode || manualMode, preset, levels:{l:state.levelL,r:state.levelR} }); rhythmPlayback=null; report = null; notice = '';
     overrides.l = overrides.r = null; simulationRemainder = 0; timerAt = performance.now(); render();
   }
   function fitOk() {
@@ -600,13 +622,18 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
       render();setTimeout(()=>settle(reason,true),5000);return;
     }
     endingPending=false;
-    if (!session.finished) session.finish(reason);
+    if (!session.finished) { session.setLevels(state.levelL,state.levelR); session.finish(reason); }
     report = session.snapshot(); sheet = null; state.hasLogged = true;
     updateHomeRecord();
     clearTimeout(reminderTimer); state.controlNotice = null; state.leakAdjusting = false; state.leakSide = null;
     notice = ''; render();
   }
   function updateHomeRecord() {
+    const stageRecord=buildRhythm(report,'Session');
+    if(stageRecord) {
+      recentStageRecords=[...recentStageRecords.filter(r=>r.sourceId!==stageRecord.sourceId),stageRecord].slice(-30);
+      writeRhythms('air2-stage-level-history',recentStageRecords);
+    }
     state.lastSessionL = report.sides.l.volume / ML_PER_OZ; state.lastSessionR = report.sides.r.volume / ML_PER_OZ;
     state.lastSessionTotal = report.total / ML_PER_OZ;
     if (!Array.isArray(state.air2SessionHistory)) state.air2SessionHistory = [];
@@ -635,19 +662,32 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
       const dt = Math.min(1, remaining), flows = {};
       for (const k of ['l', 'r']) { const v = mockSensor(k, session.elapsed); session.letdown(k, v.active); flows[k] = v.flow; }
       if (session.method === 'preset') {
-        const durations = presets[session.preset]; const cycle = durations.reduce((a, b) => a + b, 0);
-        let p = session.presetElapsed % cycle, index = 0; while (index < durations.length - 1 && p >= durations[index]) { p -= durations[index++]; }
-        session.mode = ['stimulation', 'expression', 'mixed', 'expression'][index];
+        const recorded=savedRhythms.find(r=>r.name===session.preset);
+        if(recorded) {
+          const point=rhythmAt(recorded,session.presetElapsed);
+          if(!point){session.finish('rhythm');break;}
+          session.mode=point.mode; session.phase=point.index;
+          // Apply this stage's final setting once on entry; user adjustments remain available.
+          const changed=!rhythmPlayback||rhythmPlayback.id!==recorded.id||rhythmPlayback.index!==point.index||session.presetElapsed<rhythmPlayback.time;
+          if(changed) {if(point.l!==null)state.levelL=point.l;if(point.r!==null)state.levelR=point.r;}
+          rhythmPlayback={id:recorded.id,index:point.index,l:point.l,r:point.r,time:session.presetElapsed};
+        } else {
+          const durations=presets[session.preset],cycle=durations.reduce((a,b)=>a+b,0);
+          let p=session.presetElapsed%cycle,index=0;while(index<durations.length-1&&p>=durations[index])p-=durations[index++];
+          session.mode=['stimulation','expression','mixed','expression'][index];
+          rhythmPlayback=null; session.phase=null;
+        }
       }
+      session.setLevels(state.levelL,state.levelR);
       session.advance(dt, flows); remaining -= dt;
     }
-    if (session.finished) { settle('full'); return; }
+    if (session.finished) { settle(session.endReason||'full'); return; }
     letdownReminder(wasActive);
     if (!session.readyToFinish) finishReminderShown = false;
     else if (!triggerEnd && !finishReminderShown) { finishReminderShown = true; if (method === 'auto') { triggerEnd = { session, elapsed: 60, lastSecond: 5, noticeId: null }; remind('ending', 'Pumping will end in 5 seconds.'); triggerEnd.noticeId = state.controlNotice.id; } else remind('suggestion', 'Milk flow has eased. You can finish now.'); }
     const stopped = ['l', 'r'].filter(k => session.sides[k].stopped);
     if (stopped.length === 1 && previousStops === 0) remind('complete', sideLabel(stopped[0]) + ' bowl full. This side has stopped.');
-    syncLegacy(); const next = [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.controlNotice?.id || ''].join('|');
+    syncLegacy(); const next = [session.mode, session.paused, session.sides.l.stopped, session.sides.r.stopped, state.levelL, state.levelR, state.controlNotice?.id || ''].join('|');
     if (!sheet && state.page === 'control') render(next !== signature);
     if(state.page==='home'){root.querySelectorAll('.v4-dock-mode em,.h7-dock-mode em').forEach(el=>el.textContent=clock(session.elapsed));}
   }
@@ -715,6 +755,7 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     const index = buttons.indexOf(document.activeElement);
     e.preventDefault(); buttons[(index + (e.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus();
   }, true);
+  window.addEventListener('pointerup', () => { if(session && !session.finished) session.setLevels(state.levelL,state.levelR); });
   window.addEventListener('click', e => {
     const el = e.target.closest('[data-pdcp]');
     // Consume known Home/Device navigation before legacy capture handlers.
@@ -726,6 +767,16 @@ function panel(place){if(fit==='checking')return '<section class="r50-fit-panel 
     if (a === 'wear-cancel') { wearConfirmation = null; render(); return; }
     if (wearConfirmation) return;
     if(endingPending && ['start','pause','finish','finish-confirm','methods','mode'].includes(a)) return;
+    if(a==='save-rhythm'){saveCurrentRhythm();return;}
+    if(a==='use-saved-rhythm') {
+      const item=savedRhythms.find(r=>r.id===value);if(!item)return;
+      method='preset';preset=item.name;rhythmPlayback=null;
+      const first=item.stages[0];
+      if(first.finalLevels.l!==null)state.levelL=first.finalLevels.l;
+      if(first.finalLevels.r!==null)state.levelR=first.finalLevels.r;
+      if(session&&!session.finished)session.setMethod('preset',first.mode,preset);
+      sheet=null;state.page='control';render();return;
+    }
     if (a === 'start') { startFit(); return; }
     if (a === 'fit-skip') {
       clearWearingWait(); reverseWearPrompt = false;

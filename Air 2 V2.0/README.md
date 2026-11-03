@@ -41,3 +41,9 @@ See `DESIGN_BASELINE.md`. Control reuses the original `v4Control` renderer, hard
 ```sh
 node --test tests/pdcp-session.test.cjs
 ```
+
+## Stage level memory (2026-11-03)
+
+Each stage retains only its final left/right suction levels. Intermediate adjustment actions and timestamps are not recorded. Report rows keep their original fixed height; each row shows its final left/right pair beside the mode name. **Save rhythm** stores the sequence in **My rhythms**; playback uses each stage's final levels from that stage's start. New adjustments can update the stage's final setting.
+
+Saved rhythms and the latest 30 valid sessions' final stage settings are kept in this browser. Stages match by mode and occurrence, using the latest final setting rather than a global or duration-weighted level. Older demo timelines migrate to the final used level per side. All demo scrollbars are hidden while scrolling remains available.

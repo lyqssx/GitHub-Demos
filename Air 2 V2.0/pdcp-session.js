@@ -10,15 +10,15 @@
   });
   const side = () => ({ volume: 0, flow: 0, count: 0, first: null, peak: 0, peakAt: null, active: false, stopped: false, stopReason: null, seconds: 0, segments: [], events: [] });
   class Session {
-    constructor({ now = Date.now(), method = 'auto', mode = 'stimulation', preset = 'Milk Boost', capacity = CONFIG.demo.bowlCapacityMl } = {}) {
+    constructor({ now = Date.now(), method = 'auto', mode = 'stimulation', preset = 'Milk Boost', capacity = CONFIG.demo.bowlCapacityMl, levels = {l:2,r:4} } = {}) {
       this.id = 'pdcp-' + now; this.startedAt = now; this.elapsed = 0;
       this.method = method; this.mode = method === 'auto' ? 'stimulation' : mode; this.preset = preset; this.capacity = capacity;
       this.deep = false; this.deepUsed = false; this.deepPeakReached = false; this.noLetdownSince = null; this.sides = { l: side(), r: side() }; this.paused = false; this.finished = false;
-      this.samples = [{ t: 0, l: 0, r: 0 }]; this.segments = []; this.edited = false; this.presetElapsed = 0;
+      this.samples = [{ t: 0, l: 0, r: 0 }]; this.segments = []; this.edited = false; this.phase = null; this.presetElapsed = 0; this.levels = {l:2,r:4}; this.setLevels(levels.l,levels.r);
     }
     setMethod(method, mode = this.mode, preset = this.preset) {
       if (this.finished || !['auto', 'manual', 'preset'].includes(method)) return;
-      this.method = method; this.preset = preset; this.presetElapsed = 0;
+      this.method = method; this.preset = preset; this.presetElapsed = 0; this.phase = null;
       this.mode = method === 'auto' ? 'stimulation' : mode;
       this.deep = false;
     }
@@ -35,11 +35,26 @@
       // Auto follows incoming device events, never learns or groups them.
       if (this.method === 'auto') this.mode = Object.values(this.sides).some(x => x.active && !x.stopped) ? 'expression' : (Object.values(this.sides).some(s => s.count > 0) ? 'mixed' : 'stimulation');
     }
-    segment(list, dt, l, r) {
-      let last = list[list.length - 1];
-      if (!last || last.mode !== this.mode || last.method !== this.method || last.preset !== this.preset) {
-        last = { start: this.elapsed, duration: 0, mode: this.mode, method: this.method, preset: this.preset, l: 0, r: 0 }; list.push(last);
+    setLevels(l, r) {
+      if (this.finished) return;
+      for (const [side,value] of Object.entries({l,r})) {
+        if (Number.isInteger(value) && value >= 0 && value <= 15) this.levels[side] = value;
       }
+      if (!this.paused) {
+        for (const list of [this.segments,...Object.values(this.sides).map(s=>s.segments)]) {
+          const last=list[list.length-1];
+          if(last && last.mode===this.mode && last.method===this.method && last.preset===this.preset && last.phase===this.phase)
+            for(const side of ['l','r'])if(!this.sides[side].stopped)last.finalLevels[side]=this.levels[side];
+        }
+      }
+    }
+    segment(list, dt, l, r) {
+      if (dt <= 0) return;
+      let last = list[list.length - 1];
+      if (!last || last.mode !== this.mode || last.method !== this.method || last.preset !== this.preset || last.phase !== this.phase) {
+        last = { start: this.elapsed, duration: 0, mode: this.mode, method: this.method, preset: this.preset, phase:this.phase, l: 0, r: 0, finalLevels: {l:null,r:null} }; list.push(last);
+      }
+      for (const side of ['l','r']) if (!this.sides[side].stopped) last.finalLevels[side] = this.levels[side];
       last.duration += dt; last.l += l; last.r += r;
     }
     advance(dt, flows) {
@@ -129,7 +144,42 @@
     return {active:(x >= 60 && x < 620) || (groups !== 1 && x >= 680 && x < 1020),
       flow: Math.min(30,Math.max(0,v*(1 + .025*Math.sin(x*.47)*Math.sin(x*.19))*(k === 'r' ? .98 + .008*Math.sin(x/53) : 1)))};
   }
-  const api = { Session, CONFIG, ML_PER_OZ, demoSensor };
+  function finalStageLevels(stage) {
+    if (stage.finalLevels) return {...stage.finalLevels};
+    // Convert older demo recordings once: retain only the last used value per side.
+    const levels={l:null,r:null};
+    for(const c of stage.levelChanges||[])for(const side of ['l','r'])if(Number.isInteger(c[side]))levels[side]=c[side];
+    return levels;
+  }
+  function buildRhythm(report, name) {
+    if (!report?.finished || !report.valid) return null;
+    const stages = report.segments.filter(s=>s.duration>0).map(s=>({mode:s.mode,duration:s.duration,finalLevels:finalStageLevels(s)}));
+    return stages.length ? {id:report.id,name,sourceId:report.id,stages,total:stages.reduce((n,s)=>n+s.duration,0)} : null;
+  }
+  function rhythmAt(rhythm, elapsed) {
+    if (!rhythm?.stages.length || elapsed >= rhythm.total) return null;
+    let time=Math.max(0,elapsed);
+    for (let index=0;index<rhythm.stages.length;index++) {
+      const stage=rhythm.stages[index];
+      if(time<stage.duration)return {index,mode:stage.mode,...finalStageLevels(stage)};
+      time-=stage.duration;
+    }
+    return null;
+  }
+  // Latest confirmed final settings for this occurrence, never time-weighted averages.
+  function commonStageLevels(records, mode, occurrence) {
+    let levels={l:null,r:null},sessions=0;
+    for(const record of records) {
+      const stage=record.stages.filter(s=>s.mode===mode)[occurrence];if(!stage)continue;
+      levels=finalStageLevels(stage);sessions++;
+    }
+    return {...levels,sessions};
+  }
+  function validRhythm(r) {
+    return r && typeof r.id==='string' && typeof r.name==='string' && typeof r.sourceId==='string' && Array.isArray(r.stages) && r.stages.length>0 && r.stages.every(s=>
+      ['stimulation','expression','mixed'].includes(s.mode)&&Number.isFinite(s.duration)&&s.duration>0&&(s.finalLevels||s.levelChanges?.length)&&['l','r'].every(k=>{const v=finalStageLevels(s)[k];return v===null||Number.isInteger(v)&&v>=0&&v<=15;})) && Number.isFinite(r.total) && Math.abs(r.total-r.stages.reduce((n,s)=>n+s.duration,0))<.001;
+  }
+  const api = { Session, CONFIG, ML_PER_OZ, demoSensor, finalStageLevels, buildRhythm, rhythmAt, commonStageLevels, validRhythm };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else scope.Air2PDCP = api;
 }(typeof window !== 'undefined' ? window : globalThis));

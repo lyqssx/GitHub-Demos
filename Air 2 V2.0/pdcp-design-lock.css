@@ -657,3 +657,24 @@
 #demo .is-outward .pdcp-button-zone.is-left {left:7%;}
 #demo .is-outward .pdcp-button-zone.is-right {right:7%;}
 #demo .pdcp-orientation-example+.pdcp-orientation-example {margin-top:26px;}
+
+/* Final per-stage levels share the mode line; rows never expand. */
+#demo .pdcp-report .pdcp-stage-row {width:100%;height:56px;box-sizing:border-box;overflow:hidden;text-align:left;border-radius:0;border-top:1px solid #eee3e0;}
+#demo .pdcp-report .pdcp-stage-row>div {min-width:0;}
+#demo .pdcp-report .pdcp-stage-row b {display:flex;align-items:center;gap:0;white-space:nowrap;}
+#demo .pdcp-report .pdcp-stage-row small {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#demo .pdcp-report .pdcp-stage-head,#demo .pdcp-report .pdcp-stage-row {grid-template-columns:minmax(0,1fr) 42px 52px 54px;column-gap:10px;}
+#demo .pdcp-stage-level-head {text-align:center;}
+#demo .pdcp-stage-level-pair {display:grid;grid-template-columns:auto auto;justify-content:center;column-gap:5px;row-gap:1px;align-items:baseline;font:400 10px/15px var(--font);font-variant-numeric:tabular-nums;}
+#demo .pdcp-stage-level-pair>span {color:#a38b96;font-size:9px;}
+#demo .pdcp-stage-level-pair>strong {color:#4c303e;font-weight:500;text-align:right;}
+#demo .pdcp-save-rhythm {border:0;background:#f5e8ed;color:#92254a;border-radius:18px;padding:7px 10px;font:500 11px/16px var(--font);cursor:pointer;}
+#demo .pdcp-save-rhythm:disabled {color:#9b8790;background:#f3eef0;cursor:default;}
+#demo .pdcp-saved-library {margin:20px 0;}
+#demo .pdcp-saved-library h2 {font:500 16px/22px var(--font);margin:0 0 12px;}
+#demo .pdcp-saved-rhythm {display:flex;align-items:center;justify-content:space-between;width:100%;border:0;border-radius:24px;background:#fff;color:#240f1b;text-align:left;padding:18px 20px;margin-bottom:10px;font:500 16px/22px var(--font);}
+#demo .pdcp-saved-rhythm small {display:block;color:#98868f;font:400 12px/18px var(--font);margin-top:4px;}
+#demo .pdcp-saved-stages {display:flex;height:8px;border-radius:8px;overflow:hidden;margin-top:18px;}
+#demo .pdcp-saved-stages .stimulation {background:#97002d;}
+#demo .pdcp-saved-stages .expression {background:#6b9eb4;}
+#demo .pdcp-saved-stages .mixed {background:#d1aa70;}
