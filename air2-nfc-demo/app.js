@@ -406,7 +406,7 @@ function render(){
   if(reusedView)updatePairingFrame();
   const fullHost=$('screen').querySelector('.full-app-host');
   document.querySelector('.phone').classList.toggle('is-full-app',!!fullHost);
-  if(fullHost){const fit=()=>fullHost.style.setProperty('--full-app-scale',Math.min(fullHost.clientWidth/402,fullHost.clientHeight/874));fit();if(!fullHost.dataset.observed){fullHost.dataset.observed='1';const observer=new ResizeObserver(()=>{if(fullHost.isConnected)fit();else observer.disconnect();});observer.observe(fullHost);}}
+  if(fullHost){const fit=()=>{const scale=fullHost.clientWidth/402;fullHost.style.setProperty('--full-app-scale',scale);fullHost.style.setProperty('--full-app-height',(fullHost.clientHeight/scale+44)+'px');fullHost.style.setProperty('--full-app-top',(-44*scale)+'px');};fit();if(!fullHost.dataset.observed){fullHost.dataset.observed='1';const observer=new ResizeObserver(()=>{if(fullHost.isConnected)fit();else observer.disconnect();});observer.observe(fullHost);}}
   document.querySelector('.phone').classList.toggle('is-system',['home','notification','clip-card'].includes(state.page));
   document.querySelector('.phone').classList.toggle('is-auth',['login','register'].includes(state.page));
   if(state.dialog&&!reusedView)$('screen').querySelectorAll(':scope > :not(.overlay)').forEach(el=>el.inert=true);
