@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600" viewBox="0 0 900 600" fill="none">
+  <title>手机连接 Momcozy Air2 智能吸奶器</title>
+  <rect width="900" height="600" fill="#EDF2F5"/>
+  <ellipse cx="292" cy="497" rx="103" ry="12" fill="#DCE3E8"/>
+  <ellipse cx="650" cy="497" rx="132" ry="12" fill="#DCE3E8"/>
+  <g stroke="#657782" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="191" y="97" width="202" height="394" rx="38" fill="#FCFDFE"/>
+    <rect x="206" y="112" width="172" height="364" rx="26" fill="#E1EBF0" stroke="#A8B8C2" stroke-width="3"/>
+    <rect x="263" y="123" width="58" height="12" rx="6" fill="#657782" stroke="none"/>
+    <path d="M272 456h40" stroke="#91A3AF" stroke-width="4"/>
+  </g>
+  <g transform="translate(292 289)" stroke="#A47B87" stroke-width="4" stroke-linecap="round">
+    <path d="M-10-28c15 15 15 41 0 56M8-42c23 23 23 61 0 84"/>
+    <path d="M-29-13c7 7 7 19 0 26"/>
+  </g>
+  <g stroke="#91A9B9" stroke-width="4" stroke-linecap="round">
+    <path d="M445 270c10 17 10 43 0 60"/>
+    <path d="M464 254c17 26 17 66 0 92"/>
+    <path d="M483 238c24 36 24 88 0 124"/>
+  </g>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M526 355c-4 88 40 137 124 137s128-49 124-137" fill="#FAFCFD" stroke="#A9B8C2" stroke-width="4"/>
+    <path d="M545 373c4 58 40 96 105 96s101-38 105-96" stroke="#CBD6DD" stroke-width="3"/>
+    <path d="M650 165c-63 0-117 65-124 157-7 80 42 111 124 111s131-31 124-111c-7-92-61-157-124-157Z" fill="#E2BFC7" stroke="#A8818D" stroke-width="4"/>
+    <path d="M553 281c16-54 51-92 88-98" stroke="#F4DFE4" stroke-width="4"/>
+    <ellipse cx="650" cy="219" rx="47" ry="24" fill="#EBD0D6" stroke="#FAEBEE" stroke-width="3"/>
+    <g stroke="#FFF4F6" stroke-width="3">
+      <path d="M625 210h12m-12 9h12m-12 9h12m-14-16v5m16-5v5m-16 4v5m16-5v5M647 210h12m-12 9h12m-12 9h12m-14-16v5m16-5v5m-16 4v5m16-5v5"/>
+      <path d="M675 216v6m-3-3h6"/>
+    </g>
+    <ellipse cx="615" cy="178" rx="10" ry="5" fill="#F0D7DD" stroke="#B997A2" stroke-width="2"/>
+    <ellipse cx="685" cy="178" rx="10" ry="5" fill="#F0D7DD" stroke="#B997A2" stroke-width="2"/>
+    <path d="M645 164h10" stroke="#FAEBEE" stroke-width="4"/>
+    <text x="650" y="389" text-anchor="middle" font-family="Arial,sans-serif" font-size="23" letter-spacing="1" fill="#FFF2F5">momcozy</text>
+  </g>
+</svg>

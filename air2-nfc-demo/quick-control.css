@@ -1,0 +1,53 @@
+/* Component dimensions, colors, ticks and thumb copied from Air 2 V2.0
+   v4.css + pdcp-design-lock.css (Manual and Level sections).
+   Only remove Both and ancillary functions; scope to the Clip page. */
+.qc-page{background:#f9f7f5;color:#240f1b;display:flex;flex-direction:column;min-height:100%;font-family:inherit}
+.qc-header{height:54px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.qc-header h1{margin:0;font-size:18px;font-weight:500}
+.qc-content{padding:12px 20px 0;flex:1;min-height:0;overflow:auto;scrollbar-width:none}.qc-content::-webkit-scrollbar{display:none}
+.qc-page .pdcp-manual-plan{height:148px;padding:16px;border-radius:24px;background:#fff;box-sizing:border-box}
+.qc-page .pdcp-manual-head{display:flex;align-items:center;gap:8px;height:20px;margin-bottom:16px}.qc-page .pdcp-manual-head>img{width:20px;height:20px}.qc-page .pdcp-manual-head h2{margin:0;flex:1;color:#240f1b;font-size:14px;line-height:18px;font-weight:500;letter-spacing:.28px}.qc-page .pdcp-method-time{font-size:14px;line-height:20px;font-variant-numeric:tabular-nums;color:#240f1b}
+.qc-page .pdcp-manual-tabs{display:flex;height:80px;padding:4px;border-radius:24px;background:rgba(36,15,27,.04)}
+.qc-page .pdcp-manual-tabs button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:0;border-radius:20px;background:none;padding:0;color:#9f969b;font-size:14px;line-height:18px;font-weight:400;cursor:pointer}
+.qc-page .pdcp-manual-tabs button[aria-pressed=true]{background:#fff;color:#240f1b;font-weight:500;box-shadow:0 4px 8px rgba(36,15,27,.08)}.qc-page .pdcp-manual-tabs img{width:24px;height:24px;object-fit:contain}
+.qc-page .pdcp-level-card{position:relative;display:grid;grid-template-columns:70px 70px;justify-content:space-around;box-sizing:border-box;height:273px;padding:52px 20px 16px;margin-top:16px;border-radius:24px;background:#fff;align-items:start}
+.qc-page .pdcp-level-title{position:absolute;left:20px;top:16px;margin:0;display:flex;align-items:center;gap:8px;height:20px;font-size:14px;line-height:18px;font-weight:500;letter-spacing:.28px;color:#240f1b}.qc-page .pdcp-level-title img{width:20px;height:20px}.qc-page .pdcp-level-title span{margin-left:-5px;font-weight:400;color:#9f969b}
+.qc-page .v4-level>label{display:flex;align-items:center;justify-content:center;height:18px;line-height:18px;margin:0 0 12px;font-size:12px;font-weight:400;color:rgba(36,15,27,.55)}
+.qc-page .v4-track{position:relative;height:170px;width:70px;touch-action:none}.qc-page .ticks{position:absolute;top:0;left:19px;height:170px;width:32px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.qc-page .ticks i{width:32px;height:1.5px;border-radius:17px;background:#240f1b;opacity:.1}.qc-page .ticks i:nth-child(even){opacity:.3}.qc-page .ticks i.pdcp-tick-active{background:#90253f;opacity:.2}.qc-page .ticks i.pdcp-tick-active:nth-child(even){background:#240f1b;opacity:1}
+.qc-page .v4-level-value{position:absolute;left:0;width:70px;height:36px;border-radius:1000px;background:linear-gradient(#770422,#b8545e);border:1px solid rgba(255,255,255,.35);box-shadow:0 10px 16px rgba(36,15,27,.1);font-size:16px;line-height:34px;font-weight:500;color:#fff;text-align:center;pointer-events:none}
+.qc-page .v4-track input{position:absolute;inset:0;width:100%;height:100%;margin:0;writing-mode:vertical-lr;direction:rtl;opacity:0;cursor:ns-resize}.qc-page .v4-track:focus-within{outline:2px solid #b8545e;outline-offset:6px;border-radius:8px}.qc-page .v4-track:has(input:disabled){opacity:.4}
+.qc-page .qc-actions{display:flex;gap:16px;margin:12px 20px 8px;flex-shrink:0;height:50px}.qc-page .qc-actions button{display:flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;color:#fff;font-size:16px}.qc-page .qc-actions svg{width:20px;height:20px}.qc-page .v4-start{width:100%;height:50px;border-radius:30px;background:linear-gradient(180deg,#75001f,#bd5a62);box-shadow:0 8px 40px #0000001f}.qc-page .v4-finish{flex:1;border-radius:30px;background:linear-gradient(100deg,#ffa4b3,#ff8da5);font-weight:500}.qc-page .v4-pause{width:50px;height:50px;border-radius:50%;background:linear-gradient(180deg,#75001f,#bd5a62);box-shadow:0 8px 18px #5e00202e}
+.qc-page .download-float{position:relative;inset:auto;flex-shrink:0;margin:7px 12px 12px;width:auto;transform:none}.qc-page .clip-connect-banner{flex-shrink:0;margin-top:0;margin-bottom:0}.qc-page button:disabled{opacity:.36;cursor:default}
+/* Fit the unchanged 148px / 273px source cards above the Clip overlay. */
+.qc-header{height:44px}.qc-content{padding-top:6px}
+
+/* Independent button steppers, replacing vertical rails. */
+.qc-page .pdcp-level-card{display:block;height:auto;padding:20px;margin-top:16px}
+.qc-page .pdcp-level-title{position:static;margin-bottom:6px}
+.qc-step-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0}
+.qc-step-row+.qc-step-row{border-top:1px solid #f0ecee}
+.qc-step-row:last-child{padding-bottom:10px}
+.qc-side-name{font-size:13px;font-weight:500;white-space:nowrap}
+.qc-side-name small{display:block;font-size:10px;font-weight:400;color:#afa1a7;margin-top:5px}
+.qc-stepper{display:flex;align-items:center;gap:6px}
+.qc-stepper button{width:44px;height:44px;border:0;border-radius:50%;background:#f6f1f3;color:#89042e;display:grid;place-items:center;padding:0}
+.qc-stepper button:hover:not(:disabled){background:#efdee5}
+.qc-stepper button svg{width:19px;height:19px}
+.qc-stepper output{width:53px;text-align:center;color:#240f1b;font-size:30px;line-height:44px;font-weight:500;font-variant-numeric:tabular-nums}
+.qc-stepper button:disabled{background:#faf8f9;opacity:.3}
+.qc-page .v4-finish{position:relative;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.qc-page .v4-finish::before{content:'';position:absolute;inset:0;background:#85002b24;transform:scaleX(0);transform-origin:left;pointer-events:none}
+.qc-page .v4-finish.qc-holding::before{transform:scaleX(1);transition:transform .9s linear}
+.qc-page .v4-finish>svg,.qc-page .v4-finish>span{position:relative;pointer-events:none}
+/* Original L/R columns; each is a vertical + / value / − stepper. */
+.qc-page .pdcp-level-card{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:20px;height:273px;align-content:start}
+.qc-page .pdcp-level-title{grid-column:1/-1;margin-bottom:16px}
+.qc-step-row{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:0;gap:12px}
+.qc-step-row+.qc-step-row{border:0}.qc-step-row:last-child{padding-bottom:0}
+.qc-side-name{font-size:12px;color:#9f969b;font-weight:400;line-height:18px}
+.qc-stepper{flex-direction:column;gap:8px}.qc-stepper output{font-size:30px;line-height:48px;width:60px}
+.qc-stepper button{width:44px;height:44px}
+.qc-device-status{flex-shrink:0;margin:0 20px;padding:11px 0 10px;border-bottom:1px solid #eee7ea;color:#6f5663}
+.qc-device-status>div{display:flex;align-items:center;justify-content:space-between;gap:12px}.qc-model{display:flex;gap:8px;align-items:baseline}.qc-model small{font-size:10px;color:#a19199}.qc-model strong{font-size:14px;color:#3d2430;font-weight:600}.qc-connection{display:flex;align-items:center;gap:5px;font-size:10px;color:#a58795}.qc-connection i{width:5px;height:5px;border-radius:50%;background:currentColor}.qc-connection.connected{color:#5c876f}.qc-connection.failed{color:#a34d61}.qc-device-status p{display:flex;gap:9px;margin:7px 0 0;font-size:10px;font-variant-numeric:tabular-nums;letter-spacing:.3px;color:#917d87}.qc-device-status p>span{color:#a19199}
+
+.qc-device-status{padding-top:7px;padding-bottom:7px}.qc-device-status p{margin-top:5px}

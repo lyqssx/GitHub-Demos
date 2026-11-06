@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844" fill="none">
+  <defs>
+    <linearGradient id="sky" x1="85" y1="0" x2="260" y2="844" gradientUnits="userSpaceOnUse"><stop stop-color="#143981"/><stop offset=".47" stop-color="#246cd4"/><stop offset="1" stop-color="#1b1948"/></linearGradient>
+    <linearGradient id="sun" x1="353" y1="22" x2="140" y2="620" gradientUnits="userSpaceOnUse"><stop stop-color="#ffc96b"/><stop offset=".35" stop-color="#ff9c58"/><stop offset=".7" stop-color="#ed6780"/><stop offset="1" stop-color="#954a9a"/></linearGradient>
+    <linearGradient id="wave" x1="17" y1="444" x2="386" y2="838" gradientUnits="userSpaceOnUse"><stop stop-color="#379bed"/><stop offset=".5" stop-color="#2158b3"/><stop offset="1" stop-color="#19163e"/></linearGradient>
+    <linearGradient id="rim" x1="128" y1="310" x2="359" y2="801" gradientUnits="userSpaceOnUse"><stop stop-color="#b5d3fa"/><stop offset=".38" stop-color="#7b96dd"/><stop offset="1" stop-color="#474276"/></linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <path fill="url(#sky)" d="M0 0h390v844H0z"/>
+  <path d="M165-55C91 80 70 190 147 298c60 84 200 116 266 225V-55H165Z" fill="url(#sun)"/>
+  <path d="M-93 178C19 261 38 378 122 469c96 105 244 119 339 261v156H-93V178Z" fill="url(#rim)"/>
+  <path d="M-106 244C2 326 31 441 118 527c90 88 234 106 333 235v119h-557V244Z" fill="url(#wave)"/>
+  <path d="M-55 287c92 115 112 205 206 283 74 61 179 85 249 169" stroke="#72a1e5" stroke-opacity=".23" stroke-width="17" filter="url(#soft)"/>
+</svg>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#800e32">
+  <title>Momcozy · NFC & App Clip 体验</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=71">
+  <script src="android.js?v=71" defer></script>
+  <script src="legacy.js?v=71" defer></script>
+  <link rel="stylesheet" href="quick-control.css?v=75">
+  <script src="quick-control.js?v=76" defer></script>
+  <script src="app.js?v=74" defer></script>
+  <link rel="stylesheet" href="download-story.css?v=11">
+  <link rel="stylesheet" href="source-fit.css?v=2">
+  <script src="source-fit.js?v=1" defer></script>
+  <script src="download-story.js?v=11" defer></script>
+  <script src="flow-overview.js?v=71" defer></script>
+</head>
+<body>
+  <header class="workspace-header">
+    <div class="project-name"><span class="brand-mark">m</span><div><strong>NFC & App Clip</strong><span>Momcozy · 公共设备接入体验</span></div><span class="version">DEMO 03</span></div>
+    <nav class="platform-switch" aria-label="平台流程切换"><button type="button" data-platform="ios" aria-pressed="true" aria-controls="ios-workspace">iOS</button><button type="button" data-platform="android" aria-pressed="false" aria-controls="ios-workspace">Android</button></nav>
+    <div class="header-actions"><span class="local-note">本地模拟 · NFC、蓝牙、安装与正式配网</span><button class="small-button overview-trigger" id="open-flow-overview" aria-haspopup="dialog" aria-controls="flow-overview">完整流程图 <span aria-hidden="true">↗</span></button></div>
+  </header>
+  <section class="nfc-protocol" aria-labelledby="nfc-protocol-title">
+    <div class="protocol-topline"><h2 id="nfc-protocol-title">NFC 链接示例</h2><code class="protocol-url">https://qr.momcozy.com/clip/?v=1&amp;type=nfc&amp;model=air2&amp;mac=DAC610001909</code><details class="protocol-details"><summary>协议规则 <span aria-hidden="true">⌄</span></summary><div class="protocol-rules">
+      <h3>NFC 链接协议</h3>
+      <p class="protocol-purpose">NFC 标签保存设备链接。手机读取后，按平台、App 安装状态及关联配置，交给正式 App、App Clip 或下载落地页承接。</p>
+      <table class="protocol-table">
+        <caption>字段说明 · 四个参数均必填</caption>
+        <thead><tr><th scope="col">参数</th><th scope="col">含义</th><th scope="col">取值与用途</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>v</code></th><td>协议版本</td><td>默认值为 <code>1</code>，客户端按版本解析链接。</td></tr>
+          <tr><th scope="row"><code>type</code></th><td>入口来源</td><td>固定为 <code>nfc</code>，表示从 NFC 入口进入。</td></tr>
+          <tr><th scope="row"><code>model</code></th><td>产品 model</td><td>与云平台创建产品时配置的值保持一致，用于匹配对应设备的配网准备页。</td></tr>
+          <tr><th scope="row"><code>mac</code></th><td>MAC 地址</td><td>48 位（6 字节），写作 12 个十六进制字符，例如 <code>DAC610001909</code>。解析时去除冒号或短横线，校验为 12 个 <code>0–9</code>、<code>A–F</code> 字符并转为大写，用于查找指定设备。</td></tr>
+        </tbody>
+      </table>
+      <h4>写入与处理规则</h4>
+      <ul><li>首条 NDEF 记录写入完整 HTTPS URI，域名为 <code>qr.momcozy.com</code>，路径为 <code>/clip/</code>。原二维码入口保留 <code>/apps/</code>，两种入口分开承接，传递时保留完整参数。</li><li>链接地址及系统关联配置正常时，设备参数异常不阻止 Clip 打开。先校验参数，再决定能否定向连接。</li><li>Clip 内所有参数异常合并处理：Model、MAC 或其他必要参数缺失、无效或无法识别时，统一显示「暂时无法连接设备」，提示下载 App，自行选择设备并按指引添加。</li><li>Clip 不按异常 NFC 参数预选型号、限定 MAC 或自动进入配网引导。正式 App 未登录时先登录：Model 有效而 MAC 无效时，进入该型号原配网准备页，不限定 MAC；Model 无效时回到已有首页，由用户自行选择设备。</li><li>下载与登录复用已有流程；经应用商店新安装后不保证恢复 NFC 参数，由用户正常选择设备。MAC 格式正确但未搜到设备时，仍展示「未连接设备」，不直接判定标签参数错误。</li><li>MAC 仅用于识别设备，绑定关系以当前账号及服务端记录为准。标签不保存账号、绑定凭据或 BLE 密钥；本协议不含 SN。</li></ul>
+    </div></details></div>
+  </section>
+  <main class="workspace" id="ios-workspace" aria-label="iOS 流程">
+    <aside class="flow-panel">
+      <div class="panel-label">选择体验场景</div>
+      <div class="scenarios" id="scenarios" role="group" aria-label="体验场景">
+        <button data-scenario="clip" id="uninstalled-scenario"><span class="scenario-symbol">01</span><span><strong>未安装 App</strong><small>Clip 蓝牙快控</small></span><span class="radio-dot"></span></button>
+        <div class="scenario-group">
+          <button class="scenario-group-heading" id="signed-heading" data-scenario-group="signed" aria-expanded="false" aria-controls="signed-options"><span class="scenario-symbol">02</span><strong>已安装 · 已登录</strong><span class="scenario-chevron" aria-hidden="true">⌄</span></button>
+          <div class="scenario-options" id="signed-options" role="group" aria-labelledby="signed-heading" hidden>
+          <button data-scenario="signed-bound"><span><strong>设备已绑定</strong><small>直接进入设备控制页</small></span><span class="radio-dot"></span></button>
+          <button data-scenario="signed"><span><strong>设备未绑定</strong><small>进入配网引导页</small></span><span class="radio-dot"></span></button>
+          </div>
+        </div>
+        <div class="scenario-group">
+          <button class="scenario-group-heading" id="unsigned-heading" data-scenario-group="unsigned" aria-expanded="false" aria-controls="unsigned-options"><span class="scenario-symbol">03</span><strong>已安装 · 未登录</strong><span class="scenario-chevron" aria-hidden="true">⌄</span></button>
+          <div class="scenario-options" id="unsigned-options" role="group" aria-labelledby="unsigned-heading" hidden>
+          <button data-scenario="unsigned-bound"><span><strong>设备已绑定</strong><small>登录后进入设备控制页</small></span><span class="radio-dot"></span></button>
+          <button data-scenario="unsigned"><span><strong>设备未绑定</strong><small>登录后进入配网引导页</small></span><span class="radio-dot"></span></button>
+          </div>
+        </div>
+        <button data-scenario="legacy" id="legacy-scenario"><span class="scenario-symbol">04</span><span><strong>已安装 · 旧版 App</strong><small>落地页兼容方案 · 待验证</small></span><span class="radio-dot"></span></button>
+        <p class="scenario-binding-note">「已绑定」指已绑定当前登录账号。02／03 为已支持 NFC 路由的版本。</p>
+      </div>
+      <div id="android-options" class="android-options" hidden><label>系统版本<select id="android-version"><option value="16">Android 16（链接分发）</option><option value="17">Android 17（先点通知）</option></select></label><label>下载落地页<select id="android-region"><option value="global">非中国区</option><option value="cn">中国区</option></select></label></div>
+      <div class="section-top"><span class="panel-label">体验流程</span><span class="tiny">点击跳转</span></div>
+      <nav id="flow" aria-label="流程步骤"></nav>
+      <div class="section-top branch-heading"><span class="panel-label" id="branch-title">Clip 异常与恢复</span><span class="tiny">分支</span></div>
+      <nav id="branches" aria-label="异常演示"></nav>
+      <div class="scope-note"><span class="tiny">本轮范围</span><p>公共接入与 Clip 蓝牙连接，Air2 为例。<br>快控：三模式、左右独立调档及启停。<br>包含 Clip 连接异常与参数兜底。</p></div>
+    </aside>
+    <section class="preview-panel" aria-label="交互预览">
+      <div class="preview-toolbar">
+        <div class="preview-identity"><div class="preview-container"><span class="live-dot"></span><span id="container-name">iOS</span></div><span class="preview-step" id="preview-step"></span></div>
+<div class="preview-actions"><button class="simulate-button" id="touch">模拟碰 NFC <span>↗</span></button><button class="small-button" id="motion" aria-pressed="false">暂停自动推进</button><button class="small-button" id="demo-authorize" data-action="simulate-settings-authorized" hidden>模拟权限已允许</button><button class="small-button" id="advance" data-action="advance" hidden>下一阶段</button></div>
+      </div>
+      <div class="phone">
+        <div class="status-bar"><span>9:41</span><span class="island"></span><span class="status-icons"><svg viewBox="0 0 20 12" aria-hidden="true"><path d="M1 11V8h3v3M6 11V5h3v6M11 11V2h3v9M16 11V0h3v11" fill="currentColor"/></svg><span class="battery"></span></span></div>
+        <div id="screen" class="screen"></div>
+        <div class="home-indicator"></div>
+      </div>
+      <p id="caption" class="preview-caption"></p>
+    </section>
+    <aside class="spec-panel">
+      <div class="panel-label">当前交互</div>
+      <div id="spec" aria-live="polite"></div>
+      <section class="context-section"><div class="panel-label">状态观察</div><div id="context" aria-live="polite"></div></section>
+      <details class="technical-note"><summary>调研结论与方案边界</summary><p>依据本次技术调研，原设想的 Clip 数据接续后静默配网链路未实现。本次方案不依赖 Group 设备信息迁移，不演示安装后自动清除 Clip 或自动建立账号绑定。正式 App 配网复用「配网专项-全面优化」已有内容，本轮仅补充 Clip 蓝牙连接异常。</p></details>
+      <div class="entry-sources"><a href="https://support.apple.com/en-us/102267" target="_blank" rel="noreferrer">Apple · 蓝牙授权与设置 ↗</a><a href="https://developer.apple.com/documentation/appclip/choosing-the-right-functionality-for-your-app-clip" target="_blank" rel="noreferrer">Apple · App Clip 可用功能 ↗</a><a href="https://developer.apple.com/documentation/appclip/recommending-your-app-to-app-clip-users" target="_blank" rel="noreferrer">Apple · Clip 内获取主 App ↗</a><a href="https://developer.apple.com/documentation/corenfc/adding-support-for-background-tag-reading" target="_blank" rel="noreferrer">Apple · 后台 NFC 通知与解锁 ↗</a><a href="https://developer.apple.com/design/human-interface-guidelines/nfc" target="_blank" rel="noreferrer">Apple · NFC 系统交互 ↗</a><a href="https://developer.apple.com/documentation/appclip/configuring-the-launch-experience-of-your-app-clip" target="_blank" rel="noreferrer">Apple · App Clip 启动规则 ↗</a></div>
+    </aside>
+  </main>
+
+  <dialog id="flow-overview" class="flow-overview" aria-labelledby="flow-overview-title">
+    <header class="overview-header"><div><h2 id="flow-overview-title">NFC 接入完整流程</h2><p>按平台及 App 安装状态查看</p></div><button class="overview-close" id="close-flow-overview" aria-label="关闭完整流程图">×</button></header>
+    <nav class="overview-tabs" aria-label="流程图平台"><button type="button" data-chart-platform="ios" aria-pressed="true">iOS</button><button type="button" data-chart-platform="android" aria-pressed="false">Android</button><span>流程终点交给已有业务，不展开配网与控制细节</span></nav>
+    <div id="flow-overview-content" class="overview-content"></div>
+  </dialog>
+</body>
+</html>

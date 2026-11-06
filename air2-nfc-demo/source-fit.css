@@ -1,0 +1,31 @@
+/* Original Air 2 V2.0 component rules, scoped to the ad preview. */
+.source-fit .r50-fit-copy{display:flex;flex-direction:column;gap:4px}
+.source-fit .r50-fit-copy strong{color:#fff;font-size:18px;font-weight:600;line-height:24px}
+.source-fit .r50-fit-copy span{color:rgba(255,255,255,.78);font-size:12px}
+.source-fit .r50-fit-copy .r50-count{font-size:30px;line-height:32px}
+.source-fit .r50-fit-item{display:flex;min-width:0;height:30px;align-items:center;gap:6px;padding:0 10px;border:1px solid rgba(255,255,255,.18);border-radius:16px;background:rgba(255,255,255,.11);color:rgba(255,255,255,.94);font-size:11px;font-weight:500}
+.source-fit .r50-check-icon{display:grid;width:15px;height:15px;flex:none;place-items:center;border-radius:50%;background:#fff;color:#770523;font-size:10px;font-style:normal;font-weight:800}
+.source-fit .is-checking .r50-check-icon,.source-fit .is-adjust .r50-check-icon{background:rgba(255,255,255,.18)}
+.source-fit .r50-check-icon b{width:6px;height:6px;border:1.5px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:r50-spin .75s linear infinite}
+.source-fit .r50-fit-item.is-adjust{border-color:rgba(255,221,158,.5);background:rgba(255,211,130,.16);color:#fff3d4}
+
+.source-fit .r50-progress{position:absolute;right:24px;bottom:20px;left:24px;height:3px;overflow:hidden;border-radius:3px;background:rgba(255,255,255,.16)}
+.source-fit .r50-progress i{display:block;width:var(--r50-progress);height:100%;border-radius:inherit;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.5)}
+
+.source-fit .r50-fit-panel.is-starting .r50-progress i{width:100%}
+.source-fit .r50-check-icon b,.source-fit .r50-guide.is-adjusting .r50-hardware,.source-fit .r50-start-ceremony>*{animation:none}
+
+
+.source-fit .pdcp-angle-pair {display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+
+.source-fit .pdcp-angle-side {color:#96566e;min-width:0;}
+
+.source-fit .pdcp-angle-side.is-aligned {color:#60856e;}
+
+.source-fit .pdcp-angle-side svg {display:block;width:100%;height:146px;}
+
+.source-fit .pdcp-angle-side header {display:flex;align-items:center;justify-content:space-between;}
+
+.source-fit .pdcp-angle-side p {text-align:center;color:inherit;font-size:11px;margin:0 0 7px;}
+.source-fit{width:370px;transform:scale(.72);transform-origin:top left;color:#fff;font-family:inherit}.source-fit .r50-fit-panel{position:relative!important;inset:auto!important;padding:16px;border-radius:32px;width:370px;height:auto;box-shadow:none}.source-fit .r50-fit-head{min-height:24px}.source-fit .r50-fit-checks{margin:10px 0;display:flex}.source-fit .r50-fit-item{width:160px}.source-fit .pdcp-angle-guide{background:rgba(255,255,255,.95);margin:8px 0;padding:10px 14px;border-radius:16px}.source-fit .pdcp-angle-side header{font-size:12px}.source-fit .pdcp-angle-side header span{font-size:18px}.source-fit .r50-progress{position:relative;inset:auto;margin-top:12px}.source-fit .r50-progress i{display:block;background:white;height:3px}.single-feature[data-feature=fit] .story-art{background:transparent;border:0;box-shadow:none;padding:0;height:290px;overflow:visible;display:block}.single-feature[data-feature=fit] .source-fit{transform:scale(.815)}
+.source-fit .r50-fit-panel{color:#fff;background:linear-gradient(148deg,#a81948,#770523 70%);overflow:hidden}
