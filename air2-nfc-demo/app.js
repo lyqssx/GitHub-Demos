@@ -209,8 +209,8 @@ function connectMarkup(){return pairingMarkup('connecting');}
 function controlMarkup(){
   const clip=state.origin==='clip'&&!state.bound;
   if(clip)return quickControlMarkup();
-  const unavailable=clip&&!state.connected;
-  return `<div class="app-page ${clip?'clip-control-page':''}">${nav(DEVICE.name,'exit',clip?'APP CLIP':'APP')}${clip?clipConnectionBanner():''}<div class="control-content"><div class="control-device"><div class="device-mark">Air2</div><div><h2>${clip?(unavailable?'Air2':'设备已就绪'):DEVICE.name}</h2><p>${clip?(unavailable?'连接成功后即可使用':'开始你的轻量体验'):'设备控制页'}</p></div></div><section class="control-placeholder ${unavailable?'is-unavailable':''}" aria-label="通用设备控制页占位" aria-disabled="${unavailable}"><div class="placeholder-icon" aria-hidden="true"><i></i><i></i><i></i><i></i></div><strong>设备控制区域</strong><p>${unavailable?'设备连接后可使用控制功能':'复用已有设备控制页面'}</p><span class="skeleton-line"></span><span class="skeleton-line short"></span>${unavailable?'<span class="control-unavailable-label">等待设备连接</span>':''}</section>${clip?'<p class="control-footnote">当前为 App Clip，无需账号即可使用设备。</p>':''}</div>${clip?appInstallBanner():''}</div>`;
+  const fullAppUrl=location.hostname==='127.0.0.1'||location.hostname==='localhost'?'full-app/nfc-entry.html':'../Air%202%20V2.0/nfc-entry.html';
+  return `<div class="full-app-host"><iframe class="full-app-frame" title="Air 2 正式 App 控制页" src="${fullAppUrl}"></iframe></div>`;
 }
 function appInstallBanner(){
  const downloading=state.installStatus==='downloading',failed=state.installStatus==='failed';
@@ -400,10 +400,13 @@ function render(){
   const markup={home:()=>platform==='android'?androidHome():iosHome(),notification:()=>iosHome('notification'),'clip-card':()=>iosHome('card'),'clip-fallback':clipFallbackMarkup,guide:guideMarkup,connecting:connectMarkup,control:controlMarkup,store:storeMarkup,login:loginMarkup,register:loginMarkup,success:successMarkup,failure:failureMarkup,'app-resume':resumeMarkup,'android-notification':()=>androidHome(true),landing:androidLanding,market:androidMarket,'normal-entry':androidNormalEntry,'legacy-web':legacyWebMarkup};
   const reusedView=pairingView(), currentFrame=$('screen').querySelector('.pairing-frame');
   // Keep the iframe mounted while stages, pause state, or the exit sheet change.
-  if(!reusedView||currentFrame?.dataset.pairingView!==reusedView){
+  if(!((state.page==='control'&&state.origin!=='clip')&&$('screen').querySelector('.full-app-frame'))&&(!reusedView||currentFrame?.dataset.pairingView!==reusedView)){
     $('screen').innerHTML=markup[state.page]()+(state.dialog&&!reusedView?dialogMarkup():'');
   }
   if(reusedView)updatePairingFrame();
+  const fullHost=$('screen').querySelector('.full-app-host');
+  document.querySelector('.phone').classList.toggle('is-full-app',!!fullHost);
+  if(fullHost){const fit=()=>fullHost.style.setProperty('--full-app-scale',Math.min(fullHost.clientWidth/402,fullHost.clientHeight/874));fit();if(!fullHost.dataset.observed){fullHost.dataset.observed='1';const observer=new ResizeObserver(()=>{if(fullHost.isConnected)fit();else observer.disconnect();});observer.observe(fullHost);}}
   document.querySelector('.phone').classList.toggle('is-system',['home','notification','clip-card'].includes(state.page));
   document.querySelector('.phone').classList.toggle('is-auth',['login','register'].includes(state.page));
   if(state.dialog&&!reusedView)$('screen').querySelectorAll(':scope > :not(.overlay)').forEach(el=>el.inert=true);
