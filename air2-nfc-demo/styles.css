@@ -294,3 +294,6 @@
 
 /* Fill the content width and consume the source's duplicate top safe area. */
 .full-app-frame{left:0;top:var(--full-app-top,-37px);width:402px;height:var(--full-app-height,874px);transform:scale(var(--full-app-scale,.85));transform-origin:top left}.phone.is-full-app .screen{padding:0;margin:0}
+
+/* Source page owns the entire background; shared chrome is a transparent overlay. */
+.phone.is-full-app>.screen{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;z-index:0;background:transparent}.phone.is-full-app>.status-bar{position:absolute;inset:0 0 auto;height:43px;background:transparent!important;z-index:30;pointer-events:none}.phone.is-full-app>.home-indicator{position:absolute;bottom:0;left:0;right:0;background:transparent!important;z-index:30;pointer-events:none}.phone.is-full-app .full-app-host{background:transparent}
