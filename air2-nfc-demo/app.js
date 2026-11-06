@@ -138,7 +138,7 @@ function flowPage(){
  if(state.page==='clip-fallback')return state.installStatus==='idle'?'control':'store';
  if(platform==='android'&&['home','android-notification'].includes(state.page))return 'android-entry';
  if(platform==='android'&&['login','register','normal-entry'].includes(state.page)&&state.fromMarket)return 'normal-launch';
- if(state.scenario==='clip'&&state.origin!=='clip'&&state.page==='control')return 'app-control';
+ if(state.page==='control'&&state.origin!=='clip'&&(state.scenario==='clip'||flows[state.scenario]?.some(step=>step[0]==='success')))return 'app-control';
  if(state.page==='register')return 'login';
  if(state.page==='installing')return 'store';
  if(state.page==='guide'&&state.origin==='clip')return 'control';
