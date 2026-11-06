@@ -41,7 +41,7 @@ function reset(scenario=platform==='android'?'download':'clip') {
 function go(page,extra={}) {
   if(state?.quick?.status==='running'&&!['control','store'].includes(page))quickPause(state.quick);
   clearTimeout(timer);
-  if(page==='guide'){state.guideToken=(state.guideToken||0)+1;state.guideStatus='';}
+  if(page==='guide'){state.guideScanTime=0;state.guideToken=(state.guideToken||0)+1;state.guideStatus='';}
   Object.assign(state,extra,{page});render();schedule();
 }
 function isClipConnecting(){return state.origin==='clip'&&state.btAuthorization==='allowedAlways'&&['control','store'].includes(state.page)&&!state.connected&&!state.failure;}
@@ -129,8 +129,8 @@ function login(){
 const flows={
  legacy:[['notification','系统 NFC 通知','网页承接方案 · 路由前提待验证','新增'],['legacy-web','已有下载落地页','复用原页面 · 条件路径','复用']],
  clip:[['clip-card','App Clip 卡片','未安装 App · 点击打开 Clip','新增'],['control','Clip 快控与连接','顶部轻提示 · 自动扫描连接','新增'],['store','下载正式 App','系统横幅内获取 · 不离开快控','新增'],['login','正式 App · 注册／登录','重新进入正式 App 流程','复用'],['guide','正式 App · 配网指引','复用配网专项原有内容','复用'],['connecting','正式 App · 完整配网','复用原完整配网流程','复用'],['success','配网完成','完成后进入正式设备页','复用'],['app-control','正式 App 设备页','复用已有设备控制','复用']],
- signed:[['notification','系统 NFC 通知','点按进入正式 App · 查询账号绑定','新增'],['guide','设备配网引导','保留 NFC 目标 · 自动查找','复用'],['connecting','设备连接过程','找到目标设备后开始连接','复用'],['success','连接成功','本分支到此结束','复用']],
- unsigned:[['notification','系统 NFC 通知','点按进入正式 App','新增'],['login','注册／登录账号','登录后查询目标设备的绑定关系','复用'],['guide','设备配网引导','保留 NFC 目标 · 自动查找','复用'],['connecting','设备连接过程','找到目标设备后开始连接','复用'],['success','连接成功','本分支到此结束','复用']],
+ signed:[['notification','系统 NFC 通知','点按进入正式 App · 查询账号绑定','新增'],['guide','设备配网引导','保留 NFC 目标 · 自动查找','复用'],['connecting','设备连接过程','找到目标设备后开始连接','复用'],['success','连接成功','点击 Done · 进入设备页','复用']],
+ unsigned:[['notification','系统 NFC 通知','点按进入正式 App','新增'],['login','注册／登录账号','登录后查询目标设备的绑定关系','复用'],['guide','设备配网引导','保留 NFC 目标 · 自动查找','复用'],['connecting','设备连接过程','找到目标设备后开始连接','复用'],['success','连接成功','点击 Done · 进入设备页','复用']],
  'signed-bound':[['notification','系统 NFC 通知','点按进入正式 App · 查询账号绑定','新增'],['control','设备控制页','已绑定当前账号 · 直接进入','复用']],
  'unsigned-bound':[['notification','系统 NFC 通知','点按进入正式 App','新增'],['login','注册／登录账号','登录后查询目标设备的绑定关系','复用'],['control','设备控制页','已绑定登录账号 · 直接进入','复用']]
 };
@@ -193,7 +193,7 @@ function clipConnectionBanner(){
 }
 
 function pairingView(){
-  return state.page==='guide'?'guide':state.page==='connecting'?'connecting':state.page==='failure'&&state.failure==='connection'&&state.origin!=='clip'?'failure':null;
+  return state.page==='failure'&&state.failure==='connection'&&state.origin!=='clip'?'failure':null;
 }
 function pairingConfig(){return {view:pairingView(),stage:state.stage,paused:paused,clip:state.origin==='clip',targetMac:state.origin==='nfc'&&state.target&&!state.parameterFallback?DEVICE.mac:'',model:DEVICE.name,dialog:state.dialog,guideTimeout:!!state.guideTimeout,guideToken:state.guideToken||0};}
 function updatePairingFrame(){
@@ -204,8 +204,8 @@ function pairingMarkup(view){
   const params=new URLSearchParams({v:'10',view,stage:String(state.stage),paused:paused?'1':'0',clip:state.origin==='clip'?'1':'0',targetMac:state.origin==='nfc'&&state.target&&!state.parameterFallback?DEVICE.mac:'',model:DEVICE.name});
   return `<div class="app-page reused-pairing-page"><iframe class="pairing-frame" data-pairing-view="${view}" title="${state.origin==='clip'?'Clip 蓝牙连接':'配网专项-全面优化'} · ${view==='guide'?'操作指引':view==='failure'?'连接失败':'连接设备'}" src="pairing-module/index.html?${params}"></iframe></div>`;
 }
-function guideMarkup(){return pairingMarkup('guide');}
-function connectMarkup(){return pairingMarkup('connecting');}
+function guideMarkup(){return figmaPairingMarkup('guide');}
+function connectMarkup(){return figmaPairingMarkup('connecting');}
 function controlMarkup(){
   const clip=state.origin==='clip'&&!state.bound;
   if(clip)return quickControlMarkup();
@@ -234,21 +234,8 @@ function loginMarkup(){
  return `<div class="app-page login-page"><div class="auth-region"><label class="auth-country">${pin}<select aria-label="Country or region"><option>Australia</option><option>United States</option><option>Canada</option></select></label></div><form id="auth-form" class="auth-form"><img class="auth-logo" src="assets/auth-logo.svg" alt="Momcozy"><h1>${registering?'Create Account':'Welcome to Momcozy'}</h1><div class="auth-fields"><input id="account" name="account" aria-label="Email or phone number" placeholder="Email or phone number" autocomplete="off" spellcheck="false" required><div class="auth-password"><input id="password" name="password" type="password" aria-label="Password" placeholder="Password" autocomplete="off" required><button type="button" class="auth-eye" data-action="toggle-password" aria-label="Show password" aria-pressed="false">${eye}</button></div></div><div class="auth-links"><button type="button" data-action="code-login">Verification Code Login</button><button type="button" data-action="forgot-password">Forgot Password?</button></div><p id="auth-feedback" class="auth-feedback" role="status"></p><div class="auth-bottom"><button class="auth-primary" type="submit" disabled>${registering?'Create Account':'Login'}</button><button class="auth-secondary" type="button" data-action="toggle-auth">${registering?'Login':'Create Account'}</button><div class="auth-divider"><span>OR</span></div><div class="auth-social"><button type="button" aria-label="Continue with Google" data-action="demo-social">${google}</button><button type="button" aria-label="Continue with Apple" data-action="demo-social">${apple}</button><button type="button" aria-label="Continue with Facebook" data-action="demo-social">${facebook}</button></div></div></form></div>`;
 }
 
-function successMarkup(){
-  const terminal=['signed','signed-bound','unsigned','unsigned-bound'].includes(state.scenario);
-  const doneAction=terminal?'finish-flow':'enter-control';
-  return `<div class="app-page success-page">
-    <div class="completion-toolbar">
-      <button class="completion-icon" data-action="${doneAction}" aria-label="${terminal?'结束本次演示':'关闭完成页'}">${icon('close')}</button>
-      <button class="completion-icon" data-action="support" aria-label="联系客服">${icon('headset')}</button>
-    </div>
-    <div class="completion-content">
-      <img class="completion-product" src="assets/air2-pair.png" alt="Air 2 双机">
-      <h2><span>${DEVICE.name}</span><span>Connect Successfully</span></h2>
-    </div>
-    <div class="completion-actions"><button class="primary" data-action="${doneAction}" ${terminal&&state.flowComplete?'disabled':''}>Done</button></div>
-  </div>`;
-}
+function successMarkup(){return figmaPairingMarkup('success');}
+
 function failureInfo(){
  const map={
  connection:['未连接设备','请确认设备已开机、手机蓝牙已开启，并将设备靠近手机后重新扫描。','重新扫描','retry-connection'],
@@ -332,6 +319,7 @@ function getExceptionSpec(){
 
 function getSpec(){
  const exception=getExceptionSpec();if(exception)return exception;
+ if(['guide','discovered','connecting','success'].includes(state.page))return ['Air 2 · '+({guide:'配网引导',discovered:'发现设备',connecting:'连接中',success:'连接成功'})[state.page],'按 Figma 配网流程呈现。','复用',['确认设备开机并靠近手机；扫描后展示可连接的 Air 2。','点击 Connect 后连接手机蓝牙；不再展示原来的设备上云两步流程。','连接成功后点击 Done，进入 Air 2 正式控制页。']];
  if(state.scenario==='legacy')return legacySpec();
  if(platform==='android'){const spec=androidSpec();if(spec)return spec;}
  const clip=state.origin==='clip';
@@ -368,10 +356,10 @@ function switchPlatform(next){
 }
 function currentFlowSteps(){
  const steps=platform==='android'?androidFlow():flows[state.scenario];
- if(!state.parameterFallback)return steps;
+ if(!state.parameterFallback){const expanded=steps.flatMap(step=>step[0]==='guide'?[step,['discovered','发现设备','选择 Air 2 · 点击 Connect','复用']]:[step]);if(expanded.some(s=>s[0]==='success')&&!expanded.some(s=>s[0]==='app-control'))expanded.push(['app-control','正式 App 设备页','Done 后进入 Air 2 控制页','复用']);return expanded;}
  if(state.scenario==='clip')return [...flows.clip.slice(0,3),['login','正式 App · 注册／登录','沿用正常启动流程','复用'],['normal-entry','App 首页','自行选择设备 · 正常添加','复用']];
  if(state.origin==='nfc')return [steps[0],...(!state.scenario.startsWith('unsigned')?[]:[['login','注册／登录账号','复用已有登录流程','复用']]),...(state.parameterFallback==='mac'?[
-  ['guide','设备配网引导','按有效 Model · 不限定 MAC','复用'],['connecting','设备连接过程','同型号正常配网','复用'],['success','连接成功','本分支到此结束','复用']
+  ['guide','设备配网引导','按有效 Model · 不限定 MAC','复用'],['connecting','设备连接过程','同型号正常配网','复用'],['success','连接成功','点击 Done · 进入设备页','复用']
  ]:[['normal-entry','App 首页','由用户自行选择设备','复用']])];
  return steps;
 }
@@ -397,13 +385,14 @@ function render(){
   const branches=state.scenario==='legacy'?[]:installedScenario?[...(platform==='android'?[['browser-fallback','链接由浏览器打开']]:[]),...parameterBranches]:state.scenario==='clip'?[['connection','未连接设备'],['bluetooth-off','手机蓝牙关闭'],['bluetooth','蓝牙权限未允许'],['install','正式 App 安装失败'],['invalid-parameters','NFC 参数异常']]:[];
   $('branch-title').textContent=state.scenario==='clip'?'Clip 异常与恢复':'异常与恢复';
   $('branches').innerHTML=branches.length?branches.map(([key,title])=>`<button class="branch ${key==='invalid-parameters'&&state.page==='clip-fallback'||key===`invalid-${state.parameterFallback}`&&state.origin==='nfc'||key==='legacy-web'&&state.page==='legacy-web'||key==='install'&&state.installStatus==='failed'&&state.page!=='clip-fallback'||state.failure===key&&(state.page==='failure'||state.page==='guide'||state.page==='control')&&!state.guideTimeout||key==='login'&&state.loginError?'active':''}" data-branch="${key}">${title}</button>`).join(''):`<p class="tiny">${platform==='android'&&state.scenario==='download'?'下载流程复用现有落地页。':state.scenario==='legacy'?'系统直接打开旧版 App 的情况，见右侧兼容说明。':'正式 App 异常沿用原配网专项。'}</p>`;
-  const markup={home:()=>platform==='android'?androidHome():iosHome(),notification:()=>iosHome('notification'),'clip-card':()=>iosHome('card'),'clip-fallback':clipFallbackMarkup,guide:guideMarkup,connecting:connectMarkup,control:controlMarkup,store:storeMarkup,login:loginMarkup,register:loginMarkup,success:successMarkup,failure:failureMarkup,'app-resume':resumeMarkup,'android-notification':()=>androidHome(true),landing:androidLanding,market:androidMarket,'normal-entry':androidNormalEntry,'legacy-web':legacyWebMarkup};
+  const markup={home:()=>platform==='android'?androidHome():iosHome(),notification:()=>iosHome('notification'),'clip-card':()=>iosHome('card'),'clip-fallback':clipFallbackMarkup,guide:guideMarkup,discovered:()=>figmaPairingMarkup('discovered'),connecting:connectMarkup,control:controlMarkup,store:storeMarkup,login:loginMarkup,register:loginMarkup,success:successMarkup,failure:failureMarkup,'app-resume':resumeMarkup,'android-notification':()=>androidHome(true),landing:androidLanding,market:androidMarket,'normal-entry':androidNormalEntry,'legacy-web':legacyWebMarkup};
   const reusedView=pairingView(), currentFrame=$('screen').querySelector('.pairing-frame');
   // Keep the iframe mounted while stages, pause state, or the exit sheet change.
   if(!((state.page==='control'&&state.origin!=='clip')&&$('screen').querySelector('.full-app-frame'))&&(!reusedView||currentFrame?.dataset.pairingView!==reusedView)){
     $('screen').innerHTML=markup[state.page]()+(state.dialog&&!reusedView?dialogMarkup():'');
   }
   if(reusedView)updatePairingFrame();
+  mountFigmaPairing();
   const fullHost=$('screen').querySelector('.full-app-host');
   document.querySelector('.phone').classList.toggle('is-full-app',!!fullHost);
   if(fullHost){const fit=()=>{const scale=fullHost.clientWidth/402;fullHost.style.setProperty('--full-app-scale',scale);fullHost.style.setProperty('--full-app-height',(fullHost.clientHeight/scale)+'px');fullHost.style.setProperty('--full-app-top','0px');};fit();if(!fullHost.dataset.observed){fullHost.dataset.observed='1';const observer=new ResizeObserver(()=>{if(fullHost.isConnected)fit();else observer.disconnect();});observer.observe(fullHost);}}
@@ -426,7 +415,7 @@ function render(){
     ['当前流程',state.scenario==='legacy'?'旧版兼容性核验':state.appManualSelection||state.fromMarket?'正式 App · 正常启动':state.origin==='clip'?(state.parameterFallback?'Clip 参数兜底':'Clip 蓝牙快控'):state.origin==='app'?'正式 App · 配网':'正式 App · NFC 接入'],
   ];
   $('context').innerHTML=values.map(([label,value,cls])=>`<div class="context-row"><span>${label}</span><b class="${cls||''}">${value}</b></div>`).join('');
-  $('caption').textContent=['signed','signed-bound','unsigned','unsigned-bound'].includes(state.scenario)&&state.page==='success'?(state.flowComplete?'本次演示已结束。':'连接成功，本分支演示到此结束，后续沿用已有流程。'):state.origin==='clip'?(state.page==='store'?'系统安装横幅交互示意；下载期间保留快控页，进度为本地模拟。':'Clip 只建立蓝牙连接；请先打开设备，并将手机靠近设备。'):state.origin==='nfc'?'NFC 指定 Air2 · 尾号 1909；登录后判断：已绑定进控制页，未绑定进配网引导页。':['store','installing'].includes(state.page)?'安装过程为本地模拟。':'正式 App 流程复用原配网专项；不接续 Clip 的蓝牙连接或设备绑定。';
+  $('caption').textContent=['signed','signed-bound','unsigned','unsigned-bound'].includes(state.scenario)&&state.page==='success'?'连接成功，点击 Done 进入 Air 2 正式控制页。':state.origin==='clip'?(state.page==='store'?'系统安装横幅交互示意；下载期间保留快控页，进度为本地模拟。':'Clip 只建立蓝牙连接；请先打开设备，并将手机靠近设备。'):state.origin==='nfc'?'NFC 指定 Air2 · 尾号 1909；登录后判断：已绑定进控制页，未绑定进配网引导页。':['store','installing'].includes(state.page)?'安装过程为本地模拟。':'正式 App 流程复用原配网专项；不接续 Clip 的蓝牙连接或设备绑定。';
   if(platform==='android'&&state.page!=='success')$('caption').textContent=state.fromMarket?'应用商店安装后按正常入口打开，不接续本次 NFC 设备信息。':state.page==='landing'?'复用「落地页新增 SN」页面；此处为本地唤起／下载模拟。':`Android ${state.androidVersion} · ${state.androidVersion===17?'点按系统打开链接通知后继续':'已配置对应链接处理时进入 App；否则由浏览器打开'}`;
   if(state.scenario==='legacy'){$('caption').textContent=state.page==='legacy-web'?'下载页后续操作沿用原有逻辑。':'本演示采用网页承接方案；是否先进入网页，需核对旧版本关联配置。';if(state.page==='legacy-web')$('container-name').textContent=platform==='android'?'Android · 浏览器网页':'iOS · 浏览器网页';}
   if(state.parameterFallback&&state.page!=='success')$('caption').textContent=state.origin==='clip'?'NFC 已打开 Clip；设备信息异常时，引导使用正式 App 正常添加设备。':state.origin==='nfc'?(state.parameterFallback==='mac'?'Model 有效：登录后按该型号正常配网，不限定 NFC MAC。':'Model 无效：登录后回到已有首页，由用户自行选择设备。'):'下载后正常启动 App；选择设备与配网沿用已有流程。';
@@ -441,6 +430,8 @@ function render(){
 
 function seedClip(){clearTimeout(installTimer);clearTimeout(clipNoticeTimer);clipNoticeTimer=null;Object.assign(state,{clipSuccessVisible:false,installStatus:'idle',installProgress:0,installDone:false,origin:'clip',target:true,targetBound:false,bindingChecked:false,nfcDestination:'',connected:true,clipUsed:true,installed:false,logged:false,bound:false,dialog:null,outcome:'success',loginError:false,reconnecting:false,settingsRequested:false,btAuthorization:'allowedAlways',parameterFallback:'',appManualSelection:false});}
 function jump(step){
+ if(step==='app-control'){state.origin=state.scenario==='clip'?'app':'nfc';go('control',{logged:true,installed:true,bound:true,connected:true,targetBound:true,dialog:null});return;}
+ if(step==='discovered'){state.origin=state.scenario==='clip'?'app':'nfc';state.logged=true;go('discovered',{connected:false,bound:false,dialog:null});return;}
  if(state.parameterFallback&&state.origin==='nfc'&&['notification','login','guide','connecting','success','normal-entry'].includes(step)){
   if(step==='notification')go(step);
   else if(step==='login')go(step,{logged:false});

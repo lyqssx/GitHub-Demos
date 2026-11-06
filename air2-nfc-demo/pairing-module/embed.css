@@ -13,6 +13,6 @@ button{cursor:pointer}button:focus-visible{outline:3px solid #c9859c;outline-off
 #pairing-root img[src$="air2-pair.png"]{max-width:100%;object-position:center}
 #pairing-root img[src$="air2-pair.png"][alt="吸奶器左侧设备"]{object-fit:cover!important;object-position:left!important}
 #pairing-root img[src$="air2-pair.png"][alt="吸奶器右侧设备"]{object-fit:cover!important;object-position:right!important}
-#pairing-root img[src$="air2-pair.png"][alt="Air2 连接指引"]{width:100%!important;height:160px!important;transform:none!important;align-self:center}
+#pairing-root img[src$="air2-pair.png"][alt="Air2 连接指引"]{width:220px!important;height:108px!important;transform:none!important;align-self:center}
 #pairing-root div:has(>img[src$="air2-pair.png"].w-16){width:144px!important;overflow:visible!important}
 #pairing-root img[src$="air2-pair.png"].w-16{width:132px!important;height:64px!important}

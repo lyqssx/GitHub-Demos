@@ -299,3 +299,5 @@
 .phone.is-full-app>.screen{position:absolute;inset:0;width:100%;height:100%;padding:0;margin:0;z-index:0;background:transparent}.phone.is-full-app>.status-bar{position:absolute;inset:0 0 auto;height:43px;background:transparent!important;z-index:30;pointer-events:none}.phone.is-full-app>.home-indicator{position:absolute;bottom:0;left:0;right:0;background:transparent!important;z-index:30;pointer-events:none}.phone.is-full-app .full-app-host{background:transparent}
 
 .completion-product[src$="air2-pair.png"]{width:auto;max-width:100%;object-fit:contain;object-position:center}.device-mini img[src$="air2-pair.png"]{width:110px;object-fit:contain}
+
+.completion-product[src$="air2-pair.png"]{width:220px;height:108px;max-height:none;flex-shrink:0;object-fit:contain;object-position:center}

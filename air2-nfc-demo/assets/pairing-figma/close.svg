@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+<foreignObject x="-54.3656" y="-54.3656" width="130.731" height="130.731"><div xmlns="http://www.w3.org/1999/xhtml" style="backdrop-filter:blur(27.18px);clip-path:url(#bgblur_0_0_6_clip_path);height:100%;width:100%"></div></foreignObject><g id="Close" data-figma-bg-blur-radius="54.3656">
+<rect width="22" height="22" rx="11" fill="#747480" fill-opacity="0.08"/>
+<path id="SF Symbol / xmark" d="M6.22647 14.6205C5.92655 14.9204 5.92043 15.4529 6.23259 15.7651C6.55088 16.0773 7.0834 16.0711 7.3772 15.7773L11.0008 12.1538L14.6182 15.7712C14.9243 16.0773 15.4507 16.0773 15.7628 15.7651C16.075 15.4468 16.075 14.9265 15.7689 14.6205L12.1515 11.0031L15.7689 7.3795C16.075 7.07346 16.0811 6.54706 15.7628 6.23489C15.4507 5.92273 14.9243 5.92273 14.6182 6.22877L11.0008 9.84621L7.3772 6.22877C7.0834 5.92885 6.54476 5.91661 6.23259 6.23489C5.92043 6.54706 5.92655 7.0857 6.22647 7.3795L9.84392 11.0031L6.22647 14.6205Z" fill="#3C3C43" fill-opacity="0.6"/>
+</g>
+<defs>
+<clipPath id="bgblur_0_0_6_clip_path" transform="translate(54.3656 54.3656)"><rect width="22" height="22" rx="11"/>
+</clipPath></defs>
+</svg>
